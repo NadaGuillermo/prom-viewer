@@ -19,5 +19,12 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    resolve: {
+      alias: {
+        '@components': resolve(__dirname, 'src/components'),
+        '@utils': resolve(__dirname, 'src/utils'),
+      },
+    },
+
   },
 ])
