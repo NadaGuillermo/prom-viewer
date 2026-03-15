@@ -1,40 +1,14 @@
-export interface MatrixItem {
-  id: string;
-  label: string;
-  values: number[]; // one value per column
-}
-
-export interface MatrixDimension {
-  id: string;
-  label: string;
-  items: MatrixItem[];
-  /** Aggregate value shown when the dimension is collapsed (one per column). */
-  dimensionValues: number[];
-}
-
-export interface CollapsibleMatrixProps {
-  dimensions: MatrixDimension[];
-  columns: string[];
-  allRowsExpanded: boolean;
-}
-
-interface RowMeta {
-  rowIndex: number;
-  dimensionId: string;
-  isDimension: boolean;
-  itemId?: string;
-  label: string;
-}
+import type { Visualization } from "@customTypes/visualization";
 
 export const buildRows = (
-  dimensions: MatrixDimension[],
+  dimensions: Visualization.MatrixDimension[],
   expanded: Set<string>,
-): RowMeta[] => {
-  let rows: RowMeta[] = [];
+): Visualization.RowMeta[] => {
+  let rows: Visualization.RowMeta[] = [];
   let rowIndex = 0;
 
   for (const dim of dimensions) {
-    let dimensionRows: RowMeta[] = [];
+    let dimensionRows: Visualization.RowMeta[] = [];
     const startIndex = rowIndex;
 
     dimensionRows.push({
@@ -76,8 +50,8 @@ export const buildRows = (
 }
 
 export const buildSeriesData = (
-  dimensions: MatrixDimension[],
-  rows: RowMeta[],
+  dimensions: Visualization.MatrixDimension[],
+  rows: Visualization.RowMeta[],
   columns: string[],
 ): [number, number, number][] => {
   const dimMap = new Map(dimensions.map((d) => [d.id, d]));

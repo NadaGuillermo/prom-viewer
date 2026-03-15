@@ -1,5 +1,5 @@
 import React from "react";
-import "src/style.css";
+import "@styles/style.css";
 
 
 const Collapsable = ({ title, children }: { title: string; children: React.ReactNode }) => {

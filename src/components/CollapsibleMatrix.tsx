@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { ECharts } from "echarts/core";
-import { buildRows, buildSeriesData, type MatrixDimension, type CollapsibleMatrixProps} from "@utils/matrixHelpers";
-import { ReactEChartsWrapper, type EChartsOption } from "@utils/ReactEChartsWrapper";
+import {
+  buildRows,
+  buildSeriesData,
+} from "@utils/matrixHelpers";
+import { ReactEChartsWrapper } from "@utils/ReactEChartsWrapper";
+import type { Visualization } from "@customTypes/visualization";
 
 const CELL_SIZE = 80;
 // const LABEL_WIDTH = 160;
@@ -13,10 +17,10 @@ export const CollapsibleMatrix = ({
   dimensions,
   columns,
   allRowsExpanded,
-}: CollapsibleMatrixProps) => {
+}: Visualization.CollapsibleMatrixProps) => {
   const instanceRef = useRef<ECharts | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [option, setOption] = useState<EChartsOption>({});
+  const [option, setOption] = useState<Visualization.EChartsOption>({});
   const [chartHeight, setChartHeight] = useState<number>(0);
 
   // Use refs to keep latest values for click handler
@@ -32,7 +36,7 @@ export const CollapsibleMatrix = ({
 
   const collapseAllRows = useCallback(() => {
     setExpanded(new Set());
-  },[])
+  }, []);
 
   const toggle = useCallback((dimId: string) => {
     setExpanded((prev) => {
@@ -55,7 +59,7 @@ export const CollapsibleMatrix = ({
 
     setChartHeight(rows.length * CELL_SIZE);
 
-    const newOption: EChartsOption = {
+    const newOption: Visualization.EChartsOption = {
       animation: false,
       grid: {
         show: true,
@@ -212,10 +216,12 @@ export interface CollapsibleMatrixDemoProps {
   allExpanded: boolean;
 }
 
-export const CollapsibleMatrixDemo = ({allExpanded}: CollapsibleMatrixDemoProps) => {
+export const CollapsibleMatrixDemo = ({
+  allExpanded,
+}: CollapsibleMatrixDemoProps) => {
   const columns = ["08.08.2025", "08.09.2025", "08.10.2025", "08.11.2025"];
   const allRowsExpanded = allExpanded;
-  const dimensions: MatrixDimension[] = [
+  const dimensions: Visualization.MatrixDimension[] = [
     {
       id: "dim1",
       label: "Dim 1",
@@ -272,5 +278,11 @@ export const CollapsibleMatrixDemo = ({allExpanded}: CollapsibleMatrixDemoProps)
     },
   ];
 
-  return <CollapsibleMatrix dimensions={dimensions} columns={columns} allRowsExpanded={allRowsExpanded}/>;
+  return (
+    <CollapsibleMatrix
+      dimensions={dimensions}
+      columns={columns}
+      allRowsExpanded={allRowsExpanded}
+    />
+  );
 };

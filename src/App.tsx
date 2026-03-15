@@ -1,19 +1,44 @@
-import "./style.css";
-import { useState } from "react";
-import LineChart from "@components/charts/LineChart";
-import Header from "@components/layout/Header";
-import Footer from "@components/layout/Footer";
-import { BarChart } from "@components/charts/BarChart";
-import Matrix from "@components/charts/Matrix";
-import { ExpandableMatrixDemo } from "@components/charts/ExpandableMatrix";
-import { CollapsibleMatrixDemo } from "@components/charts/CollapsibleMatrix";
+import "@styles/style.css";
+import { useState, useMemo } from "react";
+import LineChart from "@components/LineChart";
+import Header from "src/layouts/Header";
+import Footer from "src/layouts/Footer";
+import { BarChart } from "@components/BarChart";
+import Matrix from "@components/Matrix";
+import { ExpandableMatrixDemo } from "@components/ExpandableMatrix";
+import { CollapsibleMatrixDemo } from "@components/CollapsibleMatrix";
+import { createChartData } from "@utils/dataTransformation";
+
+import { mockPatient } from "./mock/mockPatient";
+import type { Visualization } from "@customTypes/visualization";
+
 
 function App() {
   const [showItemDetails, setShowItemDetails] = useState(false);
   const [expandAll, setExpandAll] = useState(false);
+  const [showScoreChart, setShowScoreChart] = useState(true);
 
   const toggleItemsDetails = () => setShowItemDetails((prev) => !prev);
   const toggleExpandAll = () => setExpandAll((prev) => !prev);
+
+  const scoreChartTitle = "Scores";
+
+  const chartData = useMemo(() => 
+    createChartData(mockPatient.proms), [mockPatient.proms]
+  );
+  const chartXData = chartData.xData;
+  const chartScoreData = chartData.yScoreData?.map((score) => {
+    return {
+      name: score.name,
+      data: score.data
+    } as Visualization.DataSeries
+  });
+  const chartItemsData  = chartData.yItemsData;
+
+  if ( chartScoreData === undefined) {
+    setShowScoreChart(false);
+  }
+
 
   return (
     <div className="tw:@container">
@@ -45,7 +70,10 @@ function App() {
           </div>
           <div className="tw:divider"/>
           <div className="tw:flex-1 tw:item-center tw:py-4">
-            <LineChart />
+            { showScoreChart && chartScoreData && <LineChart 
+              title={scoreChartTitle} 
+              xData={chartXData} 
+              yData={chartScoreData} /> }
           </div>
           <div className="tw:divider"/>
           <div className="tw:flex-1 tw:item-center tw:py-4">

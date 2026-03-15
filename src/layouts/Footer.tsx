@@ -1,4 +1,4 @@
-import "src/style.css";
+import "@styles/style.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faGithub } from "@fortawesome/free-brands-svg-icons/faGithub";
