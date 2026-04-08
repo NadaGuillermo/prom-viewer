@@ -39,15 +39,18 @@
 /** Title */
 interface TitleProps {
     text?: string;
+    subtext?: string;
     // padding?: number | number[];
 }
 
 export const Title = ({
     text = '',
+    subtext = '',
     // padding = [10, 5, 10, 5],
 }: TitleProps) => {
     return {
         text,
+        subtext,
         // padding,
     }
 

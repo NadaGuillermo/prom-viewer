@@ -2,220 +2,337 @@ import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 import _ from "lodash";
 import type { PromData } from "@customTypes/promData";
 import type { Visualization } from "@customTypes/visualization";
-
-const normalizeValue = (
-  value: number,
-  minValue: number,
-  maxValue: number,
-) => {
-  if (minValue === maxValue) {
-    return value;
-  }
-  if (value < minValue) {
-    return 0;
-  }
-  if (value > maxValue) {
-    return 1;
-  }
-  if (minValue < 0) {
-    minValue = 0;
-  }
-  return (value - minValue) / (maxValue - minValue);
-};
-
-const normalizeScoresOfQuestionnaireResponses = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>) => {
-  const originalAndNormalizedScoreValues: Record<string, Visualization.OriginalAndNormalizedScore> = {};
-  const questionnaireResponsesArrayWithNormalizedScores = Object.entries(questionnaireResponses).map(([key, questionnaireResponse]) => {
-    if (questionnaireResponse.scoreValue !== undefined && questionnaireResponse.questionnaire.score !== undefined) {
-      const normalizedScore = Number(normalizeValue(
-          questionnaireResponse.scoreValue,
-          questionnaireResponse.questionnaire.score.minValue,
-          questionnaireResponse.questionnaire.score.maxValue,
-        ).toFixed(3));
-      const originalScore = questionnaireResponse.scoreValue;
-      originalAndNormalizedScoreValues[questionnaireResponse.id] = {
-        originalScore: originalScore,
-        normalizedScore: normalizedScore,
-      };
-      return { questionnaireResponseKey: key, 
-        normalizedQuestionnaireResponse: {
-        ...questionnaireResponse,
-        scoreValue: normalizedScore,
-      } as PromData.QuestionnaireResponse };
-    }
-  });
-
-  let questionnaireResponsesWithNormalizedScores: Record<string, PromData.QuestionnaireResponse> = {};
-  questionnaireResponsesArrayWithNormalizedScores.forEach((questionnaireResponse) => {
-    if (questionnaireResponse === undefined) {
-      return;
-    }
-    questionnaireResponsesWithNormalizedScores[questionnaireResponse.questionnaireResponseKey] = questionnaireResponse.normalizedQuestionnaireResponse;
-  });
-
-
-  return { questionnaireResponsesWithNormalizedScores: questionnaireResponsesWithNormalizedScores, scoreRecord: originalAndNormalizedScoreValues};
-
-}
-
-const sortQuestionnaireResponsesByDate = (
-  questionnaireResponses: PromData.QuestionnaireResponse[]
-) => {
-  return questionnaireResponses.sort((a, b) => {
-    const aDate = new Date(a.authored);
-    const bDate = new Date(b.authored);
-    return aDate.getTime() - bDate.getTime();
-  });
-};
-
-// 1
-const createCommonTimeAxis = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>) => {
-   const allQuestionnaireResponseDates = Object.keys(questionnaireResponses).map((key) => {
-    return questionnaireResponses[key].authored;
-  });
-  const allDates = [...new Set(allQuestionnaireResponseDates)];
-  allDates.sort();
-
-  return allDates;
-}
-
-// 2
-const groupQuestionnaireResponsesByQuestionnaire = (
-  questionnaireResponses: Record<string, PromData.QuestionnaireResponse>,
-) => {
-  const questionnaireResponsesGroupedByQuestionnaire = _.groupBy(questionnaireResponses, questionnaireResponse => questionnaireResponse.questionnaire.id);
-  return questionnaireResponsesGroupedByQuestionnaire;
-};
-
-// 3
-const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (questionnaireResponses: _.Dictionary<PromData.QuestionnaireResponse[]>, commonTimeAxisDates: Domains.DateFormat[]) => {
-    
-  const groupedQuestionnaireResponses = questionnaireResponses;
-
-  Object.keys(groupedQuestionnaireResponses).forEach((key) => {
-    const questionnaireDates = groupedQuestionnaireResponses[key].map((questionnaireResponse) => {
-      return questionnaireResponse.authored;
-    });
-
-    const datesNotInQuestionnaireResponses = _.difference(commonTimeAxisDates, questionnaireDates);
-    
-    datesNotInQuestionnaireResponses.forEach((date) => {
-      const nullItems = _.cloneDeep(groupedQuestionnaireResponses[key][0].items);
-      Object.values(nullItems).forEach((item) => {
-        item.answer = null;
-      });
-
-      const nullQuestionnaireResponse: PromData.QuestionnaireResponse = {
-        id: `null-${groupedQuestionnaireResponses[key][0].questionnaire.name}-${date}`,
-        questionnaire: groupedQuestionnaireResponses[key][0].questionnaire,
-        authored: date,
-        items: nullItems,
-      };
-      groupedQuestionnaireResponses[key].push(nullQuestionnaireResponse);    
-    })
-
-    // sort questionnaireResponses
-    const sortedQuestionnaireResponses = sortQuestionnaireResponsesByDate(groupedQuestionnaireResponses[key]);
-    groupedQuestionnaireResponses[key] = sortedQuestionnaireResponses;
-  });
-
-  return groupedQuestionnaireResponses;
-}
+import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS } from "@utils/constants";
+import { 
+  addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate, 
+  createCommonTimeAxis, 
+  groupQuestionnaireResponsesByQuestionnaireId, 
+  normalizeValue, 
+  isQuestionnaireScoreItem,
+  getMinAndMaxAnswerOptionValueForItem,
+  calculateRadarChartValue,
+} from "@utils/helpers";
 
 
 export const createChartData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>) => {
   const xData = createCommonTimeAxis(questionnaireResponses);
 
-  const {questionnaireResponsesWithNormalizedScores, scoreRecord} = normalizeScoresOfQuestionnaireResponses(questionnaireResponses);
-
-  const groupedQuestionnaireResponses = groupQuestionnaireResponsesByQuestionnaire(questionnaireResponsesWithNormalizedScores);
+  // group questionnaireResponses by questionnaire Id -> one dataseries
+  const groupedQuestionnaireResponses = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
   const groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses = addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate(groupedQuestionnaireResponses, xData);
 
-  // convert to ChartData format
+  // convert into DataSeries
+  const yData = Object.values(groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses).flatMap((questionnaireResponses) => {
+    const dataSeriesOfQuestionnaire: Visualization.DataSeries[] = [];
+    const itemKeys = questionnaireResponses.flatMap((response) => {
+      return Object.keys(response.items);
+    });
+    const uniqueItemKeys = [...new Set(itemKeys)];
+    uniqueItemKeys.forEach((linkId) => {
+      const data: Domains.NumberOrNull[] = [];
+      const originalData: Domains.NumberOrNull[] = [];
+      const dataLabels: string[] = [];
+      questionnaireResponses.forEach((questionnaireResponse) => {
+        const responseItem = questionnaireResponse.items[linkId];
+        originalData.push(responseItem.answer);
+        // normlize everything
+        console.log("questionnaireItem: ", questionnaireResponse.questionnaire.items[linkId])
+        if (responseItem.answer !== null) {
+          const questionnaireItem = questionnaireResponse.questionnaire.items[linkId];
+          // scores
+          if (isQuestionnaireScoreItem(questionnaireItem)) {
+            const [min, max] = questionnaireItem.range;
+            // check if decreasing score health correlation
+            if (questionnaireItem.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease) {
+              const originalNormalizedValue = normalizeValue(responseItem.answer, min, max);
+              const adjustedNormalizedValue = 1 - originalNormalizedValue;
+              data.push(Number(adjustedNormalizedValue.toFixed(3)));
+            } else { // increasing score health correlation
+              data.push(Number(normalizeValue(responseItem.answer, min, max).toFixed(3)));
+            }
+            dataLabels.push("");
+            
+          } else { // items
+            const [min, max] = getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
+            data.push(Number(normalizeValue(responseItem.answer, min, max).toFixed(3)));
+            dataLabels.push(questionnaireItem.answerOptions.find((answerOption) => {
+              return answerOption.value === responseItem.answer;
+            })?.label ?? "");
+          }
+        } else { // do not normalize null values
+          data.push(responseItem.answer);
+          dataLabels.push("");
+        }
+      });
+      let seriesType: Domains.ItemType;
+      const questionnaireItem = questionnaireResponses[0].questionnaire.items[linkId];
+      // console.log("questionnaireItem: ", questionnaireItem)
+      // console.log(isQuestionnaireScoreItem(questionnaireItem))
+      // console.log(isDimensionScoreItem(questionnaireItem))
+      if (isQuestionnaireScoreItem(questionnaireItem)) {
+        seriesType = ITEM_TYPES.score;
+      } else {
+        seriesType = ITEM_TYPES.item;
+      }
 
-  const yScoreData = Object.keys(groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses).map((key) => {
-    return createScoreDataSeries(groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses[key], scoreRecord);
+      let referencedItems: string[] | undefined = undefined;
+      if (isQuestionnaireScoreItem(questionnaireItem)) {
+        if (questionnaireItem.referenceQuestionnaireItems !== undefined) {
+        referencedItems = questionnaireItem.referenceQuestionnaireItems;
+        }
+      }
+
+      dataSeriesOfQuestionnaire.push({
+        id: linkId,
+        name: questionnaireResponses[0].questionnaire.items[linkId].text,
+        data: data,
+        originalData: originalData,
+        dataLabels: dataLabels,
+        seriesType: seriesType,
+        dimension: questionnaireResponses[0].questionnaire.items[linkId].dimension,
+        questionnaire: questionnaireResponses[0].questionnaire.id,
+        questionnaireName: questionnaireResponses[0].questionnaire.name,
+        referencedItems: referencedItems,
+      })
+    });
+    return dataSeriesOfQuestionnaire;
   });
-
-  const yItemsDataGroupedByQuestionnaire = Object.keys(groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses).map((key) => {
-    return createItemsDataSeries(groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses[key]);
-  });
-
-  const yItemsData = yItemsDataGroupedByQuestionnaire.flat();
   
   return {
     xData: xData,
-    yScoreData: yScoreData,
-    yItemsData: yItemsData,
+    yData: yData,
   } as Visualization.ChartData;
 
 };
 
-const createScoreDataSeries = (
-  questionnaireResponses: PromData.QuestionnaireResponse[],
-  scoreRecord: Record<string, Visualization.OriginalAndNormalizedScore>
-) => {
-  const name = questionnaireResponses[0].questionnaire.score?.name ?? "";
-    const data = questionnaireResponses.map((questionnaireResponse) => {
-      return questionnaireResponse.scoreValue?? null;
-    });
-    const correspondingQuestionnaireResponses = questionnaireResponses.map((responses) => {
-      return responses.id;
-    });
-    const correspondingScoreRecordKeys = Object.keys(scoreRecord).filter((questionnaireKey) => {
-      correspondingQuestionnaireResponses.includes(questionnaireKey);
-    });
-    const originalScores = correspondingScoreRecordKeys.map((key) => {
-      return scoreRecord[key].originalScore;
-    });
-    return {
-      name: name,
-      data: data,
-      originalScores: originalScores,
-    } as Visualization.ScoreDataSeries;
-}
+export const createRadarData = (chartData: Visualization.ChartData) => {
+  // for every date calculate dataseries (one value per dimension)
+  const dimensions = [...new Set(chartData.yData.map((dataSeries) => {
+    return dataSeries.dimension;
+  }))];
 
-/** Group and join items of multiple QuestionnaireResponse instances of a Questionnaire as DataSeries */
-const createItemsDataSeries = (
-  questionnaireResponses: PromData.QuestionnaireResponse[]
-) => {
+  // filter dimension Other
+  dimensions.splice(dimensions.indexOf("Other"), 1);
 
-  const allItemLinkIds = questionnaireResponses.map(
-    (questionnaireResponse) => {
-      const itemValues = Object.values(questionnaireResponse.items);
-      const questionnaireItemLinkIds = itemValues.map((itemValue) => {
-        return itemValue.linkId;
+
+  const xData: string[] = chartData.xData;
+  const yData: Visualization.DataSeries[] = [];
+  
+
+  
+     dimensions.forEach((dimension) => {
+        const dimensionDataSeries = chartData.yData.filter((dataSeries) => {
+          // TODO: Besser filtern
+         return dataSeries.dimension === dimension;// && dataSeries.seriesType === ITEM_TYPEs.score;
+        });
+        console.log("dimensionDataSeries: ", dimension, ": ", dimensionDataSeries)
+      const dimensionData = dimensionDataSeries.map(dataSeries => dataSeries.data); // oder originalData
+      const data: Domains.NumberOrNull[] = [];
+      xData.forEach((_, index) => {
+        const dimensionDataForOneDate = dimensionData.map(data => data[index]);
+        const dimensionValue = calculateRadarChartValue(dimensionDataForOneDate);
+        data.push(dimensionValue);
       });
-      return questionnaireItemLinkIds;
-    },
-  );
-
-  const allItemLinkIdsFlattened = allItemLinkIds.flat();
-
-  const uniqueQuestionnaireItemLinkIds = [...new Set(allItemLinkIdsFlattened)];
-
-  const itemsDataSeries: Visualization.DataSeries[] = Array(
-    uniqueQuestionnaireItemLinkIds.length,
-  );
-
-  uniqueQuestionnaireItemLinkIds.forEach((itemLinkId, index) => {
-    const itemValuesOfAllQuestionnaireResponses: PromData.AnswerValue[] = [];
-    questionnaireResponses.forEach((questionnaireResponse) => {
-      const itemValues = Object.values(questionnaireResponse.items);
-      const itemValueForItemWithLinkId = itemValues.find((itemValue) => {
-        return itemValue.linkId === itemLinkId;
+      //return dimensionValue;
+      yData.push({
+        id: dimension,
+        name: dimension,
+        data: data,
+        originalData: data,
+        dataLabels: [],
+        seriesType: ITEM_TYPES.score,
+        dimension: dimension,
+        questionnaire: "",
+        questionnaireName: "",
       });
-      itemValuesOfAllQuestionnaireResponses.push(
-        itemValueForItemWithLinkId === undefined
-          ? null
-          : itemValueForItemWithLinkId.answer,
-      );
-    });
-    itemsDataSeries[index] = {
-      name: itemLinkId,
-      data: itemValuesOfAllQuestionnaireResponses,
-    };
   });
-
-  return itemsDataSeries;
+  
+  return {
+    xData: xData,
+    yData: yData,
+  } as Visualization.ChartData;
 };
+
+
+
+// const createScoreDataSeries = (
+//   questionnaireResponses: PromData.QuestionnaireResponse[],
+//   scoreRecord: Record<string, Visualization.OriginalAndNormalizedScore>
+// ) => {
+//   const name = questionnaireResponses[0].questionnaire.score?.name ?? "";
+//     const data = questionnaireResponses.map((questionnaireResponse) => {
+//       return questionnaireResponse.scoreValue?? null;
+//     });
+//     const correspondingQuestionnaireResponses = questionnaireResponses.map((responses) => {
+//       return responses.id;
+//     });
+//     const correspondingScoreRecordKeys = Object.keys(scoreRecord).filter((questionnaireKey) => {
+//       return correspondingQuestionnaireResponses.includes(questionnaireKey);
+//     });
+//     const originalScores = correspondingScoreRecordKeys.map((key) => {
+//       return scoreRecord[key].originalScore;
+//     });
+//     return {
+//       id: name,
+//       name: name,
+//       data: data,
+//       originalData: originalScores,
+//     } as Visualization.DataSeries;
+// }
+
+// /** Group and join items of multiple QuestionnaireResponse instances of a Questionnaire as DataSeries */
+// const createItemsDataSeries = (
+//   questionnaireResponses: PromData.QuestionnaireResponse[]
+// ) => {
+
+//   const allLinkIds = questionnaireResponses.map(
+//     (questionnaireResponse) => {
+//       const items = Object.values(questionnaireResponse.items);
+//       const itemLinkIds = items.map((item) => {
+//         return item.linkId;
+//       });
+//       return itemLinkIds;
+//     },
+//   );
+
+//   const allLinkIdsFlattened = allLinkIds.flat();
+
+//   const uniqueLinkIds = [...new Set(allLinkIdsFlattened)];
+
+//   const itemsDataSeries: Visualization.DataSeries[] = Array(
+//     uniqueLinkIds.length,
+//   );
+
+//   uniqueLinkIds.forEach((linkId, index) => {
+//     const originalAnswersForItemOfAllQuestionnaireResponses: PromData.AnswerValue[] = [];
+//     const normalizedAnswersForItemOfAllQuestionnaireResponses: PromData.AnswerValue[] = [];
+//     let correspondingQuestionnaireItemLabel: string = "";
+
+//     questionnaireResponses.forEach((questionnaireResponse) => {
+//       const responseItems = Object.values(questionnaireResponse.items);
+//       const responseItemWithRightLinkId = responseItems.find((item) => {
+//         return item.linkId === linkId;
+//       });
+//       correspondingQuestionnaireItemLabel = questionnaireResponse.questionnaire.items[linkId]?.text ?? "";
+//       originalAnswersForItemOfAllQuestionnaireResponses.push(
+//         responseItemWithRightLinkId === undefined
+//           ? null
+//           : responseItemWithRightLinkId.answer,
+//       );
+//       const minAndMaxAnswerOptionValue = getMinAndMaxAnswerOptionValueForItem(questionnaireResponse.questionnaire.items[linkId]);
+//       const normalizedAnswer = responseItemWithRightLinkId !== undefined && responseItemWithRightLinkId.answer !== null ? Number(normalizeValue(
+//         responseItemWithRightLinkId.answer,
+//         minAndMaxAnswerOptionValue.minValue,
+//         minAndMaxAnswerOptionValue.maxValue,
+//       ).toFixed(3)) : null;
+
+//       normalizedAnswersForItemOfAllQuestionnaireResponses.push(
+//         normalizedAnswer
+//         );
+//     });
+    
+//     itemsDataSeries[index] = {
+//       id: linkId,
+//       name: correspondingQuestionnaireItemLabel,
+//       data: normalizedAnswersForItemOfAllQuestionnaireResponses,
+//       originalData: originalAnswersForItemOfAllQuestionnaireResponses,
+//     };
+//   });
+
+//   return itemsDataSeries;
+// };
+
+// export const createMatrixData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>, data: Visualization.DataSeries[]) => {
+//   const chartScoreData = data.filter(dataseries => 
+//     dataseries.seriesType === "questionnaireScore"
+//   );
+//   const chartItemsData = data.filter(dataseries => 
+//     dataseries.seriesType === "item"
+//   );
+//   const chartDimensionScoreData = data.filter(dataseries =>
+//     dataseries.seriesType === "dimensionScore"
+//   );
+
+  
+//   const questionnaireResponsesGroupedByQuestionnaireId = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
+//   const questionnaireIds = Object.keys(questionnaireResponsesGroupedByQuestionnaireId);
+//   const matrixData: Record<string, Visualization.DataSeries[]> = {}; // key = questionnaire name
+
+//   for (let id of questionnaireIds) {
+//     const correspondingScore = scoreData?.find((scoreDataSeries) => {
+//       return scoreDataSeries.name === questionnaireResponsesGroupedByQuestionnaireId[id][0].questionnaire.score?.name;
+//     });
+//     const correspondingItems = itemsData.filter((itemsDataSeries) => {
+//       return questionnaireResponsesGroupedByQuestionnaireId[id][0].questionnaire.items[itemsDataSeries.id] !== undefined;
+//     });
+//     if (correspondingScore) {
+//       correspondingItems.unshift(correspondingScore);
+//     }
+//     const questionnaireName = questionnaireResponsesGroupedByQuestionnaireId[id][0].questionnaire.name;
+//     matrixData[questionnaireName] = [...correspondingItems];
+//   }
+
+//   return matrixData;
+// }
+
+// export const createMatrixDimensionsData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>, itemsData: Visualization.DataSeries[], scoreData?: Visualization.DataSeries[],) => {
+//   const questionnaireResponsesGroupedByQuestionnaireId = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
+//   const matrixDimensions: Visualization.MatrixDimension[] = [];
+  
+//   Object.entries(questionnaireResponsesGroupedByQuestionnaireId).forEach(([key, responses]) => {
+//     const scoreDataIndex = scoreData?.findIndex((scoreDataSeries) => {
+//       for (let i = 0; i < responses.length; i++) {
+//        if (scoreDataSeries.name === responses[i].questionnaire.score?.name) {
+//         return true;
+//        }
+//       }
+//       return false;
+//     });
+//     matrixDimensions.push({
+//       id: "dimension-" + key, // key = questionnaire.id
+//       name: responses.filter((response) => response.questionnaire.id === key)[0].questionnaire.name, // name = questionnaire.name
+//       questionnaire: responses.filter((response) => response.questionnaire.id === key)[0].questionnaire, // questionnaireResponse.questionnaire
+//       dimensionValues: scoreData !== undefined && scoreDataIndex !== undefined ? scoreData[scoreDataIndex].data : [], // normalisierte Daten!
+//       items: createItemsBelongingToOneQuestionnaireForMatrixRow(responses, itemsData),
+//     })
+//   });
+//   return matrixDimensions;
+// };
+
+// // questionnaireResponses for one questionnaire
+// const createItemsBelongingToOneQuestionnaireForMatrixRow = (questionnaireResponses: PromData.QuestionnaireResponse[], itemsData: Visualization.DataSeries[]) => {
+//   const items: Record<string, Domains.NumberOrNull[]> = {};
+//   const itemKeys = questionnaireResponses.map((response) => {
+//     return Object.keys(response.items);
+//   }).flat();
+//   const uniqueItemKeys = [...new Set(itemKeys)];
+
+//   const itemKeyLabelRecord: Record<string, string> = {};
+
+//   questionnaireResponses.forEach((response) => {
+//     const keyLabelsArray = Object.values(response.items).map((responseItem) => {
+//       const linkId = responseItem.linkId;
+//       const label = response.questionnaire.items[linkId]?.text ?? "";
+//       return [linkId, label];
+//     });
+//     const uniqueKeyLabelsArray = [...new Set(keyLabelsArray)];
+//     uniqueKeyLabelsArray.forEach((keyLabel) => {
+//       itemKeyLabelRecord[keyLabel[0]] = keyLabel[1];
+//     });
+//   });
+    
+//   const itemsForQuestionnaire = itemsData.filter((itemsDataSeries) => {
+//     return Object.values(itemKeyLabelRecord).includes(itemsDataSeries.name);
+//   });
+
+//   uniqueItemKeys.forEach((key) => {
+//     const correspondingItemLabel = itemKeyLabelRecord[key];
+//     const correspondingItemForQuestionnaire = itemsForQuestionnaire.find((item) => {
+//       return item.name === correspondingItemLabel;
+//     });
+
+//     items[key] = correspondingItemForQuestionnaire?.data ?? [];
+//   });
+//   return items;
+// };
+

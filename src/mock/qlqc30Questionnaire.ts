@@ -1,0 +1,512 @@
+import type {  PromData } from "@customTypes/promData";
+
+const qlqc30Questionnaire: PromData.Questionnaire = {
+  id: "qlq-c30",
+  name: "QLQ-C30",
+  url: "https://example.com/qlq-c30",
+  items: {
+    "qlq-c30-q01": {
+      linkId: "qlq-c30-q01",
+      text: "Do you have any trouble doing strenuous activities, like carrying a heavy shopping bag or a suitcase?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q02": {
+      linkId: "qlq-c30-q02",
+      text: "Do you have any trouble taking a long walk?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q03": {
+      linkId: "qlq-c30-q03",
+      text: "Do you have any trouble taking a short walk outside of the house?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q04": {
+      linkId: "qlq-c30-q04",
+      text: "Do you need to stay in bed or a chair during the day?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q05": {
+      linkId: "qlq-c30-q05",
+      text: "Do you need help with eating, dressing, washing yourself or using the toilet?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q06": {
+      linkId: "qlq-c30-q06",
+      text: "Were you limited in doing either your work or other daily activities?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q07": {
+      linkId: "qlq-c30-q07",
+      text: "Were you limited in pursuing your hobbies or other leisure time activities?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Physical Function"
+    },
+    "qlq-c30-q08": {
+      linkId: "qlq-c30-q09",
+      text: "Were you short of breath?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q09": {
+      linkId: "qlq-c30-q09",
+      text: "Have you had pain?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q10": {
+      linkId: "qlq-c30-q10",
+      text: "Did you need to rest?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q11": {
+      linkId: "qlq-c30-q11",
+      text: "Have you had trouble sleeping?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q12": {
+      linkId: "qlq-c30-q12",
+      text: "Have you felt weak?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q13": {
+      linkId: "qlq-c30-q13",
+      text: "Have you lacked appetite?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q14": {
+      linkId: "qlq-c30-q14",
+      text: "Have you felt nauseated?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q15": {
+      linkId: "qlq-c30-q15",
+      text: "Have you vomited?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q16": {
+      linkId: "qlq-c30-q16",
+      text: "Have you been constipated?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q17": {
+      linkId: "qlq-c30-q17",
+      text: "Have you had diarrhea?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q18": {
+      linkId: "qlq-c30-q18",
+      text: "Were you tired?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q19": {
+      linkId: "qlq-c30-q19",
+      text: "Did pain interfere with your daily activities?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q20": {
+      linkId: "qlq-c30-q20",
+      text: "Have you had difficulty in concentrating on things, like reading a newspaper or watching television?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q21": {
+      linkId: "qlq-c30-q21",
+      text: "Did you feel tense?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Emotional Well-being"
+    },
+    "qlq-c30-q22": {
+      linkId: "qlq-c30-q22",
+      text: "Did you worry?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Emotional Well-being"
+    },
+    "qlq-c30-q23": {
+      linkId: "qlq-c30-q23",
+      text: "Did you feel irritable?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Emotional Well-being"
+    },
+    "qlq-c30-q24": {
+      linkId: "qlq-c30-q24",
+      text: "Did you feel depressed?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Emotional Well-being"
+    },
+    "qlq-c30-q25": {
+      linkId: "qlq-c30-q25",
+      text: "Have you had difficulty remembering things?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Symptoms"
+    },
+    "qlq-c30-q26": {
+      linkId: "qlq-c30-q26",
+      text: "Has your physical condition or medical treatment interfered with your family life?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Social Function"
+    },
+    "qlq-c30-q27": {
+      linkId: "qlq-c30-q27",
+      text: "Has your physical condition or medical treatment interfered with your social activities?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Social Function"
+    },
+    "qlq-c30-q28": {
+      linkId: "qlq-c30-q28",
+      text: "Has your physical condition or medical treatment caused you financial difficulties?",
+      answerOptions: [
+        { value: 1, label: "Not at all" },
+        { value: 2, label: "A little" },
+        { value: 3, label: "Quite a bit"},
+        { value: 4, label: "Very much"},
+      ],
+      dimension: "Other"
+    },
+    "qlq-c30-q29": {
+      linkId: "qlq-c30-q29",
+      text: "How would you rate your overall health during the past week?",
+      answerOptions: [
+        { value: 1, label: "Very poor" },
+        { value: 2, label: "Poor" },
+        { value: 3, label: "Fair"},
+        { value: 4, label: "Good"},
+        { value: 5, label: "Very good"},
+        { value: 6, label: "Excellent"},
+        { value: 7, label: "Perfect"},
+      ],
+      dimension: "Overall Health/Quality of Life"
+    },
+    "qlq-c30-q30": {
+      linkId: "qlq-c30-q30",
+      text: "How would you rate your overall quality of life during the past week?",
+      answerOptions: [
+        { value: 1, label: "Very poor" },
+        { value: 2, label: "Poor" },
+        { value: 3, label: "Fair"},
+        { value: 4, label: "Good"},
+        { value: 5, label: "Very good"},
+        { value: 6, label: "Excellent"},
+        { value: 7, label: "Perfect"},
+      ],
+      dimension: "Overall Health/Quality of Life"
+    },
+    "score-pf": {
+      linkId: "score-pf",
+      text: "Physical Functioning Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Physical Function",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q01",
+        "qlq-c30-q02",
+        "qlq-c30-q03",
+        "qlq-c30-q04",
+        "qlq-c30-q05",
+      ],
+    },
+    "score-rf": {
+      linkId: "score-rf",
+      text: "Role Functioning Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Physical Function",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q06",
+        "qlq-c30-q07",
+      ],
+    },
+    "score-ef": {
+      linkId: "score-ef",
+      text: "Emotional Functioning Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Emotional Well-being",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q21",
+        "qlq-c30-q22",
+        "qlq-c30-q23",
+        "qlq-c30-q24",
+      ],
+    },
+     "score-cf": {
+      linkId: "score-cf",
+      text: "Cognitive Functioning Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q20",
+        "qlq-c30-q25",
+      ],
+    },
+     "score-sf": {
+      linkId: "score-sf",
+      text: "Social Function Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Social Function",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q26",
+        "qlq-c30-q27",
+      ],
+    },
+     "score-fa": {
+      linkId: "score-fa",
+      text: "Fatigue Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "decrease",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q10",
+        "qlq-c30-q12",
+        "qlq-c30-q18",
+      ],
+    },
+     "score-nv": {
+      linkId: "score-nv",
+      text: "Nausea and Vomiting Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "decrease",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q14",
+        "qlq-c30-q15",
+      ],
+    },
+     "score-pa": {
+      linkId: "score-ap",
+      text: "Pain Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "decrease",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q09",
+        "qlq-c30-q19",
+      ],
+    },
+     "score-dy": {
+      linkId: "score-dy",
+      text: "Dyspnoea Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q08",
+      ],
+    },
+     "score-sl": {
+      linkId: "score-sl",
+      text: "Insomnia Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q11",
+      ],
+    },
+    "score-ap": {
+      linkId: "score-ap",
+      text: "Appetite Loss Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q13",
+      ],
+    },
+    "score-co": {
+      linkId: "score-co",
+      text: "Constipation Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q16",
+      ],
+    },
+    "score-di": {
+      linkId: "score-di",
+      text: "Diarrhoea Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Symptoms",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q17",
+      ],
+    },
+    "score-fi": {
+      linkId: "score-fi",
+      text: "Financial Difficulties Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Other",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q28",
+      ],
+    },
+    "score-ql": {
+      linkId: "score-ql",
+      text: "Quality of Life Score",
+      range: [0, 100],
+      scoreHealthCorrelation: "increase",
+      dimension: "Overall Health/Quality of Life",
+      referenceQuestionnaireItems: [
+        "qlq-c30-q29",
+        "qlq-c30-q30",
+      ],
+    }, 
+    }
+}
+
+export default qlqc30Questionnaire;

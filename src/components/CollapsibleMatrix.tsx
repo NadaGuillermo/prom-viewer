@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { ECharts } from "echarts/core";
-import {
-  buildRows,
-  buildSeriesData,
-} from "@utils/matrixHelpers";
+import { buildRows, buildSeriesData } from "@utils/helpers";
 import { ReactEChartsWrapper } from "@utils/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
+
+const THRESHOLDS = [0.3, 0.65];
 
 const CELL_SIZE = 80;
 // const LABEL_WIDTH = 160;
@@ -13,7 +12,7 @@ const CELL_SIZE = 80;
 // const CHART_BOTTOM = 20;
 // const CHART_RIGHT = 20;
 
-export const CollapsibleMatrix = ({
+const CollapsibleMatrix = ({
   dimensions,
   columns,
   allRowsExpanded,
@@ -50,6 +49,9 @@ export const CollapsibleMatrix = ({
   useEffect(() => {
     const rows = buildRows(dimensions, expanded);
     const seriesData = buildSeriesData(dimensions, rows, columns);
+    seriesData.forEach((d) => {
+      d[2] === null ? (d[2] = Infinity) : d[2];
+    });
 
     const yLabels = rows.map((r) => {
       const isOpen = r.isDimension && expanded.has(r.dimensionId);
@@ -70,7 +72,7 @@ export const CollapsibleMatrix = ({
         type: "category",
         data: columns,
         splitLine: {
-          show: true,
+          show: false,
         },
         //splitArea: { show: true },
         // axisLabel: {
@@ -110,25 +112,26 @@ export const CollapsibleMatrix = ({
         type: "piecewise",
         pieces: [
           {
-            min: 0.65,
-            label: "Good",
+            min: THRESHOLDS[1],
+            max: 1,
+            label: "Light",
             color: "#80F1BE",
             symbol: "circle",
             symbolSize: 30,
           },
           {
-            min: 0.3,
-            max: 0.65,
-            label: "Mediocre",
+            min: THRESHOLDS[0],
+            max: THRESHOLDS[1],
+            label: "Moderate",
             color: "#fec42c",
             symbol: "rect",
             symbolSize: 30,
           },
           {
-            max: 0.3,
-            label: "Bad",
+            max: THRESHOLDS[0],
+            label: "Severe",
             color: "#FF684A",
-            symbol: "diamond",
+            symbol: "triangle",
             symbolSize: 30,
           },
         ],
@@ -148,7 +151,9 @@ export const CollapsibleMatrix = ({
           },
           label: {
             show: true,
-            formatter: (params: any) => params.value[2].toFixed(2),
+            position: "bottom",
+            formatter: (params: any) =>
+              params.value[2] !== null ? params.value[2].toFixed(2) : "",
           },
         },
       ],
@@ -187,24 +192,21 @@ export const CollapsibleMatrix = ({
     return () => {
       instanceRef.current?.off("click", handleClick);
     };
-  }, [instanceRef.current]); // Run when instance becomes available
+  }, [toggle]); // Re-attach when toggle function changes //instanceRef.current oder toggle
 
   // expand or collapse all
   useEffect(() => {
-    if (!instanceRef.current) {
-      return;
-    }
     if (allRowsExpanded) {
       expandAllRows(dimensions.map((d) => d.id));
     } else {
       collapseAllRows();
     }
-  }, [allRowsExpanded, instanceRef.current]);
+  }, [allRowsExpanded, dimensions, expandAllRows, collapseAllRows]); // allRowsExpanded, instanceRef.current oder dimensions, expandAllRows, collapseAllRows
 
-  // + 100 pixel for legend
+  // + 100 pixel for legend  height: `${chartHeight}px`
   return (
-    <div style={{ width: "100%", height: `${chartHeight + 100}px` }}>
-      <ReactEChartsWrapper ref={instanceRef} option={option} />
+    <div style={{ width: "100%", height: `${chartHeight}px` }}> 
+      <ReactEChartsWrapper ref={instanceRef} option={option}/>
     </div>
   );
 };
@@ -212,77 +214,69 @@ export const CollapsibleMatrix = ({
 export default CollapsibleMatrix;
 
 // ─── Demo usage (remove in production) ───────────────────────────────────────
-export interface CollapsibleMatrixDemoProps {
-  allExpanded: boolean;
-}
+// export interface CollapsibleMatrixDemoProps {
+//   allExpanded: boolean;
+// }
 
-export const CollapsibleMatrixDemo = ({
-  allExpanded,
-}: CollapsibleMatrixDemoProps) => {
-  const columns = ["08.08.2025", "08.09.2025", "08.10.2025", "08.11.2025"];
-  const allRowsExpanded = allExpanded;
-  const dimensions: Visualization.MatrixDimension[] = [
-    {
-      id: "dim1",
-      label: "Dim 1",
-      dimensionValues: [0.82, 0.74, 0.91, 0.88],
-      items: [
-        { id: "item11", label: "Item 1", values: [0.78, 0.7, 0.88, 0.85] },
-        {
-          id: "item12",
-          label: "Item 2",
-          values: [0.86, 0.78, 0.94, 0.91],
-        },
-        {
-          id: "item13",
-          label: "Item 3",
-          values: [0.82, 0.74, 0.91, 0.88],
-        },
-      ],
-    },
-    {
-      id: "dim2",
-      label: "Dim 2",
-      dimensionValues: [0.55, 0.62, 0.48, 0.51],
-      items: [
-        { id: "item21", label: "Item 1", values: [0.6, 0.65, 0.52, 0.55] },
-        { id: "item22", label: "Item 2", values: [0.5, 0.59, 0.44, 0.47] },
-      ],
-    },
-    {
-      id: "dim3",
-      label: "Dim 3",
-      dimensionValues: [0.9, 0.85, 0.93, 0.88],
-      items: [
-        { id: "item31", label: "Item 1", values: [0.92, 0.87, 0.95, 0.9] },
-        { id: "item32", label: "Item 2", values: [0.88, 0.83, 0.91, 0.86] },
-        { id: "item33", label: "Item 3", values: [0.9, 0.85, 0.93, 0.88] },
-      ],
-    },
-    {
-      id: "dim4",
-      label: "Dim 4",
-      dimensionValues: [0.67, 0.71, 0.75, 0.1],
-      items: [
-        {
-          id: "item41",
-          label: "Item 1",
-          values: [0.65, 0.7, 0.74, 0.79],
-        },
-        {
-          id: "item42",
-          label: "Item 2",
-          values: [0.69, 0.72, 0.76, 0.81],
-        },
-      ],
-    },
-  ];
+// export const CollapsibleMatrixDemo = ({
+//   allExpanded,
+// }: CollapsibleMatrixDemoProps) => {
+//   const columns = ["08.08.2025", "08.09.2025", "08.10.2025", "08.11.2025"];
+//   const allRowsExpanded = allExpanded;
+//   const dimensions: Visualization.MatrixDimension[] = [
+//     {
+//       id: "dim1",
+//       name: "Dim 1",
+//       questionnaire: eq5d5lQuestionnaire,
+//       dimensionValues: [0.82, 0.74, 0.91, 0.88],
+//       items: {
+//         "item11": [{linkId: "item11", answer: 1}, {linkId: "item11", answer: 2}, {linkId: "item11", answer: 3}]
 
-  return (
-    <CollapsibleMatrix
-      dimensions={dimensions}
-      columns={columns}
-      allRowsExpanded={allRowsExpanded}
-    />
-  );
-};
+//       }
+//     },
+//     // {
+//     //   id: "dim2",
+//     //   label: "Dim 2",
+//     //   dimensionValues: [0.55, 0.62, 0.48, 0.51],
+//     //   items: [
+//     //     { id: "item21", label: "Item 1", values: [0.6, 0.65, 0.52, 0.55] },
+//     //     { id: "item22", label: "Item 2", values: [0.5, 0.59, 0.44, 0.47] },
+//     //   ],
+//     // },
+//     // {
+//     //   id: "dim3",
+//     //   label: "Dim 3",
+//     //   dimensionValues: [0.9, 0.85, 0.93, 0.88],
+//     //   items: [
+//     //     { id: "item31", label: "Item 1", values: [0.92, 0.87, 0.95, 0.9] },
+//     //     { id: "item32", label: "Item 2", values: [0.88, 0.83, 0.91, 0.86] },
+//     //     { id: "item33", label: "Item 3", values: [0.9, 0.85, 0.93, 0.88] },
+//     //   ],
+//     // },
+//     // {
+//     //   id: "dim4",
+//     //   label: "Dim 4",
+//     //   dimensionValues: [0.67, 0.71, 0.75, 0.1],
+//     //   items: [
+//     //     {
+//     //       id: "item41",
+//     //       label: "Item 1",
+//     //       values: [0.65, 0.7, 0.74, 0.79],
+//     //     },
+//     //     {
+//     //       id: "item42",
+//     //       label: "Item 2",
+//     //       values: [0.69, 0.72, 0.76, 0.81],
+//     //     },
+//     //   ],
+//     // },
+//   ];
+
+//   return (
+//     <CollapsibleMatrix
+//       dimensions={dimensions}
+//       columns={columns}
+//       allRowsExpanded={allRowsExpanded}
+//     />
+//   );
+// };

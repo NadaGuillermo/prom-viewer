@@ -1,53 +1,22 @@
-import { use } from "echarts/core";
 import type { CSSProperties } from "react";
-import { CanvasRenderer } from "echarts/renderers";
 import { VariableDomains as Domains } from "@customTypes/variableDomains";
+import { PromData } from "@customTypes/promData";
+import React from "react";
 
-import {
-  HeatmapChart,
-  ScatterChart,
-  LineChart,
-  BarChart,
-  PieChart,
-} from "echarts/charts";
-import {
-  LegendComponent,
-  GridComponent,
-  TooltipComponent,
-  ToolboxComponent,
-  VisualMapComponent,
-  TitleComponent,
-  DataZoomComponent,
-  MatrixComponent,
-} from "echarts/components";
 import type { ComposeOption, SetOptionOpts } from "echarts/core";
 import type {
   BarSeriesOption,
   LineSeriesOption,
   ScatterSeriesOption,
+  CustomSeriesOption,
+  HeatmapSeriesOption,
+  RadarSeriesOption,
 } from "echarts/charts";
 import type {
   TitleComponentOption,
   GridComponentOption,
 } from "echarts/components";
-
-// Register the required components
-use([
-  LegendComponent,
-  ScatterChart,
-  LineChart,
-  BarChart,
-  HeatmapChart,
-  PieChart,
-  MatrixComponent,
-  VisualMapComponent,
-  GridComponent,
-  TooltipComponent,
-  TitleComponent,
-  ToolboxComponent, // A group of utility tools, which includes export, data view, dynamic type switching, data area zooming, and reset.
-  DataZoomComponent, // Used in Line Graph Charts
-  CanvasRenderer, // If you only need to use the canvas rendering mode, the bundle will not include the SVGRenderer module, which is not needed.
-]);
+import type Radar from "echarts/types/src/coord/radar/Radar.js";
 
 export namespace Visualization {
   // Combine an Option type with only required components and charts via ComposeOption
@@ -57,6 +26,9 @@ export namespace Visualization {
     | TitleComponentOption
     | GridComponentOption
     | ScatterSeriesOption
+    | CustomSeriesOption
+    | HeatmapSeriesOption
+    | RadarSeriesOption
   >;
 
   interface ReactEChartsWrapperProps {
@@ -65,68 +37,87 @@ export namespace Visualization {
     settings?: SetOptionOpts;
     loading?: boolean;
     theme?: "light" | "dark";
+    chartHeight?:number;
+    useMinHeight?: boolean;
   }
 
   /** Charts generell */
 
   interface DataSeries {
+    id: string; // linkId
     name: string;
     data: Domains.NumberOrNull[];
-  }
-
-  interface ScoreDataSeries extends DataSeries{
-    originalScores: Domains.NumberOrNull[];
-  }
-
-  interface OriginalAndNormalizedScore {
-    originalScore: number;
-    normalizedScore: number;
+    originalData: Domains.NumberOrNull[];
+    dataLabels: string[];
+    seriesType: Domains.ItemType;
+    dimension: string; // vordefinierte Dimensionen in variableDomains definieren -> für Gesamtübersicht
+    questionnaire: string; // questionnaireId
+    questionnaireName: string;
+    referencedItems?: string[]; // linkIds of items used for score calculation
   }
 
   interface ChartData {
     xData: string[];
-    yScoreData?: ScoreDataSeries[];
-    yItemsData: DataSeries[];
+    yData: DataSeries[];
   }
 
   interface ChartProps {
-    title: string;
-    xData: string[];
-    yData: DataSeries[];
+    title?: string;
+    subtitle?: string;
+    data: ChartData;
   }
 
   /** Line Chart */
 
-  interface LineChartProps extends ChartProps {}
+  interface LineChartProps extends ChartProps {
+    // scoreRecord?: Record<string, OriginalAndNormalizedScore>;
+  }
 
   /** Matrix */
 
-  interface MatrixProps extends ChartProps {}
+  interface MatrixProps extends ChartProps {
+    // yScoreData?: DataSeries[];
+    // questionnaires: PromData.Questionnaire[];
+  }
 
-  interface MatrixItem {
+  interface TableProps extends ChartProps {
+    
+  }
+
+  interface RadarProps extends ChartProps {
+
+  }
+
+  interface CollapseProps {
+    title: string;
+    children: React.ReactNode;
+  }
+
+  /* interface MatrixItem {
     id: string;
     label: string;
     values: number[];
-  }
+  } */
 
-  interface MatrixDimension {
-    id: string;
-    label: string;
-    items: MatrixItem[];
-    dimensionValues: number[];
-  }
+  // interface MatrixDimension {
+  //   id: string;
+  //   name: string;
+  //   questionnaire: PromData.Questionnaire;
+  //   dimensionValues: Domains.NumberOrNull[];
+  //   items: Record<string, Domains.NumberOrNull[]>;
+  // }
 
-  interface CollapsibleMatrixProps {
-    dimensions: MatrixDimension[];
-    columns: string[];
-    allRowsExpanded: boolean;
-  }
+  // interface CollapsibleMatrixProps {
+  //   dimensions: MatrixDimension[];
+  //   columns: string[];
+  //   allRowsExpanded: boolean;
+  // }
 
-  interface RowMeta {
-    rowIndex: number;
-    dimensionId: string;
-    isDimension: boolean;
-    itemId?: string;
-    label: string;
-  }
+  // interface RowMeta {
+  //   rowIndex: number;
+  //   dimensionId: string;
+  //   isDimension: boolean;
+  //   itemId?: string;
+  //   label: string;
+  // }
 }

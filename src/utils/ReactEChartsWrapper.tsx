@@ -1,16 +1,55 @@
 import { useRef, useEffect, forwardRef } from "react";
 import type { Visualization } from "@customTypes/visualization";
 import type { ECharts } from "echarts/core";
-import { init } from "echarts/core";
+import { init, use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import {
+  HeatmapChart,
+  ScatterChart,
+  LineChart,
+  BarChart,
+  PieChart,
+  RadarChart,
+} from "echarts/charts";
+import {
+  LegendComponent,
+  GridComponent,
+  TooltipComponent,
+  ToolboxComponent,
+  VisualMapComponent,
+  TitleComponent,
+  DataZoomComponent,
+  MatrixComponent,
+} from "echarts/components";
+
+use([
+  LegendComponent,
+  ScatterChart,
+  LineChart,
+  BarChart,
+  HeatmapChart,
+  PieChart,
+  RadarChart,
+  MatrixComponent,
+  VisualMapComponent,
+  GridComponent,
+  TooltipComponent,
+  TitleComponent,
+  ToolboxComponent,
+  DataZoomComponent,
+  CanvasRenderer,
+]);
 
 export const ReactEChartsWrapper = forwardRef<
   ECharts | null,
   Visualization.ReactEChartsWrapperProps
->(({ option, style, settings, loading = false, theme }, ref) => {
+>(({ option, style, settings, loading = false, theme, chartHeight, useMinHeight }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ECharts | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
-
+  // const [chartHeight, setChartHeight] = useState<number>(0);
+  // const [height, setHeight] = useState<number>(chartHeight ?? 0);
+// 
   /**
    * Initialize / Reinitialize chart (theme changes require dispose)
    */
@@ -23,8 +62,11 @@ export const ReactEChartsWrapper = forwardRef<
       chartRef.current = null;
     }
     // Initialize new instance
-    chartRef.current = init(containerRef.current, theme);
-
+    
+      chartRef.current = init(containerRef.current, theme, {
+        height: chartHeight,
+      });
+    
     // Expose chart instance via ref
     if (ref) {
       if (typeof ref === "function") {
@@ -84,11 +126,13 @@ export const ReactEChartsWrapper = forwardRef<
       chartRef.current.hideLoading();
     }
   }, [loading, theme]);
-  // className={`tw:min-h-${chartExpansionFactor * 100}`}
+
+  // tw:min-h-100 Höhen ändern !!
+  // height: chartHeight ? `${chartHeight}px` : undefined,
   return (
     <div
       ref={containerRef}
-      className="tw:w-full tw:h-full tw:min-h-100"
+      className={`${useMinHeight ? "tw:h-full tw:w-full tw:min-h-100" : "tw:h-full tw:w-full"}`}
       style={{ ...style }}
     />
   );
