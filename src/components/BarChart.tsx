@@ -1,4 +1,4 @@
-import { ReactEChartsWrapper } from "@utils/ReactEChartsWrapper";
+import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
 
 export interface BarChartProps {

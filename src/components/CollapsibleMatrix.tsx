@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { ECharts } from "echarts/core";
 import { buildRows, buildSeriesData } from "@utils/helpers";
-import { ReactEChartsWrapper } from "@utils/ReactEChartsWrapper";
+import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
 
 const THRESHOLDS = [0.3, 0.65];
@@ -205,8 +205,8 @@ const CollapsibleMatrix = ({
 
   // + 100 pixel for legend  height: `${chartHeight}px`
   return (
-    <div style={{ width: "100%", height: `${chartHeight}px` }}> 
-      <ReactEChartsWrapper ref={instanceRef} option={option}/>
+    <div style={{ width: "100%", height: `${chartHeight}px` }}>
+      <ReactEChartsWrapper ref={instanceRef} option={option} />
     </div>
   );
 };

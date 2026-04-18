@@ -1,0 +1,539 @@
+{
+  "resourceType": "QuestionnaireResponse",
+  "id": "mii-exa-pro-promis-29-response",
+  "meta": {
+    "profile": [
+      "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-questionnaire-response|2026.2.0"
+    ]
+  },
+  "item": [
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.PhysicalFunction.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13920-6",
+                "system": "http://loinc.org",
+                "display": "With some difficulty"
+              }
+            }
+          ],
+          "linkId": "promis-pfa11"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13920-6",
+                "system": "http://loinc.org",
+                "display": "With some difficulty"
+              }
+            }
+          ],
+          "linkId": "promis-pfa21"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13918-0",
+                "system": "http://loinc.org",
+                "display": "With a little difficulty"
+              }
+            }
+          ],
+          "linkId": "promis-pfa23"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13920-6",
+                "system": "http://loinc.org",
+                "display": "With some difficulty"
+              }
+            }
+          ],
+          "linkId": "promis-pfa53"
+        }
+      ],
+      "linkId": "PROMIS-29.PhysicalFunction"
+    },
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.Anxiety.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10066-1",
+                "system": "http://loinc.org",
+                "display": "Rarely"
+              }
+            }
+          ],
+          "linkId": "promis-edanx01"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-edanx40"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10066-1",
+                "system": "http://loinc.org",
+                "display": "Rarely"
+              }
+            }
+          ],
+          "linkId": "promis-edanx41"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10066-1",
+                "system": "http://loinc.org",
+                "display": "Rarely"
+              }
+            }
+          ],
+          "linkId": "promis-edanx53"
+        }
+      ],
+      "linkId": "PROMIS-29.Anxiety"
+    },
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.Depression.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-eddep04"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-eddep06"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10044-8",
+                "system": "http://loinc.org",
+                "display": "Often"
+              }
+            }
+          ],
+          "linkId": "promis-eddep29"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-eddep41"
+        }
+      ],
+      "linkId": "PROMIS-29.Depression"
+    },
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.Fatigue.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10044-8",
+                "system": "http://loinc.org",
+                "display": "Often"
+              }
+            }
+          ],
+          "linkId": "promis-hi7"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10044-8",
+                "system": "http://loinc.org",
+                "display": "Often"
+              }
+            }
+          ],
+          "linkId": "promis-an3"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13909-9",
+                "system": "http://loinc.org",
+                "display": "Somewhat"
+              }
+            }
+          ],
+          "linkId": "promis-fatexp41"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13902-4",
+                "system": "http://loinc.org",
+                "display": "Quite a bit"
+              }
+            }
+          ],
+          "linkId": "promis-fatexp40"
+        }
+      ],
+      "linkId": "PROMIS-29.Fatigue"
+    },
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.Sleep.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA8968-5",
+                "system": "http://loinc.org",
+                "display": "Fair"
+              }
+            }
+          ],
+          "linkId": "promis-sleep109"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-sleep116"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-sleep20"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10066-1",
+                "system": "http://loinc.org",
+                "display": "Rarely"
+              }
+            }
+          ],
+          "linkId": "promis-sleep44"
+        }
+      ],
+      "linkId": "PROMIS-29.Sleep"
+    },
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.Social.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-srpper11-caps"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10066-1",
+                "system": "http://loinc.org",
+                "display": "Rarely"
+              }
+            }
+          ],
+          "linkId": "promis-srpper18-caps"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-srpper23-caps"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA10082-8",
+                "system": "http://loinc.org",
+                "display": "Sometimes"
+              }
+            }
+          ],
+          "linkId": "promis-srpper46-caps"
+        }
+      ],
+      "linkId": "PROMIS-29.Social"
+    },
+    {
+      "item": [
+        {
+          "linkId": "PROMIS-29.PainInterference.Description"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13909-9",
+                "system": "http://loinc.org",
+                "display": "Somewhat"
+              }
+            }
+          ],
+          "linkId": "promis-painin9"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13909-9",
+                "system": "http://loinc.org",
+                "display": "Somewhat"
+              }
+            }
+          ],
+          "linkId": "promis-painin22"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13863-8",
+                "system": "http://loinc.org",
+                "display": "A little bit"
+              }
+            }
+          ],
+          "linkId": "promis-painin31"
+        },
+        {
+          "answer": [
+            {
+              "valueCoding": {
+                "code": "LA13909-9",
+                "system": "http://loinc.org",
+                "display": "Somewhat"
+              }
+            }
+          ],
+          "linkId": "promis-painin34"
+        }
+      ],
+      "linkId": "PROMIS-29.PainInterference"
+    },
+    {
+      "item": [
+        {
+          "answer": [
+            {
+              "valueInteger": 5
+            }
+          ],
+          "linkId": "promis-global07"
+        }
+      ],
+      "linkId": "PROMIS-29.PainIntensity"
+    },
+    {
+      "item": [
+        {
+          "answer": [
+            {
+              "valueDecimal": 13
+            }
+          ],
+          "linkId": "promis-29-physical-function-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 42.6
+            }
+          ],
+          "linkId": "promis-29-physical-function-tscore"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 9
+            }
+          ],
+          "linkId": "promis-29-anxiety-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 56.8
+            }
+          ],
+          "linkId": "promis-29-anxiety-tscore"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 13
+            }
+          ],
+          "linkId": "promis-29-depression-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 63.9
+            }
+          ],
+          "linkId": "promis-29-depression-tscore"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 15
+            }
+          ],
+          "linkId": "promis-29-fatigue-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 64.9
+            }
+          ],
+          "linkId": "promis-29-fatigue-tscore"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 11
+            }
+          ],
+          "linkId": "promis-29-sleep-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 53.6
+            }
+          ],
+          "linkId": "promis-29-sleep-tscore"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 11
+            }
+          ],
+          "linkId": "promis-29-social-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 39.7
+            }
+          ],
+          "linkId": "promis-29-social-tscore"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 11
+            }
+          ],
+          "linkId": "promis-29-pain-interference-raw"
+        },
+        {
+          "answer": [
+            {
+              "valueDecimal": 60.9
+            }
+          ],
+          "linkId": "promis-29-pain-interference-tscore"
+        }
+      ],
+      "linkId": "PROMIS-29.Scores"
+    }
+  ],
+  "questionnaire": "http://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-promis-29",
+  "status": "completed",
+  "subject": {
+    "reference": "Patient/mii-exa-pro-patient"
+  },
+  "authored": "2025-01-30T14:30:00Z"
+}

@@ -1,18 +1,14 @@
-import { ReactEChartsWrapper } from "@utils/ReactEChartsWrapper";
+import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
 import { Tooltip, Title } from "@styles/chartLayout";
 import * as echarts from "echarts/core";
 import { getOriginalValueFromNormalizedValueAndDataSeriesName } from "@utils/helpers";
 
-const LineChart = ({
-  title,
-  subtitle,
-  data,
-}: Visualization.LineChartProps) => {
+const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
   const { xData, yData } = data;
 
   const generateSeriesList = () => {
-    const seriesList:any[] = [];
+    const seriesList: any[] = [];
     yData.forEach((dataseries) => {
       const series = {
         name: dataseries.name,
@@ -20,16 +16,16 @@ const LineChart = ({
         data: dataseries.data,
         connectNulls: true,
         emphasis: {
-        focus: 'series',
-      },
-      endLabel: {
-        show: true,
-        formatter: '{a}',
-        distance: 20
-      },
-      // select: {
-      //   selectedMode: "series",
-      // }
+          focus: "series",
+        },
+        endLabel: {
+          show: true,
+          formatter: "{a}",
+          distance: 20,
+        },
+        // select: {
+        //   selectedMode: "series",
+        // }
       };
       seriesList.push(series);
     });
@@ -92,7 +88,8 @@ const LineChart = ({
         show: true,
       },
       axisLabel: {
-        formatter: (value: number, index: number) => yAxisFormatter(value, index),
+        formatter: (value: number, index: number) =>
+          yAxisFormatter(value, index),
         rich: {
           health: {
             // fontWeight: "bold",
@@ -101,8 +98,6 @@ const LineChart = ({
       },
     },
     series: generateSeriesList(),
-    
-    
   };
   return (
     <>

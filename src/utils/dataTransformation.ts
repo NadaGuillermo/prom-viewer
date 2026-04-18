@@ -2,27 +2,35 @@ import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 import _ from "lodash";
 import type { PromData } from "@customTypes/promData";
 import type { Visualization } from "@customTypes/visualization";
-import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS } from "@utils/constants";
-import { 
-  addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate, 
-  createCommonTimeAxis, 
-  groupQuestionnaireResponsesByQuestionnaireId, 
-  normalizeValue, 
+import { ITEM_TYPES, SCORE_HEALTH_CORELATIONS } from "@data/mapping";
+import {
+  addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate,
+  createCommonTimeAxis,
+  groupQuestionnaireResponsesByQuestionnaireId,
+  normalizeValue,
   isQuestionnaireScoreItem,
   getMinAndMaxAnswerOptionValueForItem,
   calculateRadarChartValue,
 } from "@utils/helpers";
 
-
-export const createChartData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>) => {
+export const createChartData = (
+  questionnaireResponses: Record<string, PromData.QuestionnaireResponse>,
+): Visualization.ChartData => {
   const xData = createCommonTimeAxis(questionnaireResponses);
 
   // group questionnaireResponses by questionnaire Id -> one dataseries
-  const groupedQuestionnaireResponses = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
-  const groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses = addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate(groupedQuestionnaireResponses, xData);
+  const groupedQuestionnaireResponses =
+    groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
+  const groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses =
+    addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate(
+      groupedQuestionnaireResponses,
+      xData,
+    );
 
   // convert into DataSeries
-  const yData = Object.values(groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses).flatMap((questionnaireResponses) => {
+  const yData = Object.values(
+    groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses,
+  ).flatMap((questionnaireResponses) => {
     const dataSeriesOfQuestionnaire: Visualization.DataSeries[] = [];
     const itemKeys = questionnaireResponses.flatMap((response) => {
       return Object.keys(response.items);
@@ -36,36 +44,59 @@ export const createChartData = (questionnaireResponses: Record<string, PromData.
         const responseItem = questionnaireResponse.items[linkId];
         originalData.push(responseItem.answer);
         // normlize everything
-        console.log("questionnaireItem: ", questionnaireResponse.questionnaire.items[linkId])
+        console.log(
+          "questionnaireItem: ",
+          questionnaireResponse.questionnaire.items[linkId],
+        );
         if (responseItem.answer !== null) {
-          const questionnaireItem = questionnaireResponse.questionnaire.items[linkId];
+          const questionnaireItem =
+            questionnaireResponse.questionnaire.items[linkId];
           // scores
           if (isQuestionnaireScoreItem(questionnaireItem)) {
             const [min, max] = questionnaireItem.range;
             // check if decreasing score health correlation
-            if (questionnaireItem.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease) {
-              const originalNormalizedValue = normalizeValue(responseItem.answer, min, max);
+            if (
+              questionnaireItem.scoreHealthCorrelation ===
+              SCORE_HEALTH_CORELATIONS.decrease
+            ) {
+              const originalNormalizedValue = normalizeValue(
+                responseItem.answer,
+                min,
+                max,
+              );
               const adjustedNormalizedValue = 1 - originalNormalizedValue;
               data.push(Number(adjustedNormalizedValue.toFixed(3)));
-            } else { // increasing score health correlation
-              data.push(Number(normalizeValue(responseItem.answer, min, max).toFixed(3)));
+            } else {
+              // increasing score health correlation
+              data.push(
+                Number(
+                  normalizeValue(responseItem.answer, min, max).toFixed(3),
+                ),
+              );
             }
             dataLabels.push("");
-            
-          } else { // items
-            const [min, max] = getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
-            data.push(Number(normalizeValue(responseItem.answer, min, max).toFixed(3)));
-            dataLabels.push(questionnaireItem.answerOptions.find((answerOption) => {
-              return answerOption.value === responseItem.answer;
-            })?.label ?? "");
+          } else {
+            // items
+            const [min, max] =
+              getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
+            data.push(
+              Number(normalizeValue(responseItem.answer, min, max).toFixed(3)),
+            );
+            dataLabels.push(
+              questionnaireItem.answerOptions.find((answerOption) => {
+                return answerOption.value === responseItem.answer;
+              })?.label ?? "",
+            );
           }
-        } else { // do not normalize null values
+        } else {
+          // do not normalize null values
           data.push(responseItem.answer);
           dataLabels.push("");
         }
       });
       let seriesType: Domains.ItemType;
-      const questionnaireItem = questionnaireResponses[0].questionnaire.items[linkId];
+      const questionnaireItem =
+        questionnaireResponses[0].questionnaire.items[linkId];
       // console.log("questionnaireItem: ", questionnaireItem)
       // console.log(isQuestionnaireScoreItem(questionnaireItem))
       // console.log(isDimensionScoreItem(questionnaireItem))
@@ -77,8 +108,8 @@ export const createChartData = (questionnaireResponses: Record<string, PromData.
 
       let referencedItems: string[] | undefined = undefined;
       if (isQuestionnaireScoreItem(questionnaireItem)) {
-        if (questionnaireItem.referenceQuestionnaireItems !== undefined) {
-        referencedItems = questionnaireItem.referenceQuestionnaireItems;
+        if (questionnaireItem.referenceQuestionnaireItems && questionnaireItem.referenceQuestionnaireItems.length > 0) {
+          referencedItems = questionnaireItem.referenceQuestionnaireItems;
         }
       }
 
@@ -89,71 +120,72 @@ export const createChartData = (questionnaireResponses: Record<string, PromData.
         originalData: originalData,
         dataLabels: dataLabels,
         seriesType: seriesType,
-        dimension: questionnaireResponses[0].questionnaire.items[linkId].dimension,
+        dimension:
+          questionnaireResponses[0].questionnaire.items[linkId].dimension,
         questionnaire: questionnaireResponses[0].questionnaire.id,
         questionnaireName: questionnaireResponses[0].questionnaire.name,
         referencedItems: referencedItems,
-      })
+      });
     });
     return dataSeriesOfQuestionnaire;
   });
-  
+
   return {
     xData: xData,
     yData: yData,
-  } as Visualization.ChartData;
-
+  };
 };
 
-export const createRadarData = (chartData: Visualization.ChartData) => {
+export const createRadarData = (chartData: Visualization.ChartData): Visualization.ChartData => {
   // for every date calculate dataseries (one value per dimension)
-  const dimensions = [...new Set(chartData.yData.map((dataSeries) => {
-    return dataSeries.dimension;
-  }))];
+  const dimensions = [
+    ...new Set(
+      chartData.yData.map((dataSeries) => {
+        return dataSeries.dimension;
+      }),
+    ),
+  ];
 
   // filter dimension Other
   dimensions.splice(dimensions.indexOf("Other"), 1);
 
-
   const xData: string[] = chartData.xData;
   const yData: Visualization.DataSeries[] = [];
-  
 
-  
-     dimensions.forEach((dimension) => {
-        const dimensionDataSeries = chartData.yData.filter((dataSeries) => {
-          // TODO: Besser filtern
-         return dataSeries.dimension === dimension;// && dataSeries.seriesType === ITEM_TYPEs.score;
-        });
-        console.log("dimensionDataSeries: ", dimension, ": ", dimensionDataSeries)
-      const dimensionData = dimensionDataSeries.map(dataSeries => dataSeries.data); // oder originalData
-      const data: Domains.NumberOrNull[] = [];
-      xData.forEach((_, index) => {
-        const dimensionDataForOneDate = dimensionData.map(data => data[index]);
-        const dimensionValue = calculateRadarChartValue(dimensionDataForOneDate);
-        data.push(dimensionValue);
-      });
-      //return dimensionValue;
-      yData.push({
-        id: dimension,
-        name: dimension,
-        data: data,
-        originalData: data,
-        dataLabels: [],
-        seriesType: ITEM_TYPES.score,
-        dimension: dimension,
-        questionnaire: "",
-        questionnaireName: "",
-      });
+  dimensions.forEach((dimension) => {
+    const dimensionDataSeries = chartData.yData.filter((dataSeries) => {
+      // TODO: Besser filtern
+      return dataSeries.dimension === dimension; // && dataSeries.seriesType === ITEM_TYPEs.score;
+    });
+    console.log("dimensionDataSeries: ", dimension, ": ", dimensionDataSeries);
+    const dimensionData = dimensionDataSeries.map(
+      (dataSeries) => dataSeries.data,
+    ); // oder originalData
+    const data: Domains.NumberOrNull[] = [];
+    xData.forEach((_, index) => {
+      const dimensionDataForOneDate = dimensionData.map((data) => data[index]);
+      const dimensionValue = calculateRadarChartValue(dimensionDataForOneDate);
+      data.push(dimensionValue);
+    });
+    //return dimensionValue;
+    yData.push({
+      id: dimension,
+      name: dimension,
+      data: data,
+      originalData: data,
+      dataLabels: [],
+      seriesType: ITEM_TYPES.score,
+      dimension: dimension,
+      questionnaire: "",
+      questionnaireName: "",
+    });
   });
-  
+
   return {
     xData: xData,
     yData: yData,
-  } as Visualization.ChartData;
+  };
 };
-
-
 
 // const createScoreDataSeries = (
 //   questionnaireResponses: PromData.QuestionnaireResponse[],
@@ -230,7 +262,7 @@ export const createRadarData = (chartData: Visualization.ChartData) => {
 //         normalizedAnswer
 //         );
 //     });
-    
+
 //     itemsDataSeries[index] = {
 //       id: linkId,
 //       name: correspondingQuestionnaireItemLabel,
@@ -243,17 +275,16 @@ export const createRadarData = (chartData: Visualization.ChartData) => {
 // };
 
 // export const createMatrixData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>, data: Visualization.DataSeries[]) => {
-//   const chartScoreData = data.filter(dataseries => 
+//   const chartScoreData = data.filter(dataseries =>
 //     dataseries.seriesType === "questionnaireScore"
 //   );
-//   const chartItemsData = data.filter(dataseries => 
+//   const chartItemsData = data.filter(dataseries =>
 //     dataseries.seriesType === "item"
 //   );
 //   const chartDimensionScoreData = data.filter(dataseries =>
 //     dataseries.seriesType === "dimensionScore"
 //   );
 
-  
 //   const questionnaireResponsesGroupedByQuestionnaireId = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
 //   const questionnaireIds = Object.keys(questionnaireResponsesGroupedByQuestionnaireId);
 //   const matrixData: Record<string, Visualization.DataSeries[]> = {}; // key = questionnaire name
@@ -278,7 +309,7 @@ export const createRadarData = (chartData: Visualization.ChartData) => {
 // export const createMatrixDimensionsData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>, itemsData: Visualization.DataSeries[], scoreData?: Visualization.DataSeries[],) => {
 //   const questionnaireResponsesGroupedByQuestionnaireId = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
 //   const matrixDimensions: Visualization.MatrixDimension[] = [];
-  
+
 //   Object.entries(questionnaireResponsesGroupedByQuestionnaireId).forEach(([key, responses]) => {
 //     const scoreDataIndex = scoreData?.findIndex((scoreDataSeries) => {
 //       for (let i = 0; i < responses.length; i++) {
@@ -320,7 +351,7 @@ export const createRadarData = (chartData: Visualization.ChartData) => {
 //       itemKeyLabelRecord[keyLabel[0]] = keyLabel[1];
 //     });
 //   });
-    
+
 //   const itemsForQuestionnaire = itemsData.filter((itemsDataSeries) => {
 //     return Object.values(itemKeyLabelRecord).includes(itemsDataSeries.name);
 //   });
@@ -335,4 +366,3 @@ export const createRadarData = (chartData: Visualization.ChartData) => {
 //   });
 //   return items;
 // };
-

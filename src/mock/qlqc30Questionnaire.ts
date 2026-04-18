@@ -4,6 +4,7 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
   id: "qlq-c30",
   name: "QLQ-C30",
   url: "https://example.com/qlq-c30",
+  description: "A health-related quality of life questionnaire",
   items: {
     "qlq-c30-q01": {
       linkId: "qlq-c30-q01",

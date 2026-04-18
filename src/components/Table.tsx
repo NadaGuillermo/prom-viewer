@@ -1,4 +1,4 @@
-import { ReactEChartsWrapper } from "@utils/ReactEChartsWrapper";
+import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
 import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 // import * as echarts from "echarts/core";
@@ -7,20 +7,11 @@ import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
 } from "@utils/helpers";
-import { globalDimension, DIMENSIONS } from "@utils/constants";
+import { globalDimension, DIMENSIONS } from "@data/mapping/constants";
 import _ from "lodash";
 
-
-const Table = ({
-  title,
-  subtitle,
-  data,
-}: Visualization.TableProps) => {
-  
+const Table = ({ title, subtitle, data }: Visualization.TableProps) => {
   // data already for one questionnaire
-  
-
-
 
   // add questionnaire name to yData
   const matrixYData = data.yData;
@@ -33,8 +24,7 @@ const Table = ({
   );
 
   const globalScores = scores.filter(
-    (score) =>
-      score.dimension === globalDimension,
+    (score) => score.dimension === globalDimension,
   );
 
   // const otherScores = scores.filter(
@@ -48,29 +38,36 @@ const Table = ({
 
   // sort dimension scores according to DIMENSIONS in constants.ts
   const dimensionScoresSorted = DIMENSIONS.flatMap((dimension) =>
-    dimensionScores.filter((score) => score.dimension === dimension)
+    dimensionScores.filter((score) => score.dimension === dimension),
   );
 
   const itemsNotReferencedInScores = matrixYData.filter(
     (dataseries) =>
-      dataseries.seriesType === "item" && !scores.some((score) => score.referencedItems?.includes(dataseries.id))
+      dataseries.seriesType === "item" &&
+      !scores.some((score) => score.referencedItems?.includes(dataseries.id)),
   );
 
-  const dimensionScoresWithReferencedItems = dimensionScoresSorted.map((score) => {
-    const referencedItems = matrixYData.filter(
-      (dataseries) =>
-        dataseries.seriesType === "item" && score.referencedItems?.includes(dataseries.id)
-    );
-    return {score: score, items: referencedItems};
-  });
+  const dimensionScoresWithReferencedItems = dimensionScoresSorted.map(
+    (score) => {
+      const referencedItems = matrixYData.filter(
+        (dataseries) =>
+          dataseries.seriesType === "item" &&
+          score.referencedItems?.includes(dataseries.id),
+      );
+      return { score: score, items: referencedItems };
+    },
+  );
 
   const sortedMatrixYData = [
     ...globalScores,
     //...otherScores,
-    ...dimensionScoresWithReferencedItems.flatMap((scoreWithItems) => [scoreWithItems.score, ...scoreWithItems.items]),
+    ...dimensionScoresWithReferencedItems.flatMap((scoreWithItems) => [
+      scoreWithItems.score,
+      ...scoreWithItems.items,
+    ]),
     ...itemsNotReferencedInScores,
   ];
-  
+
   // const items = data.yData.filter(dataseries =>
   //   dataseries.seriesType === "item"
   // );
@@ -276,7 +273,9 @@ const Table = ({
   } else if (matrixYData.length === 2) {
     chartHeight = (matrixYData.length + 3) * 32;
   } else {
-    chartHeight = (matrixYData.length + 3) * (32 - 2 * Math.ceil(Math.log2(matrixYData.length)));
+    chartHeight =
+      (matrixYData.length + 3) *
+      (32 - 2 * Math.ceil(Math.log2(matrixYData.length)));
   }
 
   return (

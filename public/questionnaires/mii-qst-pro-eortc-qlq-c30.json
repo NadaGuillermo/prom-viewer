@@ -1,0 +1,849 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "mii-qst-pro-eortc-qlq-c30",
+  "meta": {
+    "profile": [
+      "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-questionnaire|2026.2.0"
+    ]
+  },
+  "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
+  "title": "EORTC QLQ-C30 Quality of Life Questionnaire Version 3.0",
+  "description": "EORTC QLQ-C30 Version 3.0 Quality of Life Questionnaire - Complete implementation with all 30 items and 15 scale scores",
+  "code": [
+    {
+      "system": "http://snomed.info/sct",
+      "code": "273446001",
+      "display": "European Organisation for Research and Treatment of Cancer - Quality of Life questionnaire (assessment scale)"
+    },
+    {
+      "system": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/CodeSystem/mii-cs-pro-questionnaire-catalogue",
+      "code": "eortc-qlq-c30",
+      "display": "EORTC QLQ-C30 Quality of Life Questionnaire"
+    }
+  ],
+  "extension": [
+    {
+      "extension": [
+        {
+          "url": "displayable",
+          "valueBoolean": true
+        },
+        {
+          "url": "collectable",
+          "valueBoolean": true
+        },
+        {
+          "url": "calculatable",
+          "valueBoolean": true
+        },
+        {
+          "url": "extractable",
+          "valueBoolean": true
+        },
+        {
+          "url": "domainAligned",
+          "valueBoolean": false
+        }
+      ],
+      "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-ex-pro-questionnaire-capabilities"
+    }
+  ],
+  "contained": [
+    {
+      "resourceType": "CodeSystem",
+      "id": "eortc-qlq-c30-cs",
+      "meta": {
+        "profile": [
+          "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-questionnaire|2026.2.0"
+        ]
+      },
+      "concept": [
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "Überhaupt nicht"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ],
+          "code": "not-at-all",
+          "display": "Not at all"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "Wenig"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ],
+          "code": "a-little",
+          "display": "A little"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "Mäßig"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ],
+          "code": "quite-a-bit",
+          "display": "Quite a bit"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "Sehr"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 4
+            }
+          ],
+          "code": "very-much",
+          "display": "Very much"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "1 - Sehr schlecht"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ],
+          "code": "1-very-poor",
+          "display": "1 - Very poor"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "2 - Schlecht"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ],
+          "code": "2-poor",
+          "display": "2 - Poor"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "3 - Mittelmäßig"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ],
+          "code": "3-fair",
+          "display": "3 - Fair"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "4 - Gut"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 4
+            }
+          ],
+          "code": "4-good",
+          "display": "4 - Good"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "5 - Sehr gut"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 5
+            }
+          ],
+          "code": "5-very-good",
+          "display": "5 - Very good"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "6 - Ausgezeichnet"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 6
+            }
+          ],
+          "code": "6-excellent",
+          "display": "6 - Excellent"
+        },
+        {
+          "designation": [
+            {
+              "language": "de",
+              "value": "7 - Vollkommen"
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 7
+            }
+          ],
+          "code": "7-perfect",
+          "display": "7 - Perfect"
+        }
+      ],
+      "version": "2026.2.0",
+      "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/CodeSystem/mii-cs-pro-eortc-qlq-c30",
+      "status": "active",
+      "content": "complete",
+      "caseSensitive": true
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "eortc-qlq-c30-4pt",
+      "meta": {
+        "profile": [
+          "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-questionnaire|2026.2.0"
+        ]
+      },
+      "compose": {
+        "include": [
+          {
+            "concept": [
+              {
+                "code": "not-at-all",
+                "display": "Not at all"
+              },
+              {
+                "code": "a-little",
+                "display": "A little"
+              },
+              {
+                "code": "quite-a-bit",
+                "display": "Quite a bit"
+              },
+              {
+                "code": "very-much",
+                "display": "Very much"
+              }
+            ],
+            "system": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/CodeSystem/mii-cs-pro-eortc-qlq-c30"
+          }
+        ]
+      },
+      "version": "2026.2.0",
+      "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/ValueSet/mii-vs-pro-eortc-qlq-c30-scale-4pt",
+      "status": "active"
+    },
+    {
+      "resourceType": "ValueSet",
+      "id": "eortc-qlq-c30-7pt",
+      "meta": {
+        "profile": [
+          "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-questionnaire|2026.2.0"
+        ]
+      },
+      "compose": {
+        "include": [
+          {
+            "concept": [
+              {
+                "code": "1-very-poor"
+              },
+              {
+                "code": "2-poor"
+              },
+              {
+                "code": "3-fair"
+              },
+              {
+                "code": "4-good"
+              },
+              {
+                "code": "5-very-good"
+              },
+              {
+                "code": "6-excellent"
+              },
+              {
+                "code": "7-perfect"
+              }
+            ],
+            "system": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/CodeSystem/mii-cs-pro-eortc-qlq-c30"
+          }
+        ]
+      },
+      "version": "2026.2.0",
+      "url": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/ValueSet/mii-vs-pro-eortc-qlq-c30-scale-7pt",
+      "status": "active"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "QLQ-C30.Introduction",
+      "type": "display",
+      "text": "We are interested in some things about you and your health. Please answer all of the questions yourself by circling the number that best applies to you. There are no 'right' or 'wrong' answers. The information that you provide will remain strictly confidential."
+    },
+    {
+      "linkId": "QLQ-C30.Section1",
+      "type": "display",
+      "text": "During the past week:"
+    },
+    {
+      "linkId": "qlq-c30-q01",
+      "type": "choice",
+      "prefix": "1",
+      "text": "Do you have any trouble doing strenuous activities, like carrying a heavy shopping bag or a suitcase?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q02",
+      "type": "choice",
+      "prefix": "2",
+      "text": "Do you have any trouble taking a long walk?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q03",
+      "type": "choice",
+      "prefix": "3",
+      "text": "Do you have any trouble taking a short walk outside of the house?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q04",
+      "type": "choice",
+      "prefix": "4",
+      "text": "Do you need to stay in bed or a chair during the day?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q05",
+      "type": "choice",
+      "prefix": "5",
+      "text": "Do you need help with eating, dressing, washing yourself or using the toilet?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q06",
+      "type": "choice",
+      "prefix": "6",
+      "text": "Were you limited in doing either your work or other daily activities?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q07",
+      "type": "choice",
+      "prefix": "7",
+      "text": "Were you limited in pursuing your hobbies or other leisure time activities?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q08",
+      "type": "choice",
+      "prefix": "8",
+      "text": "Were you short of breath?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q09",
+      "type": "choice",
+      "prefix": "9",
+      "text": "Have you had pain?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q10",
+      "type": "choice",
+      "prefix": "10",
+      "text": "Did you need to rest?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q11",
+      "type": "choice",
+      "prefix": "11",
+      "text": "Have you had trouble sleeping?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q12",
+      "type": "choice",
+      "prefix": "12",
+      "text": "Have you felt weak?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q13",
+      "type": "choice",
+      "prefix": "13",
+      "text": "Have you lacked appetite?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q14",
+      "type": "choice",
+      "prefix": "14",
+      "text": "Have you felt nauseated?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q15",
+      "type": "choice",
+      "prefix": "15",
+      "text": "Have you vomited?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q16",
+      "type": "choice",
+      "prefix": "16",
+      "text": "Have you been constipated?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q17",
+      "type": "choice",
+      "prefix": "17",
+      "text": "Have you had diarrhea?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q18",
+      "type": "choice",
+      "prefix": "18",
+      "text": "Were you tired?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q19",
+      "type": "choice",
+      "prefix": "19",
+      "text": "Did pain interfere with your daily activities?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q20",
+      "type": "choice",
+      "prefix": "20",
+      "text": "Have you had difficulty in concentrating on things, like reading a newspaper or watching television?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q21",
+      "type": "choice",
+      "prefix": "21",
+      "text": "Did you feel tense?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q22",
+      "type": "choice",
+      "prefix": "22",
+      "text": "Did you worry?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q23",
+      "type": "choice",
+      "prefix": "23",
+      "text": "Did you feel irritable?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q24",
+      "type": "choice",
+      "prefix": "24",
+      "text": "Did you feel depressed?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q25",
+      "type": "choice",
+      "prefix": "25",
+      "text": "Have you had difficulty remembering things?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q26",
+      "type": "choice",
+      "prefix": "26",
+      "text": "Has your physical condition or medical treatment interfered with your family life?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q27",
+      "type": "choice",
+      "prefix": "27",
+      "text": "Has your physical condition or medical treatment interfered with your social activities?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "qlq-c30-q28",
+      "type": "choice",
+      "prefix": "28",
+      "text": "Has your physical condition or medical treatment caused you financial difficulties?",
+      "answerValueSet": "#eortc-qlq-c30-4pt"
+    },
+    {
+      "linkId": "QLQ-C30.Section2",
+      "type": "display",
+      "text": "For the following questions please circle the number between 1 and 7 that best applies to you"
+    },
+    {
+      "linkId": "qlq-c30-q29",
+      "type": "choice",
+      "prefix": "29",
+      "text": "How would you rate your overall health during the past week?",
+      "answerValueSet": "#eortc-qlq-c30-7pt"
+    },
+    {
+      "linkId": "qlq-c30-q30",
+      "type": "choice",
+      "prefix": "30",
+      "text": "How would you rate your overall quality of life during the past week?",
+      "answerValueSet": "#eortc-qlq-c30-7pt"
+    },
+    {
+      "item": [
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(1 - (((%resource.item.where(linkId.matches('^qlq-c30-q0[1-5]$')).answer.value.ordinal().sum()) / 5) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-pf",
+          "type": "decimal",
+          "text": "Physical Functioning Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(1 - (((%resource.item.where(linkId='qlq-c30-q06' or linkId='qlq-c30-q07').answer.value.ordinal().sum()) / 2) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-rf",
+          "type": "decimal",
+          "text": "Role Functioning Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(1 - (((%resource.item.where(linkId.matches('^qlq-c30-q2[1-4]$')).answer.value.ordinal().sum()) / 4) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-ef",
+          "type": "decimal",
+          "text": "Emotional Functioning Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(1 - (((%resource.item.where(linkId='qlq-c30-q20' or linkId='qlq-c30-q25').answer.value.ordinal().sum()) / 2) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-cf",
+          "type": "decimal",
+          "text": "Cognitive Functioning Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(1 - (((%resource.item.where(linkId='qlq-c30-q26' or linkId='qlq-c30-q27').answer.value.ordinal().sum()) / 2) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-sf",
+          "type": "decimal",
+          "text": "Social Functioning Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(((%resource.item.where(linkId='qlq-c30-q10' or linkId='qlq-c30-q12' or linkId='qlq-c30-q18').answer.value.ordinal().sum()) / 3) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-fa",
+          "type": "decimal",
+          "text": "Fatigue Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(((%resource.item.where(linkId='qlq-c30-q14' or linkId='qlq-c30-q15').answer.value.ordinal().sum()) / 2) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-nv",
+          "type": "decimal",
+          "text": "Nausea and Vomiting Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(((%resource.item.where(linkId='qlq-c30-q09' or linkId='qlq-c30-q19').answer.value.ordinal().sum()) / 2) - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-pa",
+          "type": "decimal",
+          "text": "Pain Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "((%resource.item.where(linkId='qlq-c30-q08').answer.value.ordinal() - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-dy",
+          "type": "decimal",
+          "text": "Dyspnoea Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "((%resource.item.where(linkId='qlq-c30-q11').answer.value.ordinal() - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-sl",
+          "type": "decimal",
+          "text": "Insomnia Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "((%resource.item.where(linkId='qlq-c30-q13').answer.value.ordinal() - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-ap",
+          "type": "decimal",
+          "text": "Appetite Loss Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "((%resource.item.where(linkId='qlq-c30-q16').answer.value.ordinal() - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-co",
+          "type": "decimal",
+          "text": "Constipation Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "((%resource.item.where(linkId='qlq-c30-q17').answer.value.ordinal() - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-di",
+          "type": "decimal",
+          "text": "Diarrhoea Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "((%resource.item.where(linkId='qlq-c30-q28').answer.value.ordinal() - 1) / 3) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-fi",
+          "type": "decimal",
+          "text": "Financial Difficulties Score",
+          "readOnly": true
+        },
+        {
+          "extension": [
+            {
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "(((%resource.item.where(linkId='qlq-c30-q29' or linkId='qlq-c30-q30').answer.value.ordinal().sum()) / 2) - 1) / 6) * 100"
+              },
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-observationExtract",
+              "valueBoolean": true
+            }
+          ],
+          "linkId": "score-ql",
+          "type": "decimal",
+          "text": "Global Health Status / Quality of Life Score",
+          "readOnly": true
+        }
+      ],
+      "linkId": "QLQ-C30.Scores",
+      "type": "group",
+      "text": "Calculated Scores (0-100 scale)"
+    }
+  ],
+  "version": "2026.2.0",
+  "status": "active",
+  "experimental": true,
+  "language": "en",
+  "publisher": "Medizininformatik Initiative (MII)",
+  "copyright": "© Copyright 1995 EORTC Quality of Life Group. All rights reserved. Version 3.0"
+}

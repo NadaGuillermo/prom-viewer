@@ -6,6 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "types": ["vite/client"],
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "outDir": "dist",
@@ -18,7 +19,8 @@
       "@utils/*": ["src/utils/*"],
       "@customTypes/*": ["src/types/*"],
       "@styles/*": ["src/styles/*"],
-      
+      "@data/*": ["src/data/*"],
+      "@services/*": ["src/services/*"],
     },
 
     /* Bundler mode */
