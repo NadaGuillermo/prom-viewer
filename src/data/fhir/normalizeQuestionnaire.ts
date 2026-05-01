@@ -1,11 +1,13 @@
 import type { NormalizedFHIR } from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
+import type { Mapping } from "@data/globalTypes";
 
 export const normalizeQuestionnaire = (
   resource: any,
-): NormalizedFHIR.Questionnaire => {
+): Mapping.Result<NormalizedFHIR.Questionnaire> => {
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
+  const issues: Mapping.DataIssue[] = [];
 
 const extractAnswerOptions = (
     item: any,
@@ -15,23 +17,32 @@ const extractAnswerOptions = (
     if (item.answerOption) {
       answerOptions = item.answerOption.map((opt: any) => {
         const display = opt.valueCoding?.display;
-        let code: any;
-        // search for extension with valueDecimal
+        let value: any;
+        // search for extension with value
         const extension = opt.extension?.find((ext: any) => {
-          return ext.valueDecimal !== undefined;
+          return ext.valueDecimal !== undefined || ext.valueInteger !== undefined || ext.valueString !== undefined || ext.valueBoolean !== undefined || ext.valueDate !== undefined || ext.valueDateTime !== undefined || ext.valueTime !== undefined;
         });
         if (extension !== undefined) {
-          code = extension.valueDecimal;
+          value = extension.valueDecimal ??
+            extension.valueInteger ??
+            extension.valueString ??
+            extension.valueBoolean ??
+            extension.valueDate ??
+            extension.valueDateTime ??
+            extension.valueTime ??
+            undefined; // will be sorted out in mapping step
+        } else if (opt.valueCoding !== undefined) {
+          value = opt.valueCoding.code; // Code, manchmal auch Wert 
         } else {
-          code = opt.valueCoding?.code;
+          value = undefined; // sorted out in mapping
         }
-
         return {
-          value: code,
+          value: value,
           label: display,
+          code: opt.valueCoding?.code, // ist Code <=> code !== undefined && code !== value
         };
       });
-    } else if (item.answerValueSet !== undefined) {
+    } else if (item.answerValueSet) {
       // answerValueSet instead
       const answerValueSet = resource.contained?.find((containedObj: any) => {
         return (
@@ -50,17 +61,18 @@ const extractAnswerOptions = (
         )?.concept;
 
         if (answerValueSetArray !== undefined) {
-          answerOptions = answerValueSetArray.map((con: any) => {
+          answerOptions = answerValueSetArray.map((answerVal: any) => {
             const codeValue = codeSystemArray
               .find((elem: any) => {
-                return elem.code === con.code;
+                return elem.code === answerVal.code;
               })
               .extension?.find(
                 (ext: any) => ext.valueDecimal !== undefined,
               ).valueDecimal;
             return {
               value: codeValue,
-              label: con.display ?? con.code,
+              label: answerVal.display ?? answerVal.code,
+              code: answerVal.code,
             };
           });
         }
@@ -96,6 +108,9 @@ const extractAnswerOptions = (
       const referencedLinkIds = extractLinkIdsFromFhirPath(
         calculationFormula
       );
+      if (referencedLinkIds.includes(item.linkId)) {
+        referencedLinkIds.splice(referencedLinkIds.indexOf(item.linkId))
+      }
       referenceQuestionnaireItems.push(...referencedLinkIds);
     }
 
@@ -182,10 +197,13 @@ const extractAnswerOptions = (
   traverse(resource.item);
 
   return {
+    data: {
     id: resource.id, // sollte immer gegeben sein
     name: resource.title, // optional
     url: resource.url, // immer gegeben
     description: resource.description, // optional
     items, // optional
+    },
+    issues
   };
 };

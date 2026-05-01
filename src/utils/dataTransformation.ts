@@ -1,6 +1,6 @@
 import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 import _ from "lodash";
-import type { PromData } from "@customTypes/promData";
+import type { PromData } from "@data/mapping";
 import type { Visualization } from "@customTypes/visualization";
 import { ITEM_TYPES, SCORE_HEALTH_CORELATIONS } from "@data/mapping";
 import {
@@ -44,10 +44,10 @@ export const createChartData = (
         const responseItem = questionnaireResponse.items[linkId];
         originalData.push(responseItem.answer);
         // normlize everything
-        console.log(
-          "questionnaireItem: ",
-          questionnaireResponse.questionnaire.items[linkId],
-        );
+        // console.log(
+        //   "questionnaireItem: ",
+        //   questionnaireResponse.questionnaire.items[linkId],
+        // );
         if (responseItem.answer !== null) {
           const questionnaireItem =
             questionnaireResponse.questionnaire.items[linkId];
@@ -97,9 +97,9 @@ export const createChartData = (
       let seriesType: Domains.ItemType;
       const questionnaireItem =
         questionnaireResponses[0].questionnaire.items[linkId];
-      // console.log("questionnaireItem: ", questionnaireItem)
-      // console.log(isQuestionnaireScoreItem(questionnaireItem))
-      // console.log(isDimensionScoreItem(questionnaireItem))
+      // // console.log("questionnaireItem: ", questionnaireItem)
+      // // console.log(isQuestionnaireScoreItem(questionnaireItem))
+      // // console.log(isDimensionScoreItem(questionnaireItem))
       if (isQuestionnaireScoreItem(questionnaireItem)) {
         seriesType = ITEM_TYPES.score;
       } else {
@@ -108,7 +108,10 @@ export const createChartData = (
 
       let referencedItems: string[] | undefined = undefined;
       if (isQuestionnaireScoreItem(questionnaireItem)) {
-        if (questionnaireItem.referenceQuestionnaireItems && questionnaireItem.referenceQuestionnaireItems.length > 0) {
+        if (
+          questionnaireItem.referenceQuestionnaireItems &&
+          questionnaireItem.referenceQuestionnaireItems.length > 0
+        ) {
           referencedItems = questionnaireItem.referenceQuestionnaireItems;
         }
       }
@@ -136,7 +139,9 @@ export const createChartData = (
   };
 };
 
-export const createRadarData = (chartData: Visualization.ChartData): Visualization.ChartData => {
+export const createRadarData = (
+  chartData: Visualization.ChartData,
+): Visualization.ChartData => {
   // for every date calculate dataseries (one value per dimension)
   const dimensions = [
     ...new Set(
@@ -157,7 +162,7 @@ export const createRadarData = (chartData: Visualization.ChartData): Visualizati
       // TODO: Besser filtern
       return dataSeries.dimension === dimension; // && dataSeries.seriesType === ITEM_TYPEs.score;
     });
-    console.log("dimensionDataSeries: ", dimension, ": ", dimensionDataSeries);
+    // console.log("dimensionDataSeries: ", dimension, ": ", dimensionDataSeries);
     const dimensionData = dimensionDataSeries.map(
       (dataSeries) => dataSeries.data,
     ); // oder originalData

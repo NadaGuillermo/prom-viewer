@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import { VariableDomains as Domains } from "@customTypes/variableDomains";
-import { PromData } from "@customTypes/promData";
+import { PromData } from "@data/mapping";
 import React from "react";
+import type { Mapping } from "@data/globalTypes";
 
 import type { ComposeOption, SetOptionOpts } from "echarts/core";
 import type {
@@ -37,7 +38,7 @@ export namespace Visualization {
     settings?: SetOptionOpts;
     loading?: boolean;
     theme?: "light" | "dark";
-    chartHeight?:number;
+    chartHeight?: number;
     useMinHeight?: boolean;
   }
 
@@ -81,16 +82,22 @@ export namespace Visualization {
   }
 
   interface TableProps extends ChartProps {
-    
+    dimensions: string[];
   }
 
   interface RadarProps extends ChartProps {
-
+    dimensions: string[];
   }
 
   interface CollapseProps {
     title: string;
     children: React.ReactNode;
+  }
+
+  interface ErrorModalProps {
+    data: Mapping.DataIssue[];
+    open: boolean;
+    onClose: () => void;
   }
 
   /* interface MatrixItem {

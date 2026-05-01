@@ -1,11 +1,10 @@
 import type { Patient } from "@customTypes/patient";
-import type { PromData } from "@customTypes/promData";
+import type { PromData } from "@data/mapping/types";
 import eq5d5lQuestionnaire from "./eq5d5lQuestionnaire";
 import oxfordHipScoreQuestionnaire from "./oxfordHipScoreQuestionnaire";
 import qlqC30Questionnaire from "./qlqc30Questionnaire";
 
-
-/** Sample questionnaire responses */ 
+/** Sample questionnaire responses */
 // QLQ-C30
 const qlqC30Response1: PromData.QuestionnaireResponse = {
   id: "response-005",
@@ -191,9 +190,9 @@ const qlqC30Response1: PromData.QuestionnaireResponse = {
     "score-ql": {
       linkId: "score-ql",
       answer: 66.67,
-    }
-  }
-}
+    },
+  },
+};
 
 // EQ-5D-5L
 const eq5d5lResponse1: PromData.QuestionnaireResponse = {
@@ -221,14 +220,14 @@ const eq5d5lResponse1: PromData.QuestionnaireResponse = {
       linkId: "anxiety-depression",
       answer: 2,
     },
-    "vas": {
-        linkId: "vas",
-        answer: 55,
+    vas: {
+      linkId: "vas",
+      answer: 55,
     },
     "eq-5d-index": {
-        linkId: "eq-5d-index",
-        answer: -0.074
-    }
+      linkId: "eq-5d-index",
+      answer: -0.074,
+    },
   },
 };
 
@@ -257,14 +256,14 @@ const eq5d5lResponse2: PromData.QuestionnaireResponse = {
       linkId: "anxiety-depression",
       answer: 1,
     },
-    "vas": {
-        linkId: "vas",
-        answer: 69,
+    vas: {
+      linkId: "vas",
+      answer: 69,
     },
     "eq-5d-index": {
-        linkId: "eq-5d-index",
-        answer: 0.814
-    }
+      linkId: "eq-5d-index",
+      answer: 0.814,
+    },
   },
 };
 
@@ -273,59 +272,59 @@ const oxfordHipScoreResponse1: PromData.QuestionnaireResponse = {
   questionnaire: oxfordHipScoreQuestionnaire,
   authored: "2023-10-18",
   items: {
-    "pain": {
-        linkId: "pain",
-        answer: 0
+    pain: {
+      linkId: "pain",
+      answer: 0,
     },
     "night-pain": {
-        linkId: "night-pain",
-        answer: 0
+      linkId: "night-pain",
+      answer: 0,
     },
     "sudden-pain": {
-        linkId: "sudden-pain",
-        answer: 0
+      linkId: "sudden-pain",
+      answer: 0,
     },
-    "washing": {
-        linkId: "washing",
-        answer: 1
+    washing: {
+      linkId: "washing",
+      answer: 1,
     },
-    "transport": {
-        linkId: "transport",
-        answer: 1
+    transport: {
+      linkId: "transport",
+      answer: 1,
     },
-    "dressing": {
-        linkId: "dressing",
-        answer: 1
+    dressing: {
+      linkId: "dressing",
+      answer: 1,
     },
-    "shopping": {
-        linkId: "shopping",
-        answer: 1
+    shopping: {
+      linkId: "shopping",
+      answer: 1,
     },
-    "walking": {
-        linkId: "walking",
-        answer: 0
+    walking: {
+      linkId: "walking",
+      answer: 0,
     },
-    "limping": {
-        linkId: "limping",
-        answer: 0
+    limping: {
+      linkId: "limping",
+      answer: 0,
     },
-    "stairs": {
-        linkId: "stairs",
-        answer: 1
+    stairs: {
+      linkId: "stairs",
+      answer: 1,
     },
-    "standing": {
-        linkId: "standing",
-        answer: 1
+    standing: {
+      linkId: "standing",
+      answer: 1,
     },
-    "work": {
-        linkId: "work",
-        answer: 0
+    work: {
+      linkId: "work",
+      answer: 0,
     },
     "ox-hip-score": {
       linkId: "ox-hip-score",
-      answer: 6.0
-    }
+      answer: 6.0,
     },
+  },
 };
 
 const oxfordHipScoreResponse2: PromData.QuestionnaireResponse = {
@@ -333,65 +332,60 @@ const oxfordHipScoreResponse2: PromData.QuestionnaireResponse = {
   questionnaire: oxfordHipScoreQuestionnaire,
   authored: "2024-02-01",
   items: {
-    "pain": {
-        linkId: "pain",
-        answer: 4
+    pain: {
+      linkId: "pain",
+      answer: 4,
     },
     "night-pain": {
-        linkId: "night-pain",
-        answer: 4
+      linkId: "night-pain",
+      answer: 4,
     },
     "sudden-pain": {
-        linkId: "sudden-pain",
-        answer: 4
+      linkId: "sudden-pain",
+      answer: 4,
     },
-    "washing": {
-        linkId: "washing",
-        answer: 4
+    washing: {
+      linkId: "washing",
+      answer: 4,
     },
-    "transport": {
-        linkId: "transport",
-        answer: 4
+    transport: {
+      linkId: "transport",
+      answer: 4,
     },
-    "dressing": {
-        linkId: "dressing",
-        answer: 3
+    dressing: {
+      linkId: "dressing",
+      answer: 3,
     },
-    "shopping": {
-        linkId: "shopping",
-        answer: 4
+    shopping: {
+      linkId: "shopping",
+      answer: 4,
     },
-    "walking": {
-        linkId: "walking",
-        answer: 4
+    walking: {
+      linkId: "walking",
+      answer: 4,
     },
-    "limping": {
-        linkId: "limping",
-        answer: 3
+    limping: {
+      linkId: "limping",
+      answer: 3,
     },
-    "stairs": {
-        linkId: "stairs",
-        answer: 4
+    stairs: {
+      linkId: "stairs",
+      answer: 4,
     },
-    "standing": {
-        linkId: "standing",
-        answer: 3
+    standing: {
+      linkId: "standing",
+      answer: 3,
     },
-    "work": {
-        linkId: "work",
-        answer: 4
+    work: {
+      linkId: "work",
+      answer: 4,
     },
     "ox-hip-score": {
       linkId: "ox-hip-score",
-      answer: 45.0
-    }
+      answer: 45.0,
     },
+  },
 };
-
-
-
-
-
 
 // Mock patient data
 export const mockPatient: Patient.Patient = {

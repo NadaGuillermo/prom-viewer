@@ -1,4 +1,4 @@
-import type {  PromData } from "@customTypes/promData";
+import type { PromData } from "@data/mapping/types";
 
 const qlqc30Questionnaire: PromData.Questionnaire = {
   id: "qlq-c30",
@@ -12,10 +12,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q02": {
       linkId: "qlq-c30-q02",
@@ -23,10 +23,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q03": {
       linkId: "qlq-c30-q03",
@@ -34,10 +34,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q04": {
       linkId: "qlq-c30-q04",
@@ -45,10 +45,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q05": {
       linkId: "qlq-c30-q05",
@@ -56,10 +56,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q06": {
       linkId: "qlq-c30-q06",
@@ -67,10 +67,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q07": {
       linkId: "qlq-c30-q07",
@@ -78,10 +78,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Physical Function"
+      dimension: "Physical Function",
     },
     "qlq-c30-q08": {
       linkId: "qlq-c30-q09",
@@ -89,10 +89,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q09": {
       linkId: "qlq-c30-q09",
@@ -100,10 +100,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q10": {
       linkId: "qlq-c30-q10",
@@ -111,10 +111,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q11": {
       linkId: "qlq-c30-q11",
@@ -122,10 +122,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q12": {
       linkId: "qlq-c30-q12",
@@ -133,10 +133,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q13": {
       linkId: "qlq-c30-q13",
@@ -144,10 +144,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q14": {
       linkId: "qlq-c30-q14",
@@ -155,10 +155,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q15": {
       linkId: "qlq-c30-q15",
@@ -166,10 +166,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q16": {
       linkId: "qlq-c30-q16",
@@ -177,10 +177,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q17": {
       linkId: "qlq-c30-q17",
@@ -188,10 +188,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q18": {
       linkId: "qlq-c30-q18",
@@ -199,10 +199,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q19": {
       linkId: "qlq-c30-q19",
@@ -210,10 +210,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q20": {
       linkId: "qlq-c30-q20",
@@ -221,10 +221,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q21": {
       linkId: "qlq-c30-q21",
@@ -232,10 +232,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Emotional Well-being"
+      dimension: "Emotional Well-being",
     },
     "qlq-c30-q22": {
       linkId: "qlq-c30-q22",
@@ -243,10 +243,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Emotional Well-being"
+      dimension: "Emotional Well-being",
     },
     "qlq-c30-q23": {
       linkId: "qlq-c30-q23",
@@ -254,10 +254,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Emotional Well-being"
+      dimension: "Emotional Well-being",
     },
     "qlq-c30-q24": {
       linkId: "qlq-c30-q24",
@@ -265,10 +265,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Emotional Well-being"
+      dimension: "Emotional Well-being",
     },
     "qlq-c30-q25": {
       linkId: "qlq-c30-q25",
@@ -276,10 +276,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Symptoms"
+      dimension: "Symptoms",
     },
     "qlq-c30-q26": {
       linkId: "qlq-c30-q26",
@@ -287,10 +287,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Social Function"
+      dimension: "Social Function",
     },
     "qlq-c30-q27": {
       linkId: "qlq-c30-q27",
@@ -298,10 +298,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Social Function"
+      dimension: "Social Function",
     },
     "qlq-c30-q28": {
       linkId: "qlq-c30-q28",
@@ -309,10 +309,10 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Not at all" },
         { value: 2, label: "A little" },
-        { value: 3, label: "Quite a bit"},
-        { value: 4, label: "Very much"},
+        { value: 3, label: "Quite a bit" },
+        { value: 4, label: "Very much" },
       ],
-      dimension: "Other"
+      dimension: "Other",
     },
     "qlq-c30-q29": {
       linkId: "qlq-c30-q29",
@@ -320,13 +320,13 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Very poor" },
         { value: 2, label: "Poor" },
-        { value: 3, label: "Fair"},
-        { value: 4, label: "Good"},
-        { value: 5, label: "Very good"},
-        { value: 6, label: "Excellent"},
-        { value: 7, label: "Perfect"},
+        { value: 3, label: "Fair" },
+        { value: 4, label: "Good" },
+        { value: 5, label: "Very good" },
+        { value: 6, label: "Excellent" },
+        { value: 7, label: "Perfect" },
       ],
-      dimension: "Overall Health/Quality of Life"
+      dimension: "Overall Health/Quality of Life",
     },
     "qlq-c30-q30": {
       linkId: "qlq-c30-q30",
@@ -334,13 +334,13 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       answerOptions: [
         { value: 1, label: "Very poor" },
         { value: 2, label: "Poor" },
-        { value: 3, label: "Fair"},
-        { value: 4, label: "Good"},
-        { value: 5, label: "Very good"},
-        { value: 6, label: "Excellent"},
-        { value: 7, label: "Perfect"},
+        { value: 3, label: "Fair" },
+        { value: 4, label: "Good" },
+        { value: 5, label: "Very good" },
+        { value: 6, label: "Excellent" },
+        { value: 7, label: "Perfect" },
       ],
-      dimension: "Overall Health/Quality of Life"
+      dimension: "Overall Health/Quality of Life",
     },
     "score-pf": {
       linkId: "score-pf",
@@ -362,10 +362,7 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Physical Function",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q06",
-        "qlq-c30-q07",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q06", "qlq-c30-q07"],
     },
     "score-ef": {
       linkId: "score-ef",
@@ -380,29 +377,23 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
         "qlq-c30-q24",
       ],
     },
-     "score-cf": {
+    "score-cf": {
       linkId: "score-cf",
       text: "Cognitive Functioning Score",
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q20",
-        "qlq-c30-q25",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q20", "qlq-c30-q25"],
     },
-     "score-sf": {
+    "score-sf": {
       linkId: "score-sf",
       text: "Social Function Score",
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Social Function",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q26",
-        "qlq-c30-q27",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q26", "qlq-c30-q27"],
     },
-     "score-fa": {
+    "score-fa": {
       linkId: "score-fa",
       text: "Fatigue Score",
       range: [0, 100],
@@ -414,47 +405,37 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
         "qlq-c30-q18",
       ],
     },
-     "score-nv": {
+    "score-nv": {
       linkId: "score-nv",
       text: "Nausea and Vomiting Score",
       range: [0, 100],
       scoreHealthCorrelation: "decrease",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q14",
-        "qlq-c30-q15",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q14", "qlq-c30-q15"],
     },
-     "score-pa": {
+    "score-pa": {
       linkId: "score-ap",
       text: "Pain Score",
       range: [0, 100],
       scoreHealthCorrelation: "decrease",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q09",
-        "qlq-c30-q19",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q09", "qlq-c30-q19"],
     },
-     "score-dy": {
+    "score-dy": {
       linkId: "score-dy",
       text: "Dyspnoea Score",
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q08",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q08"],
     },
-     "score-sl": {
+    "score-sl": {
       linkId: "score-sl",
       text: "Insomnia Score",
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q11",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q11"],
     },
     "score-ap": {
       linkId: "score-ap",
@@ -462,9 +443,7 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q13",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q13"],
     },
     "score-co": {
       linkId: "score-co",
@@ -472,9 +451,7 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q16",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q16"],
     },
     "score-di": {
       linkId: "score-di",
@@ -482,9 +459,7 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Symptoms",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q17",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q17"],
     },
     "score-fi": {
       linkId: "score-fi",
@@ -492,9 +467,7 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Other",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q28",
-      ],
+      referenceQuestionnaireItems: ["qlq-c30-q28"],
     },
     "score-ql": {
       linkId: "score-ql",
@@ -502,12 +475,9 @@ const qlqc30Questionnaire: PromData.Questionnaire = {
       range: [0, 100],
       scoreHealthCorrelation: "increase",
       dimension: "Overall Health/Quality of Life",
-      referenceQuestionnaireItems: [
-        "qlq-c30-q29",
-        "qlq-c30-q30",
-      ],
-    }, 
-    }
-}
+      referenceQuestionnaireItems: ["qlq-c30-q29", "qlq-c30-q30"],
+    },
+  },
+};
 
 export default qlqc30Questionnaire;

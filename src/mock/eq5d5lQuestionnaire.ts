@@ -1,4 +1,4 @@
-import type { PromData } from "@customTypes/promData";
+import type { PromData } from "@data/mapping/types";
 
 const eq5d5lQuestionnaire: PromData.Questionnaire = {
   id: "eq5d-5l",
@@ -6,7 +6,7 @@ const eq5d5lQuestionnaire: PromData.Questionnaire = {
   url: "https://example.com/eq5d-5l",
   description: "A health-related quality of life questionnaire",
   items: {
-    "mobility": {
+    mobility: {
       linkId: "mobility",
       text: "Mobility",
       answerOptions: [
@@ -87,7 +87,7 @@ const eq5d5lQuestionnaire: PromData.Questionnaire = {
       ],
       dimension: "Emotional Well-being",
     },
-    "vas": {
+    vas: {
       linkId: "vas",
       text: "VAS",
       range: [0, 100],
@@ -101,8 +101,7 @@ const eq5d5lQuestionnaire: PromData.Questionnaire = {
       range: [-0.594, 1],
       scoreHealthCorrelation: "increase",
     },
-  }
+  },
 };
-
 
 export default eq5d5lQuestionnaire;

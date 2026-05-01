@@ -17,7 +17,7 @@ const Matrix = ({
   // data already one dimension !!!
 
   const matrixYData = data.yData;
-  console.log("Matrix Y Data: ", matrixYData);
+  // console.log("Matrix Y Data: ", matrixYData);
 
   const scores = matrixYData.filter(
     (dataseries) => dataseries.seriesType === "score",
@@ -74,8 +74,8 @@ const Matrix = ({
   //   });
   // });
 
-  console.log("chartData: ", chartData);
-  console.log("matrixYData: ", matrixYData.length);
+  // console.log("chartData: ", chartData);
+  // console.log("matrixYData: ", matrixYData.length);
   // const getRowData = (series: Visualization.DataSeries, xData: string[]) => {
   //   const seriesRows: [string, string, Domains.NumberOrNull][] = xData.map((x, index) => {
   //     return [x, series.name, series.data[index] === null ? Infinity : series.data[index]];
@@ -138,7 +138,7 @@ const Matrix = ({
         originalValue,
         value[1],
       );
-      console.log("Matrix Label: ", label);
+      // console.log("Matrix Label: ", label);
       const labelString = label ? ` (${label})` : "";
       return (
         echarts.format.encodeHTML(questionnaireLabel) +

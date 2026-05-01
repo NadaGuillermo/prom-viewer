@@ -5,15 +5,17 @@ export namespace NormalizedFHIR {
   interface AnswerOption {
     value: Answer;
     label: string;
+    code?: string;
   }
 
   interface QuestionnaireItem {
     linkId: string;
     text: string;
-    answerOptions: AnswerOption[];
+    answerOptions?: AnswerOption[];
     referenceQuestionnaireItems?: string[];
     range?: [number, number]; // update from ObservationDefinition
-    observationCode?: string; // from Observation
+    // observationCode?: string; // from Observation
+    observationDefinition?: string; // id for ObservationDefinition
     scoreHealthCorrelation?: string; // from ObservationDefinition
   }
 
@@ -28,9 +30,10 @@ export namespace NormalizedFHIR {
   /** Observation Definition */
   interface ObservationDefinition {
     id: string;
+    // url: string;
     range: [number, number];
     scoreHealthCorrelation: string;
-    code: string;
+    // code: string;
   }
 
   /** Response */
@@ -49,7 +52,16 @@ export namespace NormalizedFHIR {
   /** Observation */
   interface Observation {
     id: string;
-    code: string;
-    value: Answer | undefined;
+    // code: string;
+    value: Answer;
+    questionnaireResponse: string | undefined; // QuestionnaireResponse.id
+    observationDefinition: string | undefined; // ObservationDefinition.id
+  }
+
+  /* Bundle */
+  interface Bundle {
+    questionnaire: Questionnaire | undefined;
+    questionnaireResponse: QuestionnaireResponse | undefined;
+    observations: Observation[] | undefined;
   }
 }

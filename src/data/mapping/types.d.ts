@@ -7,7 +7,7 @@ export namespace PromData {
   interface BaseItem {
     linkId: string;
     text: string;
-    dimension: Domains.Dimension;
+    dimension: string; //Domains.Dimension;
   }
 
   /** Questionnaire */
@@ -24,7 +24,7 @@ export namespace PromData {
   interface QuestionnaireScoreItem extends BaseItem {
     range: [number, number];
     scoreHealthCorrelation: Domains.ScoreHealthCorrelation;
-    referenceQuestionnaireItems: string[]; // linkIds
+    referenceQuestionnaireItems?: string[]; // linkIds
   }
 
   interface Questionnaire {
@@ -33,6 +33,12 @@ export namespace PromData {
     url: string;
     description: string;
     items: Record<string, Item>; // key = linkId
+  }
+
+  interface ObservationDefinition {
+    id: string;
+    range: [number, number];
+    scoreHealthCorrelation: string;
   }
 
   /** Response */
@@ -46,5 +52,12 @@ export namespace PromData {
     questionnaire: Questionnaire;
     authored: Domains.DateFormat;
     items: Record<string, ResponseItem>; // key = linkId
+  }
+
+  interface Observation {
+    id: string;
+    value: Answer;
+    questionnaireResponse: string; // QuestionnaireResponse.id
+    observationDefinition: string; // ObservationDefinition.id
   }
 }

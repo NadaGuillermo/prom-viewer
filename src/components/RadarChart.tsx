@@ -1,18 +1,18 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
-import { DIMENSIONS } from "@data/mapping/constants";
 
-const RadarChart = ({ title, subtitle, data }: Visualization.RadarProps) => {
+
+const RadarChart = ({ title, subtitle, data, dimensions }: Visualization.RadarProps) => {
   // assume one dataseries per dimension in data.yData
 
   const dataDimensions = [
     ...new Set(data.yData.map((series) => series.dimension)),
   ];
 
-  const sortedDataDimensions = DIMENSIONS.flatMap((dimension) =>
+  const sortedDataDimensions = dimensions.flatMap((dimension) =>
     dataDimensions.filter((dim) => dim === dimension),
   );
-  console.log("Sorted Data Dimensions: ", sortedDataDimensions);
+  // console.log("Sorted Data Dimensions: ", sortedDataDimensions);
 
   const radarIndicators = sortedDataDimensions.map((dimension) => ({
     name: dimension,

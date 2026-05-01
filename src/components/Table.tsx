@@ -7,10 +7,11 @@ import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
 } from "@utils/helpers";
-import { globalDimension, DIMENSIONS } from "@data/mapping/constants";
+import { globalDimension } from "@data/mapping/constants";
+
 import _ from "lodash";
 
-const Table = ({ title, subtitle, data }: Visualization.TableProps) => {
+const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) => {
   // data already for one questionnaire
 
   // add questionnaire name to yData
@@ -36,8 +37,7 @@ const Table = ({ title, subtitle, data }: Visualization.TableProps) => {
 
   const dimensionScores = _.difference(scores, globalScores);
 
-  // sort dimension scores according to DIMENSIONS in constants.ts
-  const dimensionScoresSorted = DIMENSIONS.flatMap((dimension) =>
+  const dimensionScoresSorted = dimensions.flatMap((dimension) =>
     dimensionScores.filter((score) => score.dimension === dimension),
   );
 
@@ -120,7 +120,7 @@ const Table = ({ title, subtitle, data }: Visualization.TableProps) => {
   //   });
   // });
 
-  console.log("chartData in Table: ", chartData);
+  // console.log("chartData in Table: ", chartData);
   // const getRowData = (series: Visualization.DataSeries, xData: string[]) => {
   //   const seriesRows: [string, string, Domains.NumberOrNull][] = xData.map((x, index) => {
   //     return [x, series.name, series.data[index] === null ? Infinity : series.data[index]];

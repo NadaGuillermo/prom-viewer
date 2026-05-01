@@ -1,9 +1,7 @@
 import type { Visualization } from "@customTypes/visualization";
 import type { VariableDomains as Domains } from "@customTypes/variableDomains";
-import type { PromData } from "@customTypes/promData";
+import type { PromData } from "@data/mapping";
 import _ from "lodash";
-
-import { globalDimension, otherDimension } from "@data/mapping";
 
 export const isScoreSeries = (
   series: Visualization.DataSeries[],
@@ -20,7 +18,7 @@ export const getLabelFromOriginalValueAndDataSeriesName = (
   const correspondingSeries = yData.find(
     (series) => series.name === seriesName,
   );
-  console.log("correspondingSeries: ", correspondingSeries, originalValue);
+  // console.log("correspondingSeries: ", correspondingSeries, originalValue);
   return correspondingSeries
     ? correspondingSeries.dataLabels[
         correspondingSeries.originalData.indexOf(originalValue)
@@ -172,18 +170,26 @@ export const groupItemsByDimension = (items: Visualization.DataSeries[]) => {
 //   return data;
 // }
 
-export const sortDimensions = (dimensions: string[]) => {
+export const sortDimensions = (
+  dimensions: string[],
+  globalHealthDimensions: string[],
+) => {
   const sortedDimensions = dimensions;
-  const global = dimensions.find((dimension) => dimension === globalDimension);
-  const other = dimensions.find((dimension) => dimension === otherDimension);
-  if (global) {
-    sortedDimensions.splice(dimensions.indexOf(global), 1);
-    sortedDimensions.unshift(global);
+  const globalDimensions = dimensions.filter((dimension) =>
+    globalHealthDimensions.includes(dimension),
+  );
+  // const other = dimensions.find((dimension) => dimension === otherDimension);
+  if (globalDimensions.length > 0) {
+    for (let dim of globalDimensions) {
+      const index = sortedDimensions.indexOf(dim);
+      sortedDimensions.splice(index, 1);
+      sortedDimensions.unshift(dim);
+    }
   }
-  if (other) {
-    sortedDimensions.splice(dimensions.indexOf(other), 1);
-    sortedDimensions.push(other);
-  }
+  // if (other) {
+  //   sortedDimensions.splice(dimensions.indexOf(other), 1);
+  //   sortedDimensions.push(other);
+  // }
   return sortedDimensions;
 };
 
@@ -379,16 +385,16 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
 };
 
 // ok
-export const getUniqueQuestionnaires = (
-  proms: Record<string, PromData.QuestionnaireResponse>,
-) => {
-  const questionnaires = Object.values(proms).map((prom) => {
-    return prom.questionnaire;
-  });
-  const uniqueQuestionnaires = [...new Set(questionnaires)];
+// export const getUniqueQuestionnaires = (
+//   proms: Record<string, PromData.QuestionnaireResponse>,
+// ) => {
+//   const questionnaires = Object.values(proms).map((prom) => {
+//     return prom.questionnaire;
+//   });
+//   const uniqueQuestionnaires = [...new Set(questionnaires)];
 
-  return uniqueQuestionnaires;
-};
+//   return uniqueQuestionnaires;
+// };
 
 // ok
 export const calculatePeriodOfObservations = (
@@ -423,7 +429,7 @@ export const createDateQuestionnairesRecord = (
       questionnairesByDate[date].push(questionnaireName);
     }
   });
-  console.log("questionnairesByDate: ", questionnairesByDate);
+  // console.log("questionnairesByDate: ", questionnairesByDate);
   // sort by key
   let sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
@@ -504,16 +510,18 @@ export const createDimensionChartDataRecord = (
         const scoreItem = scoreQuestionnaire.items[
           score.id
         ] as PromData.QuestionnaireScoreItem;
-        const itemsToBeRemoved = scoreItem.referenceQuestionnaireItems ? scoreItem.referenceQuestionnaireItems
-        .map((linkId) => items.find((item) => item.id === linkId))
-          .filter((item) => item !== undefined) : [];
+        const itemsToBeRemoved = scoreItem.referenceQuestionnaireItems
+          ? scoreItem.referenceQuestionnaireItems
+              .map((linkId) => items.find((item) => item.id === linkId))
+              .filter((item) => item !== undefined)
+          : [];
         if (itemsToBeRemoved.length > 0) {
           _.pullAll(items, itemsToBeRemoved);
         }
       }
     });
-    console.log("Scores after filtering: ", scores);
-    console.log("Items after filtering: ", items);
+    // console.log("Scores after filtering: ", scores);
+    // console.log("Items after filtering: ", items);
     const yData = [...scores, ...items]; // scores and items on same level
     chartDataByDimension[dimension] = {
       xData: xData,
