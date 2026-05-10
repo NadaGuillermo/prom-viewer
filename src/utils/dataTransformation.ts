@@ -2,7 +2,7 @@ import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 import _ from "lodash";
 import type { PromData } from "@data/mapping";
 import type { Visualization } from "@customTypes/visualization";
-import { ITEM_TYPES, SCORE_HEALTH_CORELATIONS } from "@data/mapping";
+import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS } from "@data/mapping";
 import {
   addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate,
   createCommonTimeAxis,
@@ -57,7 +57,7 @@ export const createChartData = (
             // check if decreasing score health correlation
             if (
               questionnaireItem.scoreHealthCorrelation ===
-              SCORE_HEALTH_CORELATIONS.decrease
+              SCORE_HEALTH_CORRELATIONS.decrease
             ) {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
@@ -118,7 +118,8 @@ export const createChartData = (
 
       dataSeriesOfQuestionnaire.push({
         id: linkId,
-        name: questionnaireResponses[0].questionnaire.items[linkId].text,
+        name: questionnaireResponses[0].questionnaire.items[linkId].text ?? linkId,
+        shortName: questionnaireResponses[0].questionnaire.items[linkId].shortText ?? linkId,
         data: data,
         originalData: originalData,
         dataLabels: dataLabels,
@@ -152,7 +153,7 @@ export const createRadarData = (
   ];
 
   // filter dimension Other
-  dimensions.splice(dimensions.indexOf("Other"), 1);
+  // dimensions.splice(dimensions.indexOf("Other"), 1);
 
   const xData: string[] = chartData.xData;
   const yData: Visualization.DataSeries[] = [];
@@ -176,6 +177,7 @@ export const createRadarData = (
     yData.push({
       id: dimension,
       name: dimension,
+      shortName: dimension,
       data: data,
       originalData: data,
       dataLabels: [],

@@ -4,7 +4,7 @@ import { normalizeQuestionnaire } from "./normalizeQuestionnaire";
 import { normalizeQuestionnaireResponse } from "./normalizeQuestionnaireResponse";
 import { normalizeObservation } from "./normalizeObservation";
 
-export const normalizeBundle = (resource: any): Mapping.Result<NormalizedFHIR.Bundle> => {
+const normalizeBundle = (resource: any): Mapping.Result<NormalizedFHIR.Bundle> => {
   const issues: Mapping.DataIssue[] = [];
 
   const bundleQuestionnaireEntry = resource.entry.find((e: any) => e.resource?.resourceType === "Questionnaire");
@@ -17,6 +17,9 @@ export const normalizeBundle = (resource: any): Mapping.Result<NormalizedFHIR.Bu
       id: `issue-bundle-${resource.id}-${Math.random().toString(36).substring(2, 9)}`,
       level: 'error',
       message: `Bundle ${resource.id} does not contain a ${bundleQuestionnaireEntry === undefined ? "Questionnaire" : ""} ${bundleQuestionnaireEntry === undefined && bundleQuestionnaireResponseEntry !== undefined ? "and" : ""} ${bundleQuestionnaireResponseEntry === undefined ? "QuestionnaireResponse" : ""} and will therefore be omitted.`,
+      resourceId: resource.id,
+      resourceType: "Bundle",
+      linkId: undefined,
     });
   }
   const questionnaireWithErrorMessages = bundleQuestionnaireEntry !== undefined ? normalizeQuestionnaire(bundleQuestionnaireEntry.resource) : undefined;

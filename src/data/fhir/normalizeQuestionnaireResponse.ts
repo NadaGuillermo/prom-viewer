@@ -25,9 +25,12 @@ export const normalizeQuestionnaireResponse = (resource: any, normalizedQuestion
     const questionnaire = normalizedQuestionnaires.find((q) => q.url === resource.questionnaire);
     if (questionnaire === undefined) {
       issues.push({
-         id: `issue-questionnaireResponse-${resource.id}-${Math.random().toString(36).substring(2, 9)}`,
+         id: `issue-questionnaireResponse-${Math.random().toString(36).substring(2, 9)}`,
          level: 'error',
-         message: `Questionnaire Response ${resource.id} does not reference any questionnaire and will therefore be omitted.`
+         message: `Questionnaire Response with id ${resource.id} does not reference any questionnaire and will therefore be omitted.`,
+         resourceId: resource.id,
+         resourceType: "QuestionnaireResponse",
+         linkId: undefined,
       })
     }
     const item = questionnaire?.items[linkId];
@@ -48,9 +51,12 @@ export const normalizeQuestionnaireResponse = (resource: any, normalizedQuestion
         // only use first answer! otherwise add warning
         if (item.answer.length > 1) {
           issues.push({
-            id: `issue-questionnaireResponse-${resource.id}-item-${item.linkId}-${Math.random().toString(36).substring(2, 9)}`,
+            id: `issue-questionnaireResponse-item-${Math.random().toString(36).substring(2, 9)}`,
             level: 'warning',
             message: `Item with linkId ${item.linkId} has more than one answer. Only the first answer will be kept. Answers: ${JSON.stringify(item.answer)}`,
+            resourceId: resource.id,
+            resourceType: "QuestionnaireResponse",
+            linkId: item.linkId,
           });
         }
         //for (const ans of item.answer) {
@@ -82,6 +88,6 @@ export const normalizeQuestionnaireResponse = (resource: any, normalizedQuestion
     authored: resource.authored, // immer gegeben in ISO Format
     items, // optional
     },
-    issues,
+    issues: issues,
   };
 }

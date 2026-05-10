@@ -1,6 +1,7 @@
 {
   "resourceType": "ObservationDefinition",
   "id": "mii-obsdef-pro-eortc-qlq-c30-ql",
+  "url": "https://example.com/fhir/ObservationDefinition/eortc-qlq-c30-ql",
   "meta": {
     "profile": [
       "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-score-blueprint|2026.2.0"

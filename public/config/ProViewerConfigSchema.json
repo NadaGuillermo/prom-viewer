@@ -1,0 +1,111 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/example.json",
+    "title": "PRO Viewer Configuration",
+    "description": "Configuration settings for PRO Viewer: defines questionnaires; maps dimensions with questionnaire items & score items with observation definitions; defines score ranges and score health correlations; defines global health dimensions",
+    "type": "object",
+    "$definitions": {
+        "scoreDefinitions": {
+            "type": "array",
+            "description": "Defines range and score health correlation of scores",
+            "$comment": "If there exists a FHIR ObservationDefinition with ObservationDefinition.qualifiedInterval.range defined for a score also occuring in the config file, the values in the config file are given priority over those in the ObservationDefinition",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "range": {
+                        "type": "array",
+                        "description": "Specifies the range of the score as a tuple of two numbers (min, max)",
+                        "items": {
+                            "type": "number"
+                        },
+                        "minItems": 2,
+                        "maxItems": 2
+                    },
+                    "scoreHealthCorrelation": {
+                        "description": "Specifies the health score correlation; either increase (higher scores mean better health) or decrease (higher scores mean worse health)",
+                        "enum": [
+                            "increase",
+                            "decrease"
+                        ]
+                    }
+                },
+                "required": ["id", "range", "scoreHealthCorrelation"]
+            }
+        }
+    },
+    "properties": {
+        "scoreDefinitions": {
+            "$ref": "#/$definitions/scoreDefinitions"
+        },
+        "questionnaires": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "questionnaire": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "Canonical URI of FHIR Questionnaire resource"
+                    },  
+                    "dimensionItemMapping": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "dimension": {
+                                    "type": "string",
+                                    "description": "Dimension/Domain into which items are grouped"
+                                },
+                                "isGlobalHealthDimension": {
+                                    "type": "boolean",
+                                    "default": false,
+                                    "description": "This flag determines whether the items with this dimension should be displayed in the Global Health chart",
+                                    "$comment": "If this property is missing, its value is treated as false"
+                                },
+                                "questions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "itemId": {
+                                                "type": "string",
+                                                "description": "FHIR Questionnaire.item.linkId",
+                                                "$comment": "This value should correspond to a linkId in the referenced Questionnaire resource"
+                                            },
+                                            "shortName": {
+                                                "type": "string",
+                                                "description": "Short name that should be displayed in the chart",
+                                                "$comment": "Useful if FHIR Questionnaire.item.text is not defined or item.linkId very long",
+                                                "maxLength": 25
+                                            },
+                                            "observationDefinition": {
+                                                "type": "string",
+                                                "format": "uri",
+                                                "description": "Canonical URI of FHIR ObservationDefinition resource"
+                                            },
+                                            "scoreDefinitionId": {
+                                                "type": "string",
+                                                "description": "Id of an item in scoreDefinitions",
+                                                "$comment": "Must match an id from scoreDefinitions"
+                                            }
+                                        },
+                                        "required": ["itemId"]
+                                    },
+                                    "minItems": 1
+                                }
+                            },
+                            "required": ["dimension"]
+                        },
+                        "minItems": 1 
+                    }
+                },
+                "required": ["questionnaire", "dimensionItemMapping"]
+            },
+            "minItems": 1
+        }
+    },
+    "required": ["scoreDefinitions", "questionnaires"]
+}

@@ -1,11 +1,14 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
 import type { VariableDomains as Domains } from "@customTypes/variableDomains";
-// import * as echarts from "echarts/core";
+import * as echarts from "echarts/core";
+
+import "@styles/echartStyles.css";
 
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
+  getNameForDataSeriesFromShortName,
 } from "@utils/helpers";
 import { globalDimension } from "@data/mapping/constants";
 
@@ -15,12 +18,12 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   // data already for one questionnaire
 
   // add questionnaire name to yData
-  const matrixYData = data.yData;
+  const matrixDataSeries = data.yData;
   //   .map((series) => {
   //     const label = series.name;
   //     return { ...series, name: label };
   //   });
-  const scores = matrixYData.filter(
+  const scores = matrixDataSeries.filter(
     (dataseries) => dataseries.seriesType === "score",
   );
 
@@ -41,7 +44,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
     dimensionScores.filter((score) => score.dimension === dimension),
   );
 
-  const itemsNotReferencedInScores = matrixYData.filter(
+  const itemsNotReferencedInScores = matrixDataSeries.filter(
     (dataseries) =>
       dataseries.seriesType === "item" &&
       !scores.some((score) => score.referencedItems?.includes(dataseries.id)),
@@ -49,7 +52,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
 
   const dimensionScoresWithReferencedItems = dimensionScoresSorted.map(
     (score) => {
-      const referencedItems = matrixYData.filter(
+      const referencedItems = matrixDataSeries.filter(
         (dataseries) =>
           dataseries.seriesType === "item" &&
           score.referencedItems?.includes(dataseries.id),
@@ -58,7 +61,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
     },
   );
 
-  const sortedMatrixYData = [
+  const sortedMatrixDataSeries = [
     ...globalScores,
     //...otherScores,
     ...dimensionScoresWithReferencedItems.flatMap((scoreWithItems) => [
@@ -80,12 +83,15 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   // xData.unshift("");
 
   const chartData: [string, string, Domains.NumberOrNull][] = [];
-  sortedMatrixYData.forEach((series) => {
+  const yAxisData: string[] = [];
+
+  sortedMatrixDataSeries.forEach((series) => {
     const rows: [string, string, Domains.NumberOrNull][] = xData.map(
       (x, index) => {
+        yAxisData.push(series.shortName);
         return [
           x,
-          series.name,
+          series.shortName,
           series.data[index] === null ? Infinity : series.data[index],
         ];
       },
@@ -147,7 +153,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   const labelWithOriginalScores = (params: any) => {
     const { value } = params;
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
-      sortedMatrixYData,
+      sortedMatrixDataSeries,
       value[2],
       value[1],
     );
@@ -155,7 +161,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
     const originalValueString =
       originalValue !== null && originalValue !== undefined
         ? originalValue.toString()
-        : "";
+        : "undefined";
 
     return valueIsScore
       ? `{score|${originalValueString}}`
@@ -166,6 +172,18 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
     const isScore = isScoreSeries(scores, value);
     return isScore ? `{score|${value}}` : `{item|${value}}`;
   };
+
+  const yAxisTooltipFormatter = (params: any) => {
+      const { value } = params;
+      // console.log("yAxisTooltipFormatter params: ", params);
+      const longName = getNameForDataSeriesFromShortName(matrixDataSeries, value);
+      return `
+        <div class="tooltip-content">
+          ${echarts.format.encodeHTML(longName ? longName : value)}
+        </div>
+      `;
+    };
+
 
   // const tooltipFormatter = (params: any) => {
   //   const { value, name } = params;
@@ -189,6 +207,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   //   }
   //   return echarts.format.encodeHTML(value[2]);
   // };
+  
 
   const options: Visualization.EChartsOption = {
     animation: false,
@@ -196,9 +215,12 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
       text: title,
       subtext: subtitle,
     },
-    // tooltip: {
-    //   formatter: (params: any) => tooltipFormatter(params),
-    // },
+    tooltip: {
+      show: false,
+      renderMode: 'html',
+      className: 'echarts-tooltip',
+      confine: true,
+    },
     xAxis: [
       {
         type: "category",
@@ -208,17 +230,17 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
         },
         // position: "top",
       },
-      {
-        type: "category",
-        data: xData,
-        splitLine: {
-          show: false,
-        },
-      },
+      // {
+      //   type: "category",
+      //   data: xData,
+      //   splitLine: {
+      //     show: false,
+      //   },
+      // },
     ],
     yAxis: {
       type: "category",
-      data: sortedMatrixYData.map((d) => d.name),
+      data: yAxisData,
       splitLine: {
         show: true,
       },
@@ -232,6 +254,11 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
           score: { fontWeight: "bold" },
           // item: { },
         },
+      },
+      tooltip: {
+        show: true,
+        // @ts-ignore
+        formatter: (params:any) => yAxisTooltipFormatter(params),
       },
     },
     visualMap: {
@@ -266,16 +293,16 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   };
   // style={{ width: "100%", height: `${data.length * 25}px` }}
   let chartHeight = 0;
-  if (matrixYData.length === 0) {
+  if (matrixDataSeries.length === 0) {
     chartHeight = 0;
-  } else if (matrixYData.length === 1) {
-    chartHeight = (matrixYData.length + 3) * 36;
-  } else if (matrixYData.length === 2) {
-    chartHeight = (matrixYData.length + 3) * 32;
+  } else if (matrixDataSeries.length === 1) {
+    chartHeight = (matrixDataSeries.length + 3) * 36;
+  } else if (matrixDataSeries.length === 2) {
+    chartHeight = (matrixDataSeries.length + 3) * 32;
   } else {
     chartHeight =
-      (matrixYData.length + 3) *
-      (32 - 2 * Math.ceil(Math.log2(matrixYData.length)));
+      (matrixDataSeries.length + 3) *
+      (32 - 2 * Math.ceil(Math.log2(matrixDataSeries.length)));
   }
 
   return (

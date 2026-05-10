@@ -1,241 +1,301 @@
 {
-    "type": "config",
-    "id": "prom-config-1",
-    "promConfiguration": {
-        "questionnaireConfigurations": [
-            {
-                "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable",
-                "dimensionMapping": [
-                    {
-                        "dimension": "Physical Function",
-                        "items": [
-                            "euroqol-eq5d5l-q01-MO",
-                            "euroqol-eq5d5l-q02-SC",
-                            "euroqol-eq5d5l-q03-UA"
-                        ]
-                    },
-                    {
-                        "dimension": "Symptoms",
-                        "items": [
-                            "euroqol-eq5d5l-q04-PD"
-                        ]
-                    },
-                    {
-                        "dimension": "Emotional Well-being",
-                        "items": [
-                            "euroqol-eq5d5l-q05-AD"
-                        ]
-                    },
-                    {
-                        "dimension": "Overall Health",
-                        "globalHealth": true,
-                        "items": [
-                            "euroqol-eq5d5l-score-index",
-                            "euroqol-eq5d5l-vas"
-                        ]
-                    }
-                ],
-                "scoreDefinitions": [
-                    {
-                        "items": [
-                            "euroqol-eq5d5l-score-index",
-                            "euroqol-eq5d5l-vas"
-                        ],
-                        "scoreHealthCorrelation": "increase"
-                    }
-                ]
-            },
-            {
-                "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
-                "dimensionMapping": [
-                    {
-                        "dimension": "Physical Function",
-                        "items": [
-                            "qlq-c30-q01", 
-                            "qlq-c30-q02", 
-                            "qlq-c30-q03", 
-                            "qlq-c30-q04", 
-                            "qlq-c30-q05", 
-                            "qlq-c30-q06", 
-                            "qlq-c30-q07",
-                            "qlq-c30-q26",
-                            "qlq-c30-q27",
-                            "score-pf",
-                            "score-rf"
-                        ]
-                    },
-                    {
-                        "dimension": "Symptoms",
-                        "items": [
-                            "qlq-c30-q08", 
-                            "qlq-c30-q09", 
-                            "qlq-c30-q10", 
-                            "qlq-c30-q11", 
-                            "qlq-c30-q12", 
-                            "qlq-c30-q13", 
-                            "qlq-c30-q14", 
-                            "qlq-c30-q15", 
-                            "qlq-c30-q16", 
-                            "qlq-c30-q17", 
-                            "qlq-c30-q18", 
-                            "qlq-c30-q19", 
-                            "qlq-c30-q20", 
-                            "qlq-c30-q21", 
-                            "qlq-c30-q22", 
-                            "qlq-c30-q23", 
-                            "qlq-c30-q24", 
-                            "qlq-c30-q25", 
-                            "score-cf",
-                            "score-fa",
-                            "score-nv",
-                            "score-pa",
-                            "score-dy",
-                            "score-sl",
-                            "score-ap",
-                            "score-co",
-                            "score-di"
-                        ]
-                    },
-                    {
-                        "dimension": "Emotional Well-being",
-                        "items": [
-                            "score-ef"
-                        ]
-                    },
-                    {
-                        "dimension": "Social Function",
-                        "items": [
-                            "score-sf"
-                        ]
-                    },
-                    {
-                        "dimension": "Other",
-                        "items": [
-                            "qlq-c30-q28", 
-                            "score-fi"
-                        ]
-                    },
-                    {
-                        "dimension": "Overall Health",
-                        "globalHealth": true,
-                        "items": [
-                            "qlq-c30-q29",
-                            "qlq-c30-q30",
-                            "score-ql"
-                        ]
-                    }
-                ],
-                "scoreDefinitions": [
-                    {
-                        "items": [
-                            {
-                                "item": "score-pf",
-                                "observationDefinition": ""
-                            },
-                            {
-                                "item": "score-rf",
-                                "observationDefinition": ""
-                            },
-                            {
-                                "item": "score-cf",
-                                "observationDefinition": ""
-                            },
-                            {
-                                "item": "score-ef",
-                                "observationDefinition": ""
-                            },
-                            {
-                                "item": "score-sf",
-                                "observationDefinition": ""
-                            },
-                            {
-                                "item": "score-ql",
-                                "observationDefinition": ""
-                            }
-                        ],
-                        "range": {
-                            "lower": "0",
-                            "upper": "100"
-                        },
-                        "scoreHealthCorrelation": "increase"
-                    },
-                    {
-                        "items": [
-                            "score-fa",
-                            "score-nv",
-                            "score-pa",
-                            "score-dy",
-                            "score-sl",
-                            "score-ap",
-                            "score-co",
-                            "score-di",
-                            "score-fi"
-                        ],
-                        "range": {
-                            "lower": "0",
-                            "upper": "100"
-                        },
-                        "scoreHealthCorrelation": "decrease"
-                    }
-                ]
-            },
-            {
-                "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-phq-9",
-                "dimensionMapping": [
-                    {
-                        "dimension": "Social Function",
-                        "items": [
-                            "phq-phq9-q01"
-                        ]
-                    },
-                    {
-                        "dimension": "Emotional Well-being",
-                        "items": [
-                            "phq-phq9-q02",
-                            "phq-phq9-q06",
-                            "phq-phq9-q09"
-                        ]
-                    },
-                    {
-                        "dimension": "Symptoms",
-                        "items": [
-                            "phq-phq9-q03",
-                            "phq-phq9-q04",
-                            "phq-phq9-q05",
-                            "phq-phq9-q07"
-                        ]
-                    },
-                    {
-                        "dimension": "Physical Function",
-                        "items": [
-                            "phq-phq9-q08"
-                        ]
-                    },
-                    {
-                        "dimension": "Overall Health",
-                        "globalHealth": true,
-                        "items": [
-                            "phq-phq9-q10",
-                            "phq-phq9-score-total"
-                        ]
-                    }
-                ],
-                "scoreDefinitions": [
-                    {
-                        "items": [
-                            {
-                                "item": "phq-phq9-score-total",
-                                "observationDefinition": ""
-                            }
-                        ],
-                        "range": {
-                            "lower": "0",
-                            "upper": "27"
-                        },
-                        "scoreHealthCorrelation": "decrease"
-                    }
-                ]
-            }
-        ]    
+  "scoreDefinitions": [
+    {
+      "id": "eq5d-index",
+      "range": [0, 1],
+      "scoreHealthCorrelation": "increase"
+    },
+    {
+      "id": "eq5d-vas",
+      "range": [0, 100],
+      "scoreHealthCorrelation": "increase"
+    },
+    {
+      "id": "eortc-global-health",
+      "range": [0, 100],
+      "scoreHealthCorrelation": "increase"
+    },
+    {
+      "id": "eortc-functional",
+      "range": [0, 100],
+      "scoreHealthCorrelation": "increase"
+    },
+    {
+      "id": "eortc-symptom",
+      "range": [0, 100],
+      "scoreHealthCorrelation": "decrease"
     }
+  ],
+  "questionnaires": [
+    {
+      "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable",
+      "dimensionItemMapping": [
+        {
+          "dimension": "Mobility",
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-q01-MO",
+              "shortName": "Mobility"
+            }
+          ]
+        },
+        {
+          "dimension": "Self-Care",
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-q02-SC",
+              "shortName": "Self-Care"
+            }
+          ]
+        },
+        {
+          "dimension": "Usual Activities",
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-q03-UA",
+              "shortName": "Usual Activities"
+            }
+          ]
+        },
+        {
+          "dimension": "Pain/Discomfort",
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-q04-PD",
+              "shortName": "Pain/Discomfort"
+            }
+          ]
+        },
+        {
+          "dimension": "Anxiety/Depression",
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-q05-AD",
+              "shortName": "Anxiety/Depression"
+            }
+          ]
+        },
+        {
+          "dimension": "Global Health",
+          "isGlobalHealthDimension": true,
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-vas",
+              "shortName": "EQ VAS"
+            },
+            {
+                "itemId": "euroqol-eq5d5l-score-index",
+                "shortName": "EQ Index"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
+      "dimensionItemMapping": [
+        {
+          "dimension": "Global Health",
+          "isGlobalHealthDimension": true,
+          "questions": [
+            {
+              "itemId": "qlq-c30-q29"
+            }, 
+            {
+                "itemId": "qlq-c30-q30"
+            },
+            {
+              "itemId": "score-ql",
+              "shortName": "QoL",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-qlq-c30-ql",
+              "scoreDefinitionId": "eortc-global-health"
+            }
+          ]
+        },
+        {
+          "dimension": "Functional",
+          "questions": [
+            {
+              "itemId": "qlq-c30-q01"
+            },
+            {
+              "itemId": "qlq-c30-q02"
+            },
+            {
+              "itemId": "qlq-c30-q03"
+            },
+            {
+              "itemId": "qlq-c30-q04"
+            },
+            {
+              "itemId": "qlq-c30-q05"
+            },
+            {
+              "itemId": "qlq-c30-q06"
+            },
+            {
+              "itemId": "qlq-c30-q07"
+            },
+             {
+              "itemId": "qlq-c30-q20"
+            },
+            {
+              "itemId": "qlq-c30-q21"
+            },
+            {
+              "itemId": "qlq-c30-q22"
+            },
+            {
+              "itemId": "qlq-c30-q23"
+            },
+            {
+              "itemId": "qlq-c30-q24"
+            },
+              {
+              "itemId": "qlq-c30-q25"
+            },
+            {
+              "itemId": "qlq-c30-q26"
+            },
+            {
+              "itemId": "qlq-c30-q27"
+            },
+            {
+                "itemId": "score-pf",
+                "shortName": "Physical Function",
+                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pf",
+                "scoreDefinitionId": "eortc-functional"
+            },
+            {
+                "itemId": "score-rf",
+                "shortName": "Role Funcion",
+                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-rf",
+                "scoreDefinitionId": "eortc-functional"
+            },
+            {
+              "itemId": "score-cf",
+              "shortName": "Cognitive Function",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-cf",
+              "scoreDefinitionId": "eortc-functional"
+            },
+            {
+              "itemId": "score-ef",
+              "shortName": "Emotional Function",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-ef",
+              "scoreDefinitionId": "eortc-functional"
+            },
+             {
+              "itemId": "score-sf",
+              "shortName": "Social Function",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-sf",
+              "scoreDefinitionId": "eortc-functional"
+            }
+          ]
+        },
+        {
+          "dimension": "Symptoms",
+          "questions": [
+            {
+              "itemId": "qlq-c30-q08"
+            },
+            {
+              "itemId": "qlq-c30-q09"
+            },
+            {
+              "itemId": "qlq-c30-q10"
+            },
+            {
+              "itemId": "qlq-c30-q11"
+            },
+            {
+              "itemId": "qlq-c30-q12"
+            },
+            {
+              "itemId": "qlq-c30-q13"
+            },
+            {
+              "itemId": "qlq-c30-q14"
+            },
+            {
+              "itemId": "qlq-c30-q15"
+            },
+            {
+              "itemId": "qlq-c30-q16"
+            },
+            {
+              "itemId": "qlq-c30-q17"
+            },
+            {
+              "itemId": "qlq-c30-q18"
+            },
+            {
+              "itemId": "qlq-c30-q19"
+            },
+            {
+              "itemId": "score-pa",
+              "shortName": "Pain",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pa",
+              "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+                "itemId": "score-fa",
+                "shortName": "Fatigue",
+                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fa",
+                "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+              "itemId": "score-nv",
+              "shortName": "Nausea and Vomiting",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-nv",
+              "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+              "itemId": "score-dy",
+              "shortName": "Dyspnea",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-dy",
+              "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+              "itemId": "score-sl",
+              "shortName": "insomnia",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-sl",
+              "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+              "itemId": "score-ap",
+              "shortName": "Loss of appetite",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-ap",
+              "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+              "itemId": "score-co",
+              "shortName": "constipation",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-co",
+              "scoreDefinitionId": "eortc-symptom"
+            },
+            {
+              "itemId": "score-di",
+              "shortName": "Diarrhea",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-di",
+              "scoreDefinitionId": "eortc-symptom"
+            }
+          ]
+        },
+        {
+            "dimension": "Other",
+            "questions": [
+                {
+                    "itemId": "qlq-c30-q28"
+                },
+                {
+                    "itemId": "score-fi",
+                    "shortName": "Financial Difficulties",
+                    "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fi",
+                    "scoreDefinitionId": "eortc-symptom"
+                }
+            ]
+        }
+      ]
+    }
+  ]
 }

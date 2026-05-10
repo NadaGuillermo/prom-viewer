@@ -68,7 +68,7 @@ const RadarChart = ({ title, subtitle, data, dimensions }: Visualization.RadarPr
 
   return (
     <>
-      <ReactEChartsWrapper option={options} chartHeight={350} />
+      <ReactEChartsWrapper option={options} chartHeight={400} />
     </>
   );
 };

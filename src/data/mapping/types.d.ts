@@ -7,6 +7,7 @@ export namespace PromData {
   interface BaseItem {
     linkId: string;
     text: string;
+    shortText: string;
     dimension: string; //Domains.Dimension;
   }
 
@@ -37,8 +38,9 @@ export namespace PromData {
 
   interface ObservationDefinition {
     id: string;
-    range: [number, number];
-    scoreHealthCorrelation: string;
+    url: string;
+    range?: [number, number];
+    scoreHealthCorrelation?: string;
   }
 
   /** Response */

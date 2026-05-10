@@ -2,12 +2,13 @@ import type { Visualization } from "@customTypes/visualization";
 import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 import type { PromData } from "@data/mapping";
 import _ from "lodash";
+import { unspecifiedDimension } from "@data/mapping";
 
 export const isScoreSeries = (
   series: Visualization.DataSeries[],
   seriesName: string,
 ) => {
-  return series.some((s) => s.name === seriesName);
+  return series.some((s) => s.name === seriesName || s.shortName === seriesName);
 };
 
 export const getLabelFromOriginalValueAndDataSeriesName = (
@@ -16,7 +17,7 @@ export const getLabelFromOriginalValueAndDataSeriesName = (
   seriesName: string,
 ) => {
   const correspondingSeries = yData.find(
-    (series) => series.name === seriesName,
+    (series) => series.name === seriesName || series.shortName === seriesName,
   );
   // console.log("correspondingSeries: ", correspondingSeries, originalValue);
   return correspondingSeries
@@ -30,30 +31,30 @@ export const getLabelFromOriginalValueAndDataSeriesName = (
 export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],
   normalizedValue: number,
-  seriesName: string,
+  seriesShortName: string,
 ) => {
   const originalData = yData.map((series) => {
     return {
-      name: series.name,
+      name: series.shortName,
       data: series.originalData,
     };
   });
 
   const normalizedData = yData.map((series) => {
     return {
-      name: series.name,
+      name: series.shortName,
       data: series.data,
     };
   });
 
   const correspondingOriginalSeries = originalData.find(
-    (series) => series.name === seriesName,
+    (series) => series.name === seriesShortName,
   );
   const originalDataWithoutNulls = correspondingOriginalSeries?.data.filter(
     (yValue) => yValue !== null,
   );
   const correspondingNormalizedSeries = normalizedData.find(
-    (series) => series.name === seriesName,
+    (series) => series.name === seriesShortName,
   );
   const normalizedDataWithoutNulls = correspondingNormalizedSeries?.data.filter(
     (yValue) => yValue !== null,
@@ -76,6 +77,14 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
   }
   return originalValue;
 };
+
+export const getNameForDataSeriesFromShortName = (
+  yData: Visualization.DataSeries[],
+  dataSeriesName: string,
+) => {
+  const correspondingSeries = yData.find((series) => series.shortName === dataSeriesName);
+  return correspondingSeries ? correspondingSeries.name : "";
+}
 
 // ok
 export const isQuestionnaireScoreItem = (
@@ -179,6 +188,8 @@ export const sortDimensions = (
     globalHealthDimensions.includes(dimension),
   );
   // const other = dimensions.find((dimension) => dimension === otherDimension);
+  const unspecified = dimensions.find((dimension) => dimension === unspecifiedDimension);
+
   if (globalDimensions.length > 0) {
     for (let dim of globalDimensions) {
       const index = sortedDimensions.indexOf(dim);
@@ -186,10 +197,10 @@ export const sortDimensions = (
       sortedDimensions.unshift(dim);
     }
   }
-  // if (other) {
-  //   sortedDimensions.splice(dimensions.indexOf(other), 1);
-  //   sortedDimensions.push(other);
-  // }
+  if (unspecified) {
+    sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
+    sortedDimensions.push(unspecified);
+  }
   return sortedDimensions;
 };
 
@@ -480,6 +491,8 @@ export const createQuestionnaireChartDataRecord = (
         xData: newXData,
         yData: newYData,
       };
+    } else {
+      chartDataByQuestionnaireWithoutNulls[questionnaireId] = chartDataByQuestionnaire[questionnaireId];
     }
   });
 

@@ -30,9 +30,12 @@ export const mapNormalizedObservationToPromDataObservation = (
 
   if (Number.isNaN(answerNumber) || value === null) {
     issues.push({
-      id: `issue-observation-${observationId}-${Math.random().toString(36).substring(2, 9)}`,
+      id: `issue-observation-${Math.random().toString(36).substring(2, 9)}`,
       level: "error",
-      message: `Value for observation ${observationId} could not be converted or mapped to a number. Value was: ${value}`,
+      message: `Value for observation with id ${observationId} could not be converted or mapped to a number and is therefore omitted. Value was: ${value}.`,
+      resourceId: observation.id,
+      resourceType: "Observation",
+      linkId: undefined,
     });
   }
 
@@ -44,6 +47,6 @@ export const mapNormalizedObservationToPromDataObservation = (
       questionnaireResponse: questionnaireResponse ?? "",
       observationDefinition: observationDefinition ?? "",
     },
-    issues,
+    issues: issues,
   };
 };

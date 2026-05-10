@@ -1,5 +1,4 @@
-export * from "./addDimension";
+export * from "./addToQuestionnaire.ts";
 export * from "./extractQuestionnaires";
-export * from "./addScoreAttributes";
 export * from "./extractDimensions";
-export * from "./addObservationItems";
+export * from "./addToQuestionnaireResponse.ts";

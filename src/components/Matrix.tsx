@@ -6,7 +6,10 @@ import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
   getLabelFromOriginalValueAndDataSeriesName,
+  getNameForDataSeriesFromShortName,
 } from "@utils/helpers";
+
+import "@styles/echartStyles.css";
 
 const Matrix = ({
   title,
@@ -16,10 +19,10 @@ const Matrix = ({
 }: Visualization.MatrixProps) => {
   // data already one dimension !!!
 
-  const matrixYData = data.yData;
-  // console.log("Matrix Y Data: ", matrixYData);
+  const matrixDataSeries = data.yData;
+  // console.log("Matrix Y Data: ", matrixDataSeries);
 
-  const scores = matrixYData.filter(
+  const scores = matrixDataSeries.filter(
     (dataseries) => dataseries.seriesType === "score",
   );
   // const items = data.yData.filter(dataseries =>
@@ -34,12 +37,14 @@ const Matrix = ({
   // xData.unshift("");
 
   const chartData: [string, string, Domains.NumberOrNull][] = [];
-  matrixYData.forEach((series) => {
+  const yAxisData: string[] = [];
+  matrixDataSeries.forEach((series) => {
     const rows: [string, string, Domains.NumberOrNull][] = xData.map(
       (x, index) => {
+        yAxisData.push(series.shortName);
         return [
           x,
-          series.name,
+          series.shortName,
           series.data[index] === null ? Infinity : series.data[index],
         ];
       },
@@ -75,7 +80,7 @@ const Matrix = ({
   // });
 
   // console.log("chartData: ", chartData);
-  // console.log("matrixYData: ", matrixYData.length);
+  // console.log("matrixDataSeries: ", matrixDataSeries.length);
   // const getRowData = (series: Visualization.DataSeries, xData: string[]) => {
   //   const seriesRows: [string, string, Domains.NumberOrNull][] = xData.map((x, index) => {
   //     return [x, series.name, series.data[index] === null ? Infinity : series.data[index]];
@@ -102,13 +107,13 @@ const Matrix = ({
   const labelWithOriginalScores = (params: any) => {
     const { value } = params;
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
-      matrixYData,
+      matrixDataSeries,
       value[2],
       value[1],
     );
     const valueIsScore = isScoreSeries(scores, value[1]);
     const originalValueString =
-      originalValue !== null ? originalValue.toString() : "";
+      originalValue !== null ? originalValue.toString() : "undefined";
 
     return valueIsScore
       ? `{score|${originalValueString}}`
@@ -123,38 +128,51 @@ const Matrix = ({
   const tooltipFormatter = (params: any) => {
     const { value, name } = params;
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
-      matrixYData,
+      matrixDataSeries,
       value[2],
       value[1],
     );
-    const questionnaireName = matrixYData.find(
-      (series) => series.name === value[1],
+    const questionnaireName = matrixDataSeries.find(
+      (series) => series.shortName === value[1],
     )?.questionnaireName;
     const questionnaireLabel = questionnaireName ? ` ${questionnaireName}` : "";
 
     if (originalValue !== null) {
       const label = getLabelFromOriginalValueAndDataSeriesName(
-        matrixYData,
+        matrixDataSeries,
         originalValue,
         value[1],
       );
       // console.log("Matrix Label: ", label);
       const labelString = label ? ` (${label})` : "";
-      return (
-        echarts.format.encodeHTML(questionnaireLabel) +
-        ": " +
-        echarts.format.encodeHTML(value[1]) +
-        "<br/>" +
-        echarts.format.encodeHTML(name) +
-        ":" +
-        "&nbsp;" +
-        "<b>" +
-        echarts.format.encodeHTML(originalValue.toString()) +
-        "</b>" +
-        labelString
-      );
+      return `
+      <div class="tooltip-content">
+
+      ${echarts.format.encodeHTML(questionnaireLabel)}:
+        ${echarts.format.encodeHTML(value[1])}
+        <br/>
+        ${echarts.format.encodeHTML(name)}:
+        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
+        ${echarts.format.encodeHTML(labelString)}
+        </div>
+        `;
+        
     }
-    return echarts.format.encodeHTML(value[2]);
+    // return echarts.format.encodeHTML(value[2]);
+    return `<div class="tooltip-content">
+      ${echarts.format.encodeHTML(value[2])}
+    </div>`;
+  };
+
+  const yAxisTooltipFormatter = (params: any) => {
+    const { value } = params;
+    //console.log("yAxisTooltipFormatter params: ", params);
+    const longName = getNameForDataSeriesFromShortName(matrixDataSeries, value);
+    return `
+      <div class="tooltip-content">
+        ${echarts.format.encodeHTML(longName ? longName : value)}
+      </div>
+    `;
   };
 
   const options: Visualization.EChartsOption = {
@@ -164,7 +182,12 @@ const Matrix = ({
       subtext: subtitle,
     },
     tooltip: {
+      show: true,
+      renderMode: 'html',
+      className: 'echarts-tooltip',
+      confine: true,
       formatter: (params: any) => tooltipFormatter(params),
+      // position: "top",
     },
     xAxis: [
       {
@@ -188,7 +211,7 @@ const Matrix = ({
     ],
     yAxis: {
       type: "category",
-      data: matrixYData.map((d) => d.name),
+      data: yAxisData,
       splitLine: {
         show: true,
       },
@@ -202,6 +225,11 @@ const Matrix = ({
           score: { fontWeight: "bold", fontSize: 12 },
           item: { fontSize: 12 },
         },
+      },
+      tooltip: {
+        show: true,
+        // @ts-ignore
+        formatter: (params:any) => yAxisTooltipFormatter(params),
       },
     },
     visualMap: {
@@ -258,19 +286,19 @@ const Matrix = ({
   // style={{ width: "100%", height: `${data.length * 25}px` }}
 
   let chartHeight = 0;
-  if (matrixYData.length === 0) {
+  if (matrixDataSeries.length === 0) {
     chartHeight = 0;
-  } else if (matrixYData.length === 1) {
-    chartHeight = (matrixYData.length + 3) * 44;
-  } else if (matrixYData.length === 2) {
-    chartHeight = (matrixYData.length + 3) * 40;
+  } else if (matrixDataSeries.length === 1) {
+    chartHeight = (matrixDataSeries.length + 3) * 44;
+  } else if (matrixDataSeries.length === 2) {
+    chartHeight = (matrixDataSeries.length + 3) * 40;
   } else {
     chartHeight =
-      (matrixYData.length + 3) *
-      (40 - 2 * Math.ceil(Math.log2(matrixYData.length)));
+      (matrixDataSeries.length + 3) *
+      (40 - 2 * Math.ceil(Math.log2(matrixDataSeries.length)));
   }
 
-  //chartHeight = 45 * matrixYData.length + 135 - matrixYData.length; // adjust the multiplier based on the number of series to optimize spacing
+  //chartHeight = 45 * matrixDataSeries.length + 135 - matrixDataSeries.length; // adjust the multiplier based on the number of series to optimize spacing
 
   return (
     <>

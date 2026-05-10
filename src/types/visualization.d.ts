@@ -47,6 +47,7 @@ export namespace Visualization {
   interface DataSeries {
     id: string; // linkId
     name: string;
+    shortName: string;
     data: Domains.NumberOrNull[];
     originalData: Domains.NumberOrNull[];
     dataLabels: string[];

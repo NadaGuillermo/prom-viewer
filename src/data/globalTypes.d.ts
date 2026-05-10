@@ -3,7 +3,9 @@ export namespace Mapping {
         id: string;
         level: 'warning' | 'error';
         message: string;
-        path?: string; // e.g. "item[3].answer[0]"
+        resourceId: string | undefined;
+        resourceType: string | undefined;
+        linkId: string | undefined;
     };
 
     type Result<T> = {

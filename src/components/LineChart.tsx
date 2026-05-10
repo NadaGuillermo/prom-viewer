@@ -2,7 +2,12 @@ import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@customTypes/visualization";
 import { Tooltip, Title } from "@styles/chartLayout";
 import * as echarts from "echarts/core";
-import { getOriginalValueFromNormalizedValueAndDataSeriesName } from "@utils/helpers";
+import { 
+  getOriginalValueFromNormalizedValueAndDataSeriesName,
+  getNameForDataSeriesFromShortName,
+ } from "@utils/helpers";
+
+ import "@styles/echartStyles.css";
 
 const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
   const { xData, yData } = data;
@@ -11,7 +16,7 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     const seriesList: any[] = [];
     yData.forEach((dataseries) => {
       const series = {
-        name: dataseries.name,
+        name: dataseries.shortName,
         type: "line",
         data: dataseries.data,
         connectNulls: true,
@@ -32,13 +37,13 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     return seriesList;
   };
 
-  const SPLIT_NUMBER = 5;
+  // const SPLIT_NUMBER = 5;
 
-  const yAxisFormatter = (value: number, index: number) => {
-    if (index === 0) {
+  const yAxisFormatter = (value: number, _index: number) => {
+    if (value === 0) {
       return `{health|Worst Health}`;
     }
-    if (index === SPLIT_NUMBER) {
+    if (value === 1) {
       return `{health|Best Health}`;
     }
     return value.toString();
@@ -51,21 +56,26 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
       value,
       seriesName,
     );
+    const longName = getNameForDataSeriesFromShortName(yData, seriesName);
+    const displayName = longName ? longName : seriesName;
 
     if (originalValue !== null) {
-      return (
-        echarts.format.encodeHTML(seriesName) +
-        "<br/>" +
-        echarts.format.encodeHTML(name) +
-        ":" +
-        "&nbsp;" +
-        "<b>" +
-        echarts.format.encodeHTML(originalValue.toString()) +
-        "</b>"
-      );
+      
+      return `
+      <div class="tooltip-content">
+        ${displayName === seriesName ? echarts.format.encodeHTML(displayName) : echarts.format.encodeHTML(displayName)}
+        &nbsp;(${echarts.format.encodeHTML(seriesName)})<br/>
+        ${echarts.format.encodeHTML(name)}:
+        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
+      </div>
+      `;
     }
 
-    return echarts.format.encodeHTML(value);
+    return `
+    <div class="tooltip-content">
+      ${echarts.format.encodeHTML(value)}
+    </div>
+    `;
   };
 
   const options: Visualization.EChartsOption = {
@@ -75,6 +85,10 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     }),
     //legend: {},
     tooltip: {
+      show: true,
+      renderMode: 'html',
+      className: 'echarts-tooltip',
+      confine: true,
       formatter: (params: any) => tooltipFormatter(params),
     },
     xAxis: {
@@ -83,7 +97,9 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     },
     yAxis: {
       type: "value",
-      splitNumber: SPLIT_NUMBER,
+      // splitNumber: SPLIT_NUMBER,
+      min: 0,
+      max: 1,
       axisLine: {
         show: true,
       },
@@ -101,7 +117,7 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
   };
   return (
     <>
-      <ReactEChartsWrapper option={options} chartHeight={350} />
+      <ReactEChartsWrapper option={options} chartHeight={400} />
     </>
   );
 };

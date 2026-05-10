@@ -6,6 +6,7 @@
       "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-pr-pro-score-blueprint|2026.2.0"
     ]
   },
+  "url": "https://example.com/fhir/ObservationDefinition/eortc-pa",
   "extension": [
     {
       "url": "http://hl7.org/fhir/StructureDefinition/artifact-version",

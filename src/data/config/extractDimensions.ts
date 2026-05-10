@@ -8,11 +8,11 @@
 
 export const extractGlobalHealthDimensionsFromConfig = (config: any): string[] => {
     const globalDimensions: string[] = [];
-    const  questionnaireConfigs = config.promConfiguration.questionnaireConfigurations;
+    const  questionnaireConfigs = config.questionnaires;
     
     questionnaireConfigs.forEach((questionnaire: any) => {
-        const questionnaireDimensions = questionnaire.dimensionMapping.filter((dm:any) => dm.globalHealth);
-        globalDimensions.push(...questionnaireDimensions.map((dm:any) => dm.dimension));
+        const questionnaireDimensions = questionnaire.dimensionItemMapping.filter((dim:any) => dim.isGlobalHealthDimension === true);
+        globalDimensions.push(...questionnaireDimensions.map((dim:any) => dim.dimension));
     });
     return [... new Set(globalDimensions)];
 }

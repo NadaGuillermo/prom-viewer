@@ -16,7 +16,8 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
     const items: Record<string, PromData.ResponseItem> = {};
     const issues: Mapping.DataIssue[] = [];
 
-    // Potential errors: no items in questionnaireResponse, answer not convertible to number, questionnaire reference invalid
+    // Potential errors: no items in questionnaireResponse, answer not convertible to number, 
+    // questionnaire reference invalid
 
     // Error: no items in questionnaireResponse
     if (
@@ -24,9 +25,12 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
       Object.keys(questionnaireResponse.items).length === 0
     ) {
       issues.push({
-        id: `issue-questionnaireResponse-${responseId}-${Math.random().toString(36).substring(2, 9)}`,
-        level: "warning",
+        id: `issue-questionnaireResponse-${Math.random().toString(36).substring(2, 9)}`,
+        level: "error",
         message: `QuestionnaireResponse with id ${responseId} has no items and is therefore omitted.`,
+        resourceId: responseId,
+        resourceType: "QuestionnaireResponse",
+        linkId: undefined,
       });
     }
     Object.entries(questionnaireResponse.items).forEach(([linkId, item]) => {
@@ -42,9 +46,13 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
       };
       if (Number.isNaN(answerNumber)) {
         issues.push({
-          id: `issue-questionnaireResponse-${responseId}-item-${linkId}-${Math.random().toString(36).substring(2, 9)}`,
+          id: `issue-questionnaireResponse-item-${Math.random().toString(36).substring(2, 9)}`,
           level: "error",
-          message: `Answer for item with linkId ${linkId} in QuestionnaireResponse ${responseId} could not be converted or mapped to a number. Answer was: ${answer}`,
+          message: `Answer for item with linkId ${linkId} in QuestionnaireResponse with Id ${responseId} 
+            could not be converted or mapped to a number and is therefore omitted. Answer was: ${answer}.`,
+          resourceId: responseId,
+          resourceType: "QuestionnaireResponse",
+          linkId: linkId,
         });
       }
     });
@@ -56,9 +64,13 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
     // Error: invalid questionnaire reference
     if (correspondingQuestionnaire === undefined) {
       issues.push({
-        id: `issue-questionnaireResponse-${responseId}-questionnaire-${questionnaireUrl}-${Math.random().toString(36).substring(2, 9)}`,
+        id: `issue-questionnaireResponse-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
         level: "error",
-        message: `QuestionnaireResponse with id ${responseId} references non-existing questionnaire with url ${questionnaireUrl} and is therefore omitted.`,
+        message: `QuestionnaireResponse with id ${responseId} references non-existing questionnaire 
+          with url ${questionnaireUrl} and is therefore omitted.`,
+        resourceId: responseId,
+        resourceType: "QuestionnaireResponse",
+        linkId: undefined,
       });
     }
     const emptyQuestionnaire: PromData.Questionnaire = {
@@ -76,6 +88,6 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
         authored: authored,
         items: items, // kann leer sein, dann nicht verwenden
       },
-      issues,
+      issues: issues,
     };
   };

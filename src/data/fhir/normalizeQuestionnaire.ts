@@ -78,7 +78,7 @@ const extractAnswerOptions = (
         }
       }
     }
-    return answerOptions;
+    return answerOptions; // can be empty
   };
 
   const extractReferenceQuestionnaireItems = (
@@ -204,6 +204,6 @@ const extractAnswerOptions = (
     description: resource.description, // optional
     items, // optional
     },
-    issues
+    issues: issues
   };
 };

@@ -10,15 +10,13 @@ import _ from "lodash";
 //
 import Matrix from "@components/Matrix";
 import Table from "@components/Table";
-// import { ExpandableMatrixDemo } from "@components/ExpandableMatrix";
-// import CollapsibleMatrix from "@components/CollapsibleMatrix";
+
 import Collapse from "@components/Collapse";
 import ErrorModal from "@components/ErrorModal";
 import { createChartData, createRadarData } from "@utils/dataTransformation";
 
-// import { mockPatient } from "./mock/mockPatient";
 import type { Visualization } from "@customTypes/visualization";
-import { ITEM_TYPES } from "@data/mapping/constants";
+import { ITEM_TYPES, unspecifiedDimension } from "@data/mapping";
 import type { PromData } from "@data/mapping";
 
 import {
@@ -45,21 +43,21 @@ import {
   normalizeQuestionnaire,
   normalizeObservation,
   normalizeObservationDefinition,
-  normalizeBundle,
+  // normalizeBundle,
 } from "@data/fhir";
 import type { NormalizedFHIR } from "@data/fhir";
 import {
   mapNormalizedObservationToPromDataObservation,
   mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse,
   mapNormalizedQuestionnaireToPromDataQuestionnaire,
+  mapNormalizedObservationDefinitionToPromDataObservationDefinition,
 } from "@data/mapping";
 import type { Mapping } from "@data/globalTypes";
 import {
-  addDimensionToQuestionnaireItems,
+  addConfigurationsToQuestionnaire,
+  addConfigurationsToQuestionnaireResponse,
   extractQuestionnairesFromConfig,
-  addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems,
   extractGlobalHealthDimensionsFromConfig,
-  addObservationItemsToQuestionnaireResponse,
 } from "@data/config";
 
 function App() {
@@ -71,7 +69,7 @@ function App() {
     any[]
   >([]);
   const [fhirObservations, setFhirObservations] = useState<any[]>([]);
-  const [fhirBundles, setFhirBundles] = useState<any[]>([]);
+  // const [fhirBundles, setFhirBundles] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dataIssues, setDataIssues] = useState<Mapping.DataIssue[]>([]);
   const [questionnaires, setQuestionnaires] = useState<
@@ -87,7 +85,10 @@ function App() {
     config: false,
     fhirData: false,
   });
+  const [fhirError, setFhirError] = useState<string | null>(null);
+
   const [config, setConfig] = useState<any>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   const [questionnairesByDate, setQuestionnairesByDate] = useState<
     Record<string, string[]>
@@ -95,8 +96,8 @@ function App() {
   const [periodOfObservations, setPeriodOfObservations] = useState<string[]>(
     [],
   );
-  const [questionnaireResponsesForChart, setQuestionnaireResponsesForChart] =
-    useState<Record<string, PromData.QuestionnaireResponse>>({});
+  // const [questionnaireResponsesForChart, setQuestionnaireResponsesForChart] =
+  //   useState<Record<string, PromData.QuestionnaireResponse>>({});
   const [questionnairesForChart, setQuestionnairesForChart] = useState<
     PromData.Questionnaire[]
   >([]);
@@ -114,8 +115,14 @@ function App() {
   >({});
   const [chartData, setChartData] = useState<Visualization.ChartData>();
   const [dimensions, setDimensions] = useState<string[]>([]);
+  const [idsOfResourcesWithIssues, setIdsOfResourcesWithIssues] = useState<
+    string[]
+  >([]);
 
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
+  const [showErrors, setShowErrors] = useState(false);
+
+  // useEffect(() => {
 
   useEffect(() => {
     // if (hasMounted.current) return;
@@ -129,6 +136,7 @@ function App() {
         setDataLoaded((prev) => ({ ...prev, config: true }));
       } catch (error) {
         console.error("Error fetching config file:", error);
+        setConfigError("Error fetching config file: " + error);
       }
     };
 
@@ -151,41 +159,42 @@ function App() {
         // );
 
         // extract bundles and add to questionnaires and responses
-        // let bundleQuestionnaires: any[] = [];
-        // let bundleResponses: any[] = [];
-        // let bundleObservations: any[] = [];
-        // bundles.forEach((bundle) => {
-        //   const questionnaireEntries = bundle.entry.filter(
-        //     (entry: any) => entry.resource.resourceType === "Questionnaire",
-        //   );
-        //   const responseEntries = bundle.entry.filter(
-        //     (entry: any) =>
-        //       entry.resource.resourceType === "QuestionnaireResponse",
-        //   );
-        //   const observationEntries = bundle.entry.filter(
-        //     (entry: any) => entry.resource.resourceType === "Observation",
-        //   );
-        //   // console.log("Extracted Questionnaires from Bundle: ", questionnaireEntries.map((entry: any) => entry.resource));
-        //   // console.log("Extracted Questionnaire Responses from Bundle: ", responseEntries.map((entry: any) => entry.resource));
-        //   bundleQuestionnaires.push(
-        //     ...questionnaireEntries.map((entry: any) => entry.resource),
-        //   );
-        //   bundleResponses.push(
-        //     ...responseEntries.map((entry: any) => entry.resource),
-        //   );
-        //   bundleObservations.push(
-        //     ...observationEntries.map((entry: any) => entry.resource),
-        //   );
-        // });
+        let bundleQuestionnaires: any[] = [];
+        let bundleResponses: any[] = [];
+        let bundleObservations: any[] = [];
+        bundles.forEach((bundle) => {
+          const questionnaireEntries = bundle.entry.filter(
+            (entry: any) => entry.resource.resourceType === "Questionnaire",
+          );
+          const responseEntries = bundle.entry.filter(
+            (entry: any) =>
+              entry.resource.resourceType === "QuestionnaireResponse",
+          );
+          const observationEntries = bundle.entry.filter(
+            (entry: any) => entry.resource.resourceType === "Observation",
+          );
+          // console.log("Extracted Questionnaires from Bundle: ", questionnaireEntries.map((entry: any) => entry.resource));
+          // console.log("Extracted Questionnaire Responses from Bundle: ", responseEntries.map((entry: any) => entry.resource));
+          bundleQuestionnaires.push(
+            ...questionnaireEntries.map((entry: any) => entry.resource),
+          );
+          bundleResponses.push(
+            ...responseEntries.map((entry: any) => entry.resource),
+          );
+          bundleObservations.push(
+            ...observationEntries.map((entry: any) => entry.resource),
+          );
+        });
 
-        setFhirQuestionnaires([...questionnaires]);
-        setFhirQuestionnaireResponses([...responses]);
-        setFhirObservations([...observations]);
+        setFhirQuestionnaires([...questionnaires, ...bundleQuestionnaires]);
+        setFhirQuestionnaireResponses([...responses, ...bundleResponses]);
+        setFhirObservations([...observations, ...bundleObservations]);
         setFhirObservationDefinitions([...observationDefinitions]);
-        setFhirBundles([...bundles]);
+        // setFhirBundles([...bundles]);
         setDataLoaded((prev) => ({ ...prev, fhirData: true }));
       } catch (error) {
         console.error("Error loading FHIR data: ", error);
+        setFhirError("Error loading FHIR data: " + error);
       }
     };
 
@@ -222,7 +231,7 @@ function App() {
     const responseErrors: Mapping.DataIssue[] = [];
     const observationErrors: Mapping.DataIssue[] = [];
     const observationDefinitionErrors: Mapping.DataIssue[] = [];
-    const bundleErrors: Mapping.DataIssue[] = [];
+    // const bundleErrors: Mapping.DataIssue[] = [];
 
     // nur questionnaires und responses, die in config definiert sind (sonst alle)
     const configQuestionnaires = extractQuestionnairesFromConfig(config);
@@ -281,26 +290,26 @@ function App() {
       normalizedFhirQuestionnaireResponses,
     );
     /* Bundles */
-    const normalizedFhirBundlesWithErrorMessages = fhirBundles.map((bundle) =>
-      normalizeBundle(bundle),
-    );
-    const normalizedFhirBundles = normalizedFhirBundlesWithErrorMessages.map(
-      (bundle) => bundle.data,
-    );
-    const normalizedFhirBundleErrors =
-      normalizedFhirBundlesWithErrorMessages.flatMap((bundle) => bundle.issues);
-    bundleErrors.push(...normalizedFhirBundleErrors);
-    console.log("Normalized FHIR Bundles: ", normalizedFhirBundles);
+    // const normalizedFhirBundlesWithErrorMessages = fhirBundles.map((bundle) =>
+    //   normalizeBundle(bundle),
+    // );
+    // const normalizedFhirBundles = normalizedFhirBundlesWithErrorMessages.map(
+    //   (bundle) => bundle.data,
+    // );
+    // const normalizedFhirBundleErrors =
+    //   normalizedFhirBundlesWithErrorMessages.flatMap((bundle) => bundle.issues);
+    // bundleErrors.push(...normalizedFhirBundleErrors);
+    // console.log("Normalized FHIR Bundles: ", normalizedFhirBundles);
 
-    const bundleQuestionnaires = normalizedFhirBundles
-      .map((bundle) => bundle.questionnaire)
-      .filter((questionnaire) => questionnaire !== undefined);
-    const bundleResponses = normalizedFhirBundles
-      .map((bundle) => bundle.questionnaireResponse)
-      .filter((response) => response !== undefined);
-    const bundleObservations = normalizedFhirBundles
-      .map((bundle) => bundle.observations)
-      .filter((observations) => observations !== undefined);
+    // const bundleQuestionnaires = normalizedFhirBundles
+    //   .map((bundle) => bundle.questionnaire)
+    //   .filter((questionnaire) => questionnaire !== undefined);
+    // const bundleResponses = normalizedFhirBundles
+    //   .map((bundle) => bundle.questionnaireResponse)
+    //   .filter((response) => response !== undefined);
+    // const bundleObservations = normalizedFhirBundles
+    //   .map((bundle) => bundle.observations)
+    //   .filter((observations) => observations !== undefined);
 
     /* Observations und Observation Definitions */
     const normalizedFhirObservationsWithErrorMessages = fhirObservations.map(
@@ -316,47 +325,48 @@ function App() {
       );
     observationErrors.push(...normalizedFhirObservationErrors);
     console.log("Normalized FHIR Observations: ", normalizedFhirObservations);
-    // const normalizedFhirObservationDefinitionsWithErrorMessages =
-    //   fhirObservationDefinitions.map((observationDefinition) =>
-    //     normalizeObservationDefinition(observationDefinition),
-    //   );
-    // const normalizedFhirObservationDefinitions =
-    //   normalizedFhirObservationDefinitionsWithErrorMessages.map(
-    //     (observationDefinition) => observationDefinition.data,
-    //   );
-    // const normalizedFhirObservationDefinitionErrors =
-    //   normalizedFhirObservationDefinitionsWithErrorMessages.flatMap(
-    //     (observationDefinition) => observationDefinition.issues,
-    //   );
-    // observationDefinitionErrors.push(...normalizedFhirObservationDefinitionErrors);
-    // console.log(
-    //   "Normalized FHIR Observation Definitions: ",
-    //   normalizedFhirObservationDefinitions,
-    // );
+
+    const normalizedFhirObservationDefinitionsWithErrorMessages =
+      fhirObservationDefinitions.map((observationDefinition) =>
+        normalizeObservationDefinition(observationDefinition),
+      );
+    const normalizedFhirObservationDefinitions =
+      normalizedFhirObservationDefinitionsWithErrorMessages.map(
+        (observationDefinition) => observationDefinition.data,
+      );
+    const normalizedFhirObservationDefinitionErrors =
+      normalizedFhirObservationDefinitionsWithErrorMessages.flatMap(
+        (observationDefinition) => observationDefinition.issues,
+      );
+    observationDefinitionErrors.push(
+      ...normalizedFhirObservationDefinitionErrors,
+    );
+    console.log(
+      "Normalized FHIR Observation Definitions: ",
+      normalizedFhirObservationDefinitions,
+    );
 
     /* ----------------------- Mapping ------------------------ */
 
-    // Add to questionnaires and responses
-    // TODO
     // keep bundles separately
-    const allNormalizedFhirQuestionnaires = [
-      ...normalizedFhirQuestionnaires,
-      ...bundleQuestionnaires,
-    ];
-    const allNormalizedFhirQuestionnaireResponses = [
-      ...normalizedFhirQuestionnaireResponses,
-      ...bundleResponses,
-    ];
-    const allNormalizedFhirObservations = [...normalizedFhirObservations];
-    console.log("All Questionnaires: ", allNormalizedFhirQuestionnaires);
-    console.log(
-      "All Questionnaire Responses: ",
-      allNormalizedFhirQuestionnaireResponses,
-    );
+    // const allNormalizedFhirQuestionnaires = [
+    //   ...normalizedFhirQuestionnaires,
+    //   ...bundleQuestionnaires,
+    // ];
+    // const allNormalizedFhirQuestionnaireResponses = [
+    //   ...normalizedFhirQuestionnaireResponses,
+    //   ...bundleResponses,
+    // ];
+    // const allNormalizedFhirObservations = [...normalizedFhirObservations];
+    // console.log("All Questionnaires: ", allNormalizedFhirQuestionnaires);
+    // console.log(
+    //   "All Questionnaire Responses: ",
+    //   allNormalizedFhirQuestionnaireResponses,
+    // );
 
-    // PromData Questionnaires und QuestionnaireResponses
+    // PromData Questionnaires
     const promDataQuestionnairesWithErrorMessages =
-      allNormalizedFhirQuestionnaires.map((questionnaire) =>
+      normalizedFhirQuestionnaires.map((questionnaire) =>
         mapNormalizedQuestionnaireToPromDataQuestionnaire(questionnaire),
       );
     const promDataQuestionnaires = promDataQuestionnairesWithErrorMessages.map(
@@ -368,8 +378,9 @@ function App() {
       );
     questionnaireErrors.push(...promDataQuestionnaireErrors);
     console.log("PromData Questionnaires: ", promDataQuestionnaires); // ok
+    // QuestionnaireResponses
     const questionnaireResponsesWithErrorMessages =
-      allNormalizedFhirQuestionnaireResponses.map((response) =>
+      normalizedFhirQuestionnaireResponses.map((response) =>
         mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse(
           response,
           promDataQuestionnaires,
@@ -382,7 +393,7 @@ function App() {
     console.log(
       "PromData Questionnaire Responses: ",
       promDataQuestionnaireResponses,
-    ); // ok
+    );
     const promDataQuestionnaireResponseErrors =
       questionnaireResponsesWithErrorMessages.flatMap(
         (questionnaireResponse) => questionnaireResponse.issues,
@@ -390,40 +401,81 @@ function App() {
     responseErrors.push(...promDataQuestionnaireResponseErrors);
 
     // Observations
-    // TODO
+    const promDataObservationsWithErrorMessages =
+      normalizedFhirObservations.map((observation) =>
+        mapNormalizedObservationToPromDataObservation(observation),
+      );
+    const promDataObservations = promDataObservationsWithErrorMessages.map(
+      (observation) => observation.data,
+    );
+    const promDataObservationErrors =
+      promDataObservationsWithErrorMessages.flatMap(
+        (observation) => observation.issues,
+      );
+    observationErrors.push(...promDataObservationErrors);
+    console.log("PromData Observations: ", promDataObservations); // ok
+
+    // ObservationDefinitions
+    const promDataObservationDefinitionsWithErrorMessages =
+      normalizedFhirObservationDefinitions.map((observationDefinition) =>
+        mapNormalizedObservationDefinitionToPromDataObservationDefinition(
+          observationDefinition,
+        ),
+      );
+    const promDataObservationDefinitions =
+      promDataObservationDefinitionsWithErrorMessages.map(
+        (observationDefinition) => observationDefinition.data,
+      );
+    const promDataObservationDefinitionErrors =
+      promDataObservationDefinitionsWithErrorMessages.flatMap(
+        (observationDefinition) => observationDefinition.issues,
+      );
+    observationDefinitionErrors.push(...promDataObservationDefinitionErrors);
+    console.log(
+      "PromData Observation Definitions: ",
+      promDataObservationDefinitions,
+    );
 
     /* ----------------------- Add config data ------------------------ */
-    // const configQuestionnaires = extractQuestionnairesFromConfig(config);
-    // console.log("Questionnaires defined in config file: ", configQuestionnaires); // ok
-    // const configuredPromDataQuestionnaires = promDataQuestionnaires.filter(
-    //   (questionnaire) => configQuestionnaires.includes(questionnaire.url),
-    // );
-    // // }
-    // console.log(
-    //   "Questionnaires to be displayed: ",
-    //   configuredPromDataQuestionnaires,
-    // );
 
     // Add config file configuration to questionnaires
-    promDataQuestionnaires.forEach((questionnaire) => {
-      questionnaire.items = addDimensionToQuestionnaireItems(
-        questionnaire,
-        config,
-      );
-      // add score definitions from config to questionnaire items and add scoreHealthCorrelation to items if defined in config
-      questionnaire.items =
-        addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems(
+    const promDataQuestionnairesWithConfigurationsAndErrorMessages =
+      promDataQuestionnaires.map((questionnaire) => {
+        return addConfigurationsToQuestionnaire(
           questionnaire,
+          promDataObservationDefinitions,
           config,
         );
-    });
+      });
+    const promDataQuestionnairesWithConfigurations =
+      promDataQuestionnairesWithConfigurationsAndErrorMessages.map(
+        (questionnaire) => questionnaire.data,
+      );
+    const promDataQuestionnaireConfigurationErrors =
+      promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
+        (questionnaire) => questionnaire.issues,
+      );
+    observationDefinitionErrors.push(
+      ...promDataQuestionnaireConfigurationErrors,
+    );
+    console.log(
+      "PromData Questionnaires with Configurations: ",
+      promDataQuestionnairesWithConfigurations,
+    );
 
-    // TODO
-    // Add observation data to questionnaire responses
-    // addObservationItemsToQuestionnaireResponse();
+    const promDataQuestionnaireResponsesWithConfigurations =
+      promDataQuestionnaireResponses.map((questionnaireResponse) =>
+        addConfigurationsToQuestionnaireResponse(
+          questionnaireResponse,
+          promDataObservations,
+          config,
+        ),
+      );
 
-    // only keep questionnaires defined in config file
-    console.log("Config file: ", config); // ok
+    console.log(
+      "PromData Questionnaire Responses with Configurations: ",
+      promDataQuestionnaireResponsesWithConfigurations,
+    );
 
     // global Dimension
     const globalHealthDimensionsFromConfig =
@@ -433,87 +485,88 @@ function App() {
     // Fehlermeldungen in Modal anzeigen und fehlerhafte Daten löschen
     // Clean responses
     // filter
-    const filteredPromDataQuestionnaireResponses =
-      promDataQuestionnaireResponses.filter(
-        (questionnaireResponse) =>
-          // questionnaireResponse.questionnaire !== undefined &&
-          questionnaireResponse.items !== undefined &&
-          Object.keys(questionnaireResponse.items).length > 0, // &&
-        // configQuestionnaires.includes(questionnaireResponse.questionnaire.url),
-      );
+    // const filteredPromDataQuestionnaireResponses =
+    //   promDataQuestionnaireResponses.filter(
+    //     (questionnaireResponse) =>
+    //       // questionnaireResponse.questionnaire !== undefined &&
+    //       questionnaireResponse.items !== undefined &&
+    //       Object.keys(questionnaireResponse.items).length > 0, // &&
+    //     // configQuestionnaires.includes(questionnaireResponse.questionnaire.url),
+    //   );
 
-    // for (let response of _.difference(
-    //   promDataQuestionnaireResponses,
-    //   filteredPromDataQuestionnaireResponses,
-    // )) {
-    //   questionnaireResponseErrors.push({
-    //     id: `${response.id}-ReferenceError-${Math.random().toString(36).substring(2, 9)}`,
-    //     level: "error",
-    //     message: `QuestionnaireResponse with id ${response.id} has no items and is therefore omitted.`,
+    // // for (let response of _.difference(
+    // //   promDataQuestionnaireResponses,
+    // //   filteredPromDataQuestionnaireResponses,
+    // // )) {
+    // //   questionnaireResponseErrors.push({
+    // //     id: `${response.id}-ReferenceError-${Math.random().toString(36).substring(2, 9)}`,
+    // //     level: "error",
+    // //     message: `QuestionnaireResponse with id ${response.id} has no items and is therefore omitted.`,
+    // //   });
+    // // }
+    // console.log("Filtered Responses: ", filteredPromDataQuestionnaireResponses);
+
+    // // Clean questionnaires
+    // // Delete items which do not have any answerOptions, range and scoreHealthCorrelation
+    // // Delete items which do not have a dimension assigned (after adding dimensions from config)
+    // promDataQuestionnaires.forEach((questionnaire) => {
+    //   const items = questionnaire.items;
+    //   Object.entries(items).forEach(([linkId, item]) => {
+    //     const scoreItem = item as PromData.QuestionnaireScoreItem;
+    //     const isScoreItem =
+    //       Object.hasOwn(item, "range") &&
+    //       Object.hasOwn(item, "scoreHealthCorrelation") &&
+    //       scoreItem.range !== undefined &&
+    //       scoreItem.scoreHealthCorrelation !== undefined;
+    //     const questionItem = item as PromData.QuestionnaireItem;
+    //     const isQuestionItem = questionItem.answerOptions.length > 0;
+    //     if ((!isScoreItem && !isQuestionItem) || item.dimension === "") {
+    //       delete items[linkId];
+    //       // Add error message
+    //       questionnaireErrors.push({
+    //         id: `${questionnaire.id}-ItemError-${Math.random().toString(36).substring(2, 9)}`,
+    //         level: "warning",
+    //         message: `Questionnaire with id ${questionnaire.id} contains item with linkId ${linkId} which does not have answer options, a range or a score-health correlation and/or does not have a dimension assigned and is therefore omitted.`,
+    //       });
+    //     }
     //   });
-    // }
-    console.log("Filtered Responses: ", filteredPromDataQuestionnaireResponses);
+    // });
 
-    // Clean questionnaires
-    // Delete items which do not have any answerOptions, range and scoreHealthCorrelation
-    // Delete items which do not have a dimension assigned (after adding dimensions from config)
-    promDataQuestionnaires.forEach((questionnaire) => {
-      const items = questionnaire.items;
-      Object.entries(items).forEach(([linkId, item]) => {
-        const scoreItem = item as PromData.QuestionnaireScoreItem;
-        const isScoreItem =
-          Object.hasOwn(item, "range") &&
-          Object.hasOwn(item, "scoreHealthCorrelation") &&
-          scoreItem.range !== undefined &&
-          scoreItem.scoreHealthCorrelation !== undefined;
-        const questionItem = item as PromData.QuestionnaireItem;
-        const isQuestionItem = questionItem.answerOptions.length > 0;
-        if ((!isScoreItem && !isQuestionItem) || item.dimension === "") {
-          delete items[linkId];
-          // Add error message
-          questionnaireErrors.push({
-            id: `${questionnaire.id}-ItemError-${Math.random().toString(36).substring(2, 9)}`,
-            level: "warning",
-            message: `Questionnaire with id ${questionnaire.id} contains item with linkId ${linkId} which does not have answer options, a range or a score-health correlation and/or does not have a dimension assigned and is therefore omitted.`,
-          });
-        }
-      });
-    });
-
-    // LinkId in response item verweist nicht auf LinkId in Questionnaire -> delete item from response
-    const filteredPromDataQuestionnaireResponsesWithValidLinkIds =
-      filteredPromDataQuestionnaireResponses.map((response) => {
-        const questionnaire = response.questionnaire;
-        const questionnaireLinkIds = Object.keys(questionnaire.items);
-        const responseLinkIds = Object.keys(response.items);
-        const validLinkIds = responseLinkIds.filter((linkId) =>
-          questionnaireLinkIds.includes(linkId),
-        );
-        const filteredItems: Record<string, PromData.ResponseItem> = {};
-        validLinkIds.forEach((linkId) => {
-          filteredItems[linkId] = response.items[linkId];
-        });
-        // Add errors for invalid linkIds
-        const invalidLinkIds = _.difference(responseLinkIds, validLinkIds);
-        invalidLinkIds.forEach((linkId) => {
-          responseErrors.push({
-            id: `${response.id}-LinkIdError-${Math.random().toString(36).substring(2, 9)}`,
-            level: "error",
-            message: `QuestionnaireResponse with id ${response.id} contains item with linkId ${linkId} which does not exist in the corresponding questionnaire and is therefore omitted.`,
-          });
-        });
-        return {
-          ...response,
-          items: filteredItems,
-        };
-      });
+    // // LinkId in response item verweist nicht auf LinkId in Questionnaire -> delete item from response
+    // const filteredPromDataQuestionnaireResponsesWithValidLinkIds =
+    //   filteredPromDataQuestionnaireResponses.map((response) => {
+    //     const questionnaire = response.questionnaire;
+    //     const questionnaireLinkIds = Object.keys(questionnaire.items);
+    //     const responseLinkIds = Object.keys(response.items);
+    //     const validLinkIds = responseLinkIds.filter((linkId) =>
+    //       questionnaireLinkIds.includes(linkId),
+    //     );
+    //     const filteredItems: Record<string, PromData.ResponseItem> = {};
+    //     validLinkIds.forEach((linkId) => {
+    //       filteredItems[linkId] = response.items[linkId];
+    //     });
+    //     // Add errors for invalid linkIds
+    //     const invalidLinkIds = _.difference(responseLinkIds, validLinkIds);
+    //     invalidLinkIds.forEach((linkId) => {
+    //       responseErrors.push({
+    //         id: `${response.id}-LinkIdError-${Math.random().toString(36).substring(2, 9)}`,
+    //         level: "error",
+    //         message: `QuestionnaireResponse with id ${response.id} contains item with linkId ${linkId} which does not exist in the corresponding questionnaire and is therefore omitted.`,
+    //       });
+    //     });
+    //     return {
+    //       ...response,
+    //       items: filteredItems,
+    //     };
+    //   });
 
     // responses in Record umwandeln
     const questionnaireResponsesRecord: Record<
       string,
       PromData.QuestionnaireResponse
     > = {};
-    filteredPromDataQuestionnaireResponsesWithValidLinkIds.forEach(
+    promDataQuestionnaireResponsesWithConfigurations.forEach(
+      // TO DO: change to filtered data
       (questionnaireResponse) => {
         questionnaireResponsesRecord[questionnaireResponse.id] =
           questionnaireResponse;
@@ -525,14 +578,14 @@ function App() {
     );
 
     // set variables
-    setQuestionnaires(promDataQuestionnaires);
+    setQuestionnaires(promDataQuestionnairesWithConfigurations);
     setQuestionnaireResponses(questionnaireResponsesRecord);
     setDataIssues([
       ...questionnaireErrors,
       ...responseErrors,
       ...observationDefinitionErrors,
       ...observationErrors,
-      ...bundleErrors,
+      // ...bundleErrors,
     ]);
     setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
     setQuestionnairesReady(true);
@@ -544,7 +597,7 @@ function App() {
     fhirQuestionnaireResponses,
     fhirObservationDefinitions,
     fhirObservations,
-    fhirBundles,
+    // fhirBundles,
     dataLoaded,
   ]);
 
@@ -558,6 +611,11 @@ function App() {
 
   const handleContinue = () => {
     setIsModalOpen(false);
+  };
+
+  const toggleErrorDetails = () => {
+    setShowErrors((prev) => !prev);
+    console.log("Toggled showErrors: ", showErrors);
   };
 
   /**--------------------------------------------- */
@@ -687,7 +745,14 @@ function App() {
       ),
     );
 
-    setQuestionnaireResponsesForChart(questionnaireResponsesForChart);
+    const resourceIdsWithIssues = dataIssues
+      .map((issue) => issue.resourceId)
+      .filter((id) => id !== undefined);
+    console.log("IDs of resources with issues: ", resourceIdsWithIssues);
+
+    // set variables
+
+    // setQuestionnaireResponsesForChart(questionnaireResponsesForChart);
     setQuestionnairesForChart(questionnairesForChart);
     setQuestionnairesByDate(questionnairesByDate);
     setGlobalScoreChartData(chartGlobalScoreData);
@@ -697,6 +762,7 @@ function App() {
     setRadarChartData(radarChartData);
     setPeriodOfObservations(periodOfObservations);
     setScoreChartSubTitle(scoreChartSubTitle);
+    setIdsOfResourcesWithIssues(resourceIdsWithIssues);
 
     // if (chartGlobalScoreData == undefined) {
     //   setShowScoreChart(false);
@@ -749,8 +815,27 @@ function App() {
   //   const normalizedPromisResponse = normalizeQuestionnaireResponse(promisResponse);
   //   console.log("Normalized PROMIS Response: ", normalizedPromisResponse);
 
+  if (configError) return (
+    <React.Fragment>
+      <div>
+        Failed to load config
+      </div>
+      <div>
+        {configError}
+      </div>
+    </React.Fragment>
+  );
+  if (fhirError) return (
+    <React.Fragment>
+      <div>
+        Failed to load FHIR data
+      </div>
+      <div>
+        {fhirError}
+      </div>
+    </React.Fragment>
+  );
   if (!dataLoaded.config || !dataLoaded.fhirData) return <div>Loading...</div>;
-  if (!config) return <div>Failed to load config</div>;
   if (!questionnairesReady) return <div>Processing data...</div>;
 
   return (
@@ -762,16 +847,6 @@ function App() {
           {/* <Header /> */}
           <main className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-4">
             <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-center tw:items-start">
-              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md">
-                {" "}
-                {/* tw:col-span-3 tw:sm:col-span-3 tw:lg:col-span-1*/}
-                <div className="tw:card-body">
-                  <h2 className="tw:card-title">Patient Info</h2>
-                  <p>
-                    Name: <b>{"Muss noch herausgefunden werden"}</b>
-                  </p>
-                </div>
-              </div>
               <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md">
                 <div className="tw:card-body">
                   <h2 className="tw:card-title">PROM Info</h2>
@@ -803,12 +878,17 @@ function App() {
                   <p>Date | Completed Questionnaires</p>
                   {Object.entries(questionnairesByDate).map(
                     ([date, questionnaires]) => (
-                      <p key={date}>
-                        {date}: {questionnaires.join(", ")}
-                      </p>
+                      <div key={date}>
+                        {date}:
+                      <ul className="tw:list-disc tw:pl-5">
+                      {questionnaires.map((questionnaire) => (
+                        <li key={questionnaire}>{questionnaire}</li>
+                      ))}
+                      </ul>
+                      </div>
                     ),
                   )}
-                  <p>
+                  {/* <p>
                     A total of{" "}
                     {Object.keys(questionnaireResponsesForChart).length}{" "}
                     questionnaires were completed
@@ -817,7 +897,66 @@ function App() {
                     {periodOfObservations.length === 1 &&
                       ` in ${periodOfObservations[0]}`}
                     .
+                  </p> */}
+                </div>
+              </div>
+              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md tw:overflow-y-auto tw:max-h-[60vh]">
+                {/* tw:col-span-3 tw:sm:col-span-3 tw:lg:col-span-1*/}
+                <div className="tw:card-body">
+                  <h2 className="tw:card-title">Error Info</h2>
+                  <p>
+                    For FHIR resources with follwing ids there have been errors
+                    detected:
                   </p>
+                  {idsOfResourcesWithIssues.length > 0 ? (
+                    <ul className="tw:list-disc tw:pl-5">
+                      {idsOfResourcesWithIssues.map((id) => (
+                        <li key={id}>{id}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No errors detected</p>
+                  )}
+                  {dataIssues.length > 0 && (
+                    <div>
+                    <button
+                      className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
+                      onClick={toggleErrorDetails}
+                    >
+                      {showErrors ? "Hide error details" : "Show error details"}
+                    </button>
+                    </div>
+                  )}
+                  {showErrors && dataIssues.length > 0 && (
+                    <div className="tw:overflow-y-auto tw:flex-1">
+                      {dataIssues.some((issue) => issue.level === "error") && (
+                        <p className="tw:mb-2 tw:mt-2">
+                          <span className="tw:font-semibold">Errors</span>
+                        </p>
+                      )}
+                      <ul className="tw:list-disc tw:pl-5">
+                      {dataIssues.map(
+                        (issue) =>
+                          issue.level === "error" && ( 
+                              <li key={issue.id}>{issue.message}</li>
+                          ),
+                      )}
+                       </ul>
+                      {dataIssues.some((issue) => issue.level === "warning") && (
+                        <p className="tw:mt-2 tw:mb-2">
+                          <span className="tw:font-semibold">Warnings</span>
+                        </p>
+                      )}
+                      <ul className="tw:list-disc tw:pl-5">
+                      {dataIssues.map(
+                        (issue) =>
+                          issue.level === "warning" && (                            
+                              <li key={issue.id}>{issue.message}</li>  
+                          ),
+                      )}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -831,7 +970,7 @@ function App() {
                 {radarChartData && (
                   <RadarChart
                     data={radarChartData}
-                    dimensions={dimensions}
+                    dimensions={dimensions.filter((dimension) => dimension !== unspecifiedDimension && dimension !== "")}
                     //subtitle={"Health indication per dimension where points closer to edges indicate better health status"}
                   />
                 )}
@@ -890,7 +1029,7 @@ function App() {
           </div>
           </div> */}
             <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-              Selected PROM-Data by Dimensions
+              Selected PROs by Dimensions
             </p>
 
             <div className="tw:grid tw:grid-cols-6 tw:py-8">
@@ -917,7 +1056,7 @@ function App() {
             </div>
 
             <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-              Complete PROM-Data by Questionnaire
+              Complete PROs by PROM/Questionnaire
             </p>
 
             <div className="tw:flex-1 tw:py-8">
