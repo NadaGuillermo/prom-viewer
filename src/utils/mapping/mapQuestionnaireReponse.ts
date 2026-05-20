@@ -1,22 +1,22 @@
-import type { NormalizedFHIR } from "@data/fhir";
-import type { PromData } from "@data/mapping/types";
+import type { NormalizedFHIR } from "@utils/fhir";
+import type { Mapping } from "./types";
 import { convertFhirDateTimeToDateFormat } from "./helpers";
-import type { Mapping } from "@data/globalTypes";
+import type { GlobalTypes } from "@customTypes/globalTypes";
 
 export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
   (
     questionnaireResponse: NormalizedFHIR.QuestionnaireResponse,
-    questionnaires: PromData.Questionnaire[],
-  ): Mapping.Result<PromData.QuestionnaireResponse> => {
+    questionnaires: Mapping.Questionnaire[],
+  ): GlobalTypes.Result<Mapping.QuestionnaireResponse> => {
     const responseId = questionnaireResponse.id;
     const questionnaireUrl = questionnaireResponse.questionnaire;
     const authored = convertFhirDateTimeToDateFormat(
       questionnaireResponse.authored,
     );
-    const items: Record<string, PromData.ResponseItem> = {};
-    const issues: Mapping.DataIssue[] = [];
+    const items: Record<string, Mapping.ResponseItem> = {};
+    const issues: GlobalTypes.DataIssue[] = [];
 
-    // Potential errors: no items in questionnaireResponse, answer not convertible to number, 
+    // Potential errors: no items in questionnaireResponse, answer not convertible to number,
     // questionnaire reference invalid
 
     // Error: no items in questionnaireResponse
@@ -62,18 +62,19 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
     );
 
     // Error: invalid questionnaire reference
-    if (correspondingQuestionnaire === undefined) {
-      issues.push({
-        id: `issue-questionnaireResponse-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-        level: "error",
-        message: `QuestionnaireResponse with id ${responseId} references non-existing questionnaire 
-          with url ${questionnaireUrl} and is therefore omitted.`,
-        resourceId: responseId,
-        resourceType: "QuestionnaireResponse",
-        linkId: undefined,
-      });
-    }
-    const emptyQuestionnaire: PromData.Questionnaire = {
+    // never the case since filtered after normalization
+    // if (correspondingQuestionnaire === undefined) {
+    //   issues.push({
+    //     id: `issue-questionnaireResponse-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
+    //     level: "error",
+    //     message: `QuestionnaireResponse with id ${responseId} references non-existing questionnaire 
+    //       with url ${questionnaireUrl} and is therefore omitted.`,
+    //     resourceId: responseId,
+    //     resourceType: "QuestionnaireResponse",
+    //     linkId: undefined,
+    //   });
+    // }
+    const emptyQuestionnaire: Mapping.Questionnaire = {
       id: "",
       name: "",
       url: "",

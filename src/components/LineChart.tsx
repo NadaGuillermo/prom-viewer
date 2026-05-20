@@ -1,13 +1,13 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import type { Visualization } from "@customTypes/visualization";
+// import type { Visualization } from "@utils/visualization";
 import { Tooltip, Title } from "@styles/chartLayout";
 import * as echarts from "echarts/core";
-import { 
+import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
-  getNameForDataSeriesFromShortName,
- } from "@utils/helpers";
+  getNameForDataSeriesFromShortName, type Visualization,
+} from "@utils/visualization";
 
- import "@styles/echartStyles.css";
+import "@styles/echartStyles.css";
 
 const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
   const { xData, yData } = data;
@@ -60,7 +60,6 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     const displayName = longName ? longName : seriesName;
 
     if (originalValue !== null) {
-      
       return `
       <div class="tooltip-content">
         ${displayName === seriesName ? echarts.format.encodeHTML(displayName) : echarts.format.encodeHTML(displayName)}
@@ -86,8 +85,8 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     //legend: {},
     tooltip: {
       show: true,
-      renderMode: 'html',
-      className: 'echarts-tooltip',
+      renderMode: "html",
+      className: "echarts-tooltip",
       confine: true,
       formatter: (params: any) => tooltipFormatter(params),
     },

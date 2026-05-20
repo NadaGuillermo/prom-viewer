@@ -1,14 +1,16 @@
-import type { VariableDomains as Domains } from "@customTypes/variableDomains";
+import type { GlobalTypes} from "@customTypes/globalTypes";
+import { SCORE_HEALTH_CORRELATIONS } from "./constants";
 
-export namespace PromData {
-  type Answer = Domains.NumberOrNull; // | string | boolean;
+export namespace Mapping {
+  type Answer = GlobalTypes.NumberOrNull; // | string | boolean;
   type Item = QuestionnaireItem | QuestionnaireScoreItem;
 
   interface BaseItem {
     linkId: string;
     text: string;
     shortText: string;
-    dimension: string; //Domains.Dimension;
+    domain: string;
+    thresholds?: number[];
   }
 
   /** Questionnaire */
@@ -19,12 +21,11 @@ export namespace PromData {
 
   interface QuestionnaireItem extends BaseItem {
     answerOptions: AnswerOption[];
-    thresholds?: number[];
   }
 
   interface QuestionnaireScoreItem extends BaseItem {
     range: [number, number];
-    scoreHealthCorrelation: Domains.ScoreHealthCorrelation;
+    scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
     referenceQuestionnaireItems?: string[]; // linkIds
   }
 
@@ -52,7 +53,7 @@ export namespace PromData {
   interface QuestionnaireResponse {
     id: string;
     questionnaire: Questionnaire;
-    authored: Domains.DateFormat;
+    authored: string;
     items: Record<string, ResponseItem>; // key = linkId
   }
 

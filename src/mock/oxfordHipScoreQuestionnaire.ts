@@ -1,4 +1,4 @@
-import type { PromData } from "@data/mapping/types";
+import type { PromData } from "@utils/mapping/types";
 
 const oxfordHipScoreQuestionnaire: PromData.Questionnaire = {
   id: "ox-hip-score",

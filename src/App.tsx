@@ -1,33 +1,26 @@
+// Styles
 import "@styles/style.css";
+
+// React packages
 import React, { useState, useEffect } from "react";
+import * as _ from "lodash-es";
+
+// Components
+import DateRangePicker from "@components/DateRangePicker";
 import LineChart from "@components/LineChart";
-import RadarChart from "@components/RadarChart";
-import _ from "lodash";
-
-// import Header from "src/layouts/Header";
-// import Footer from "src/layouts/Footer";
-// import { BarChart } from "@components/BarChart";
-//
-import Matrix from "@components/Matrix";
-import Table from "@components/Table";
-
+import Heatmap from "@components/Heatmap";
+import QuestionnaireCard from "@components/QuestionnaireCard";
+import SimpleDataTable from "@components/SimpleDataTable";
 import Collapse from "@components/Collapse";
 import ErrorModal from "@components/ErrorModal";
-import { createChartData, createRadarData } from "@utils/dataTransformation";
 
-import type { Visualization } from "@customTypes/visualization";
-import { ITEM_TYPES, unspecifiedDimension } from "@data/mapping";
-import type { PromData } from "@data/mapping";
+// Types
+import type { GlobalTypes } from "@customTypes/globalTypes";
+import type { Visualization } from "@utils/visualization";
+import { ITEM_TYPES, type Mapping } from "@utils/mapping";
 
-import {
-  // getUniqueQuestionnaires,
-  calculatePeriodOfObservations,
-  sortDimensions,
-  createDateQuestionnairesRecord,
-  createQuestionnaireChartDataRecord,
-  createDimensionChartDataRecord,
-} from "@utils/helpers";
-
+// Services
+import { loadConfig } from "@services/loadConfig";
 import {
   loadFhirQuestionnaires,
   loadFhirQuestionnaireResponses,
@@ -36,31 +29,58 @@ import {
   loadFhirObservations,
 } from "@services/loadFhirData";
 
-import { loadConfig } from "@services/loadConfig";
+// Helper functions
 
+// FHIR
 import {
   normalizeQuestionnaireResponse,
   normalizeQuestionnaire,
   normalizeObservation,
   normalizeObservationDefinition,
   // normalizeBundle,
-} from "@data/fhir";
-import type { NormalizedFHIR } from "@data/fhir";
+} from "@utils/fhir";
+
+// Mapping
 import {
   mapNormalizedObservationToPromDataObservation,
   mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse,
   mapNormalizedQuestionnaireToPromDataQuestionnaire,
   mapNormalizedObservationDefinitionToPromDataObservationDefinition,
-} from "@data/mapping";
-import type { Mapping } from "@data/globalTypes";
+} from "@utils/mapping";
+
+// Visualization
+import {
+  createChartData,
+  // calculatePeriodOfObservations,
+  sortDomains,
+  createDateQuestionnaireNamesRecord,
+  createTableData,
+  createHeatmapData,
+  createQuestionnaireCardData,
+} from "@utils/visualization";
+
+// Config
 import {
   addConfigurationsToQuestionnaire,
   addConfigurationsToQuestionnaireResponse,
   extractQuestionnairesFromConfig,
   extractGlobalHealthDimensionsFromConfig,
-} from "@data/config";
+  extractDomainsFromConfig,
+} from "@utils/config";
 
 function App() {
+  // React states
+  // Data loading
+  const [dataLoaded, setDataLoaded] = useState({
+    config: false,
+    fhirData: false,
+  });
+  const [fhirError, setFhirError] = useState<string | null>(null);
+  const [config, setConfig] = useState<any>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [questionnairesReady, setQuestionnairesReady] = useState(false);
+
+  // Data pipeline
   const [fhirQuestionnaires, setFhirQuestionnaires] = useState<any[]>([]);
   const [fhirQuestionnaireResponses, setFhirQuestionnaireResponses] = useState<
     any[]
@@ -69,69 +89,67 @@ function App() {
     any[]
   >([]);
   const [fhirObservations, setFhirObservations] = useState<any[]>([]);
-  // const [fhirBundles, setFhirBundles] = useState<any[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dataIssues, setDataIssues] = useState<Mapping.DataIssue[]>([]);
-  const [questionnaires, setQuestionnaires] = useState<
-    PromData.Questionnaire[]
-  >([]);
+  const [questionnaires, setQuestionnaires] = useState<Mapping.Questionnaire[]>(
+    [],
+  );
   const [questionnaireResponses, setQuestionnaireResponses] = useState<
-    Record<string, PromData.QuestionnaireResponse>
-  >({});
+    Record<string, Mapping.QuestionnaireResponse>
+  >({}); 
+  const [dataIssues, setDataIssues] = useState<GlobalTypes.DataIssue[]>([]);
   const [globalHealthDimensions, setGlobalHealthDimensions] = useState<
     string[]
   >([]);
-  const [dataLoaded, setDataLoaded] = useState({
-    config: false,
-    fhirData: false,
-  });
-  const [fhirError, setFhirError] = useState<string | null>(null);
-
-  const [config, setConfig] = useState<any>(null);
-  const [configError, setConfigError] = useState<string | null>(null);
-
+  const [domains, setDomains] = useState<string[]>([]);
+  
+  // Data transformation
   const [questionnairesByDate, setQuestionnairesByDate] = useState<
     Record<string, string[]>
   >({});
-  const [periodOfObservations, setPeriodOfObservations] = useState<string[]>(
-    [],
-  );
+
+  // const [periodOfObservations, setPeriodOfObservations] = useState<string[]>(
+  //   [],
+  // );
+   
   // const [questionnaireResponsesForChart, setQuestionnaireResponsesForChart] =
-  //   useState<Record<string, PromData.QuestionnaireResponse>>({});
-  const [questionnairesForChart, setQuestionnairesForChart] = useState<
-    PromData.Questionnaire[]
-  >([]);
+  //   useState<Record<string, Mapping.QuestionnaireResponse>>({});
+  // const [questionnairesForChart, setQuestionnairesForChart] = useState<
+  //   Mapping.Questionnaire[]
+  // >([]);
   const [scoreChartSubTitle, setScoreChartSubTitle] = useState<string[]>([]);
-  const [radarChartData, setRadarChartData] =
-    useState<Visualization.ChartData>();
-  const [globalScoreChartData, setGlobalScoreChartData] = useState<
-    Visualization.DataSeries[] | undefined
-  >();
-  const [chartDataByQuestionnaire, setChartDataByQuestionnaire] = useState<
+  // const [globalScoreChartData, setGlobalScoreChartData] = useState<
+  //   Visualization.DataSeries[] | undefined
+  // >();
+
+  // Visualization
+  const [tableDataByQuestionnaire, setTableDataByQuestionnaire] = useState<
     Record<string, Visualization.ChartData>
   >({});
-  const [chartDataByDimension, setChartDataByDimension] = useState<
+  const [heatmapDataByDomain, setHeatmapDataByDomain] = useState<
     Record<string, Visualization.ChartData>
   >({});
-  const [chartData, setChartData] = useState<Visualization.ChartData>();
-  const [dimensions, setDimensions] = useState<string[]>([]);
+  const [questionnaireCardData, setQuestionnaireCardData] = useState<
+    Record<string, [string, string[]]>>({});
+  const [lineChartData, setLineChartData] = useState<Visualization.ChartData>();
+  const [lengthOfLongestQuestionnaireName, setLengthOfLongestQuestionnaireName] = useState<number>(0);
+  const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
+    useState<Record<string, GlobalTypes.DataIssue[]>>({});
   const [idsOfResourcesWithIssues, setIdsOfResourcesWithIssues] = useState<
     string[]
   >([]);
-
-  const [questionnairesReady, setQuestionnairesReady] = useState(false);
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>(
+    [],
+  );
+  // const [displayedQuestionnaires, setDisplayedQuestionnaires] = useState<Mapping.Questionnaire[]>([]);
+  // const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
 
-  // useEffect(() => {
-
+  // Load data
   useEffect(() => {
-    // if (hasMounted.current) return;
-    // hasMounted.current = true;
-
+    // Config
     const fetchConfig = async () => {
       try {
         const result = await loadConfig();
-        // console.log("RAW RESULT:", result, typeof result); // ok
         setConfig(result);
         setDataLoaded((prev) => ({ ...prev, config: true }));
       } catch (error) {
@@ -140,23 +158,14 @@ function App() {
       }
     };
 
+    // FHIR Data
     const loadFhirData = async () => {
-      // Fetch FHIR data
       try {
         const questionnaires = await loadFhirQuestionnaires();
         const responses = await loadFhirQuestionnaireResponses();
         const bundles = await loadFhirBundles();
         const observationDefinitions = await loadFhirObservationDefinitions();
         const observations = await loadFhirObservations();
-
-        // alle ok
-        // console.log("Fetched FHIR Questionnaires: ", questionnaires);
-        // console.log("Fetched FHIR Questionnaire Responses: ", responses);
-        // console.log("Fetched FHIR Bundles: ", bundles);
-        // console.log(
-        //   "Fetched FHIR Observation Definitions: ",
-        //   observationDefinitions,
-        // );
 
         // extract bundles and add to questionnaires and responses
         let bundleQuestionnaires: any[] = [];
@@ -173,8 +182,6 @@ function App() {
           const observationEntries = bundle.entry.filter(
             (entry: any) => entry.resource.resourceType === "Observation",
           );
-          // console.log("Extracted Questionnaires from Bundle: ", questionnaireEntries.map((entry: any) => entry.resource));
-          // console.log("Extracted Questionnaire Responses from Bundle: ", responseEntries.map((entry: any) => entry.resource));
           bundleQuestionnaires.push(
             ...questionnaireEntries.map((entry: any) => entry.resource),
           );
@@ -186,11 +193,11 @@ function App() {
           );
         });
 
+        // set variables
         setFhirQuestionnaires([...questionnaires, ...bundleQuestionnaires]);
         setFhirQuestionnaireResponses([...responses, ...bundleResponses]);
         setFhirObservations([...observations, ...bundleObservations]);
         setFhirObservationDefinitions([...observationDefinitions]);
-        // setFhirBundles([...bundles]);
         setDataLoaded((prev) => ({ ...prev, fhirData: true }));
       } catch (error) {
         console.error("Error loading FHIR data: ", error);
@@ -202,52 +209,22 @@ function App() {
     loadFhirData();
   }, []);
 
-  // useEffect(() => {
-  //   console.log("STATE CONFIG:", config);
-  // }, [config]);
-
-  // useEffect(() => {
-  //   console.log("MOUNT");
-  //   return () => console.log("UNMOUNT");
-  // }, []);
-
-  useEffect(() => {
-    console.log("FHIR Questionnaires in state: ", fhirQuestionnaires);
-    console.log(
-      "FHIR Questionnaire Responses in state: ",
-      fhirQuestionnaireResponses,
-    );
-  }, [fhirQuestionnaires, fhirQuestionnaireResponses]);
-
-  // Alles in useEffect
-  // outside only final questionnaires and questionnaireResponses needed
+  // Process data through pipeline
   useEffect(() => {
     // Don't process until all data is loaded
     if (!dataLoaded.config || !dataLoaded.fhirData) {
       return;
     }
-
-    const questionnaireErrors: Mapping.DataIssue[] = [];
-    const responseErrors: Mapping.DataIssue[] = [];
-    const observationErrors: Mapping.DataIssue[] = [];
-    const observationDefinitionErrors: Mapping.DataIssue[] = [];
-    // const bundleErrors: Mapping.DataIssue[] = [];
-
-    // nur questionnaires und responses, die in config definiert sind (sonst alle)
-    const configQuestionnaires = extractQuestionnairesFromConfig(config);
-    // console.log("Questionnaires defined in config file: ", configQuestionnaires); // ok
-
-    // Behandlung, wenn leere Arrays von FHIR Daten -> Fehlermeldung, dass keine Daten
-
-    // if (hasMounted.current) return;
-    // hasMounted.current = true;
-    //if (hasMounted.current) {
+    const errors: GlobalTypes.DataIssue[] = [];
+    
+    // only questionnaires and responses that are defined in config file
+    const questionnairesInConfig = extractQuestionnairesFromConfig(config);
+    
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Questionnaires */
     const normalizedFhirQuestionnairesWithErrorMessages = fhirQuestionnaires
       .map((questionnaire) => normalizeQuestionnaire(questionnaire))
-      .filter((result) => configQuestionnaires.includes(result.data.url));
-
+      .filter((result) => questionnairesInConfig.includes(result.data.url));
     const normalizedFhirQuestionnaires =
       normalizedFhirQuestionnairesWithErrorMessages.map(
         (questionnaire) => questionnaire.data,
@@ -256,62 +233,59 @@ function App() {
       normalizedFhirQuestionnairesWithErrorMessages.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    questionnaireErrors.push(...normalizedFhirQuestionnaireErrors);
+    errors.push(...normalizedFhirQuestionnaireErrors);
     console.log(
       "Normalized FHIR Questionnaires: ",
       normalizedFhirQuestionnaires,
     );
-    /* Questionnaire Responses */
-    const normalizedFhirQuestionnaireResponsesWithErrorMessages =
-      fhirQuestionnaireResponses
-        .map((response) =>
-          normalizeQuestionnaireResponse(
-            response,
-            normalizedFhirQuestionnaires,
-          ),
-        )
-        .filter(
-          (result) =>
-            result.data.questionnaire !== undefined &&
-            configQuestionnaires.includes(result.data.questionnaire),
-        );
 
-    const normalizedFhirQuestionnaireResponses =
-      normalizedFhirQuestionnaireResponsesWithErrorMessages.map(
-        (response) => response.data,
+    /* Questionnaire Responses */
+    const allNormalizedFhirQuestionnaireResponsesWithErrorMessages = 
+      fhirQuestionnaireResponses.map((response) =>
+        normalizeQuestionnaireResponse(response, normalizedFhirQuestionnaires),
       );
+    const allNormalizedFhirQuestionnaireResponses =
+      allNormalizedFhirQuestionnaireResponsesWithErrorMessages
+        .map((response) => response.data);
+    const normalizedFhirQuestionnaireResponsesWithErrorMessages =
+      allNormalizedFhirQuestionnaireResponsesWithErrorMessages.filter(
+          (result) =>
+            result.data !== undefined && result.data.questionnaire !== undefined &&
+            questionnairesInConfig.includes(result.data.questionnaire),);
+    const normalizedFhirQuestionnaireResponses =
+      normalizedFhirQuestionnaireResponsesWithErrorMessages
+        .map((response) => response.data); 
+    
+    const excludedQuestionnaireResponseIds = _.difference(allNormalizedFhirQuestionnaireResponses.map((response) => response.id), 
+      normalizedFhirQuestionnaireResponses.map((response) => response.id));
+    const excludedQuestionnaireResponses = allNormalizedFhirQuestionnaireResponses.filter((response) => excludedQuestionnaireResponseIds.includes(response.id));
+    const excludedQuestionnaireResponsesGroupedByQuestionnaire =_.groupBy(excludedQuestionnaireResponses, (response) => response.questionnaire);
+
+    if (excludedQuestionnaireResponseIds.length > 0) {
+      Object.entries(excludedQuestionnaireResponsesGroupedByQuestionnaire).forEach(([url, responses]) => {
+         errors.push({
+        id: `issue-questionnaireResponse-${Math.random().toString(36).substring(2, 9)}`,
+        level: "warning",
+        message: `For the patient, there ${responses.length > 1 ? "exist QuestionnaireResponses with ids" : "exists a QuestionnaireResponse with id"} ${responses.map((response) => response.id)} for 
+          Questionnaire with url ${url}. 
+          Since the questionnaire is not defined in the config file, the ${responses.length > 1 ? "responses are" : "response is"} not displayed.`,
+        resourceId: undefined,
+        resourceType: "Questionnaire",
+        linkId: undefined,
+      });
+      });
+    }      
     const normalizedFhirQuestionnaireResponseErrors =
       normalizedFhirQuestionnaireResponsesWithErrorMessages.flatMap(
         (response) => response.issues,
       );
-    responseErrors.push(...normalizedFhirQuestionnaireResponseErrors);
+    errors.push(...normalizedFhirQuestionnaireResponseErrors);
     console.log(
       "Normalized FHIR Questionnaire Responses: ",
       normalizedFhirQuestionnaireResponses,
     );
-    /* Bundles */
-    // const normalizedFhirBundlesWithErrorMessages = fhirBundles.map((bundle) =>
-    //   normalizeBundle(bundle),
-    // );
-    // const normalizedFhirBundles = normalizedFhirBundlesWithErrorMessages.map(
-    //   (bundle) => bundle.data,
-    // );
-    // const normalizedFhirBundleErrors =
-    //   normalizedFhirBundlesWithErrorMessages.flatMap((bundle) => bundle.issues);
-    // bundleErrors.push(...normalizedFhirBundleErrors);
-    // console.log("Normalized FHIR Bundles: ", normalizedFhirBundles);
-
-    // const bundleQuestionnaires = normalizedFhirBundles
-    //   .map((bundle) => bundle.questionnaire)
-    //   .filter((questionnaire) => questionnaire !== undefined);
-    // const bundleResponses = normalizedFhirBundles
-    //   .map((bundle) => bundle.questionnaireResponse)
-    //   .filter((response) => response !== undefined);
-    // const bundleObservations = normalizedFhirBundles
-    //   .map((bundle) => bundle.observations)
-    //   .filter((observations) => observations !== undefined);
-
-    /* Observations und Observation Definitions */
+  
+    /* Observations */
     const normalizedFhirObservationsWithErrorMessages = fhirObservations.map(
       (observation) => normalizeObservation(observation),
     );
@@ -323,9 +297,10 @@ function App() {
       normalizedFhirObservationsWithErrorMessages.flatMap(
         (observation) => observation.issues,
       );
-    observationErrors.push(...normalizedFhirObservationErrors);
+    errors.push(...normalizedFhirObservationErrors);
     console.log("Normalized FHIR Observations: ", normalizedFhirObservations);
 
+    /* Observation Definitions */
     const normalizedFhirObservationDefinitionsWithErrorMessages =
       fhirObservationDefinitions.map((observationDefinition) =>
         normalizeObservationDefinition(observationDefinition),
@@ -338,33 +313,14 @@ function App() {
       normalizedFhirObservationDefinitionsWithErrorMessages.flatMap(
         (observationDefinition) => observationDefinition.issues,
       );
-    observationDefinitionErrors.push(
-      ...normalizedFhirObservationDefinitionErrors,
-    );
+    errors.push(...normalizedFhirObservationDefinitionErrors);
     console.log(
       "Normalized FHIR Observation Definitions: ",
       normalizedFhirObservationDefinitions,
     );
 
     /* ----------------------- Mapping ------------------------ */
-
-    // keep bundles separately
-    // const allNormalizedFhirQuestionnaires = [
-    //   ...normalizedFhirQuestionnaires,
-    //   ...bundleQuestionnaires,
-    // ];
-    // const allNormalizedFhirQuestionnaireResponses = [
-    //   ...normalizedFhirQuestionnaireResponses,
-    //   ...bundleResponses,
-    // ];
-    // const allNormalizedFhirObservations = [...normalizedFhirObservations];
-    // console.log("All Questionnaires: ", allNormalizedFhirQuestionnaires);
-    // console.log(
-    //   "All Questionnaire Responses: ",
-    //   allNormalizedFhirQuestionnaireResponses,
-    // );
-
-    // PromData Questionnaires
+    /* Questionnaires */
     const promDataQuestionnairesWithErrorMessages =
       normalizedFhirQuestionnaires.map((questionnaire) =>
         mapNormalizedQuestionnaireToPromDataQuestionnaire(questionnaire),
@@ -376,9 +332,10 @@ function App() {
       promDataQuestionnairesWithErrorMessages.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    questionnaireErrors.push(...promDataQuestionnaireErrors);
-    console.log("PromData Questionnaires: ", promDataQuestionnaires); // ok
-    // QuestionnaireResponses
+    errors.push(...promDataQuestionnaireErrors);
+    console.log("Mapping Questionnaires: ", promDataQuestionnaires); // ok
+
+    /* QuestionnaireResponses */
     const questionnaireResponsesWithErrorMessages =
       normalizedFhirQuestionnaireResponses.map((response) =>
         mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse(
@@ -391,20 +348,29 @@ function App() {
         (questionnaireResponse) => questionnaireResponse.data,
       );
     console.log(
-      "PromData Questionnaire Responses: ",
+      "Mapping Questionnaire Responses: ",
       promDataQuestionnaireResponses,
     );
     const promDataQuestionnaireResponseErrors =
       questionnaireResponsesWithErrorMessages.flatMap(
         (questionnaireResponse) => questionnaireResponse.issues,
       );
-    responseErrors.push(...promDataQuestionnaireResponseErrors);
+    errors.push(...promDataQuestionnaireResponseErrors);
 
-    // Observations
-    const promDataObservationsWithErrorMessages =
-      normalizedFhirObservations.map((observation) =>
+    /* Observations */
+    const promDataObservationsWithErrorMessages = normalizedFhirObservations
+      .map((observation) =>
         mapNormalizedObservationToPromDataObservation(observation),
+      )
+      .filter((result) =>
+        promDataQuestionnaireResponses
+          .map((response) => response.id)
+          .includes(result.data.questionnaireResponse),
       );
+    console.log(
+      "Mapping Observations with Error Messages: ",
+      promDataObservationsWithErrorMessages,
+    );
     const promDataObservations = promDataObservationsWithErrorMessages.map(
       (observation) => observation.data,
     );
@@ -412,16 +378,24 @@ function App() {
       promDataObservationsWithErrorMessages.flatMap(
         (observation) => observation.issues,
       );
-    observationErrors.push(...promDataObservationErrors);
-    console.log("PromData Observations: ", promDataObservations); // ok
+    console.log("Mapping Observation Errors: ", promDataObservationErrors);
+    errors.push(...promDataObservationErrors);
+    console.log("Mapping Observations: ", promDataObservations); // ok
 
-    // ObservationDefinitions
+    /* ObservationDefinitions */
     const promDataObservationDefinitionsWithErrorMessages =
-      normalizedFhirObservationDefinitions.map((observationDefinition) =>
-        mapNormalizedObservationDefinitionToPromDataObservationDefinition(
-          observationDefinition,
-        ),
-      );
+      normalizedFhirObservationDefinitions
+        .map((observationDefinition) =>
+          mapNormalizedObservationDefinitionToPromDataObservationDefinition(
+            observationDefinition,
+          ),
+        )
+        .filter((result) =>
+          promDataObservations
+            .map((observation) => observation.observationDefinition)
+            .includes(result.data.url),
+        );
+
     const promDataObservationDefinitions =
       promDataObservationDefinitionsWithErrorMessages.map(
         (observationDefinition) => observationDefinition.data,
@@ -430,15 +404,38 @@ function App() {
       promDataObservationDefinitionsWithErrorMessages.flatMap(
         (observationDefinition) => observationDefinition.issues,
       );
-    observationDefinitionErrors.push(...promDataObservationDefinitionErrors);
+    errors.push(...promDataObservationDefinitionErrors);
     console.log(
-      "PromData Observation Definitions: ",
+      "Mapping Observation Definitions: ",
       promDataObservationDefinitions,
     );
 
-    /* ----------------------- Add config data ------------------------ */
+    // Filter errors for Observations and Observation Definitions
+    for (let i = 0; i < errors.length; i++) {
+      const error = errors[i];
+      if (error.resourceType === "Observation") {
+        const observation = promDataObservations.find(
+          (observation) => observation.id === error.resourceId,
+        );
+        if (observation === undefined) {
+          errors.splice(i, 1);
+          i = i - 1;
+        }
+      }
+      if (error.resourceType === "ObservationDefinition") {
+        const observationDefinition = promDataObservationDefinitions.find(
+          (observationDefinition) =>
+            observationDefinition.id === error.resourceId,
+        );
+        if (observationDefinition === undefined) {
+          errors.slice(i, 1);
+          i = i - 1;
+        }
+      }
+    }
 
-    // Add config file configuration to questionnaires
+    /* ----------------------- Add config data ------------------------ */
+    /* Questionnaire */
     const promDataQuestionnairesWithConfigurationsAndErrorMessages =
       promDataQuestionnaires.map((questionnaire) => {
         return addConfigurationsToQuestionnaire(
@@ -455,15 +452,14 @@ function App() {
       promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    observationDefinitionErrors.push(
-      ...promDataQuestionnaireConfigurationErrors,
-    );
+    errors.push(...promDataQuestionnaireConfigurationErrors);
     console.log(
-      "PromData Questionnaires with Configurations: ",
+      "Mapping Questionnaires with Configurations: ",
       promDataQuestionnairesWithConfigurations,
     );
 
-    const promDataQuestionnaireResponsesWithConfigurations =
+    /* Questionnaire Response */
+    const promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages =
       promDataQuestionnaireResponses.map((questionnaireResponse) =>
         addConfigurationsToQuestionnaireResponse(
           questionnaireResponse,
@@ -471,143 +467,267 @@ function App() {
           config,
         ),
       );
-
+    const promDataQuestionnaireResponsesWithConfigurations =
+      promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
+        (questionnaire) => questionnaire.data,
+      );
+    const promDataQuestionnaireResponsesConfigurationErrors =
+      promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
+        (questionnaire) => questionnaire.issues,
+      );
+    errors.push(...promDataQuestionnaireResponsesConfigurationErrors);
     console.log(
-      "PromData Questionnaire Responses with Configurations: ",
+      "Mapping Questionnaire Responses with Configurations: ",
       promDataQuestionnaireResponsesWithConfigurations,
     );
 
-    // global Dimension
+    // Domains
     const globalHealthDimensionsFromConfig =
       extractGlobalHealthDimensionsFromConfig(config);
+    const domainsFromConfig = extractDomainsFromConfig(config);
+    const domains = sortDomains(domainsFromConfig, globalHealthDimensionsFromConfig);
 
     /* ----------------------- Clean data ------------------------ */
-    // Fehlermeldungen in Modal anzeigen und fehlerhafte Daten löschen
-    // Clean responses
-    // filter
-    // const filteredPromDataQuestionnaireResponses =
-    //   promDataQuestionnaireResponses.filter(
-    //     (questionnaireResponse) =>
-    //       // questionnaireResponse.questionnaire !== undefined &&
-    //       questionnaireResponse.items !== undefined &&
-    //       Object.keys(questionnaireResponse.items).length > 0, // &&
-    //     // configQuestionnaires.includes(questionnaireResponse.questionnaire.url),
-    //   );
-
-    // // for (let response of _.difference(
-    // //   promDataQuestionnaireResponses,
-    // //   filteredPromDataQuestionnaireResponses,
-    // // )) {
-    // //   questionnaireResponseErrors.push({
-    // //     id: `${response.id}-ReferenceError-${Math.random().toString(36).substring(2, 9)}`,
-    // //     level: "error",
-    // //     message: `QuestionnaireResponse with id ${response.id} has no items and is therefore omitted.`,
-    // //   });
-    // // }
-    // console.log("Filtered Responses: ", filteredPromDataQuestionnaireResponses);
-
-    // // Clean questionnaires
-    // // Delete items which do not have any answerOptions, range and scoreHealthCorrelation
-    // // Delete items which do not have a dimension assigned (after adding dimensions from config)
-    // promDataQuestionnaires.forEach((questionnaire) => {
-    //   const items = questionnaire.items;
-    //   Object.entries(items).forEach(([linkId, item]) => {
-    //     const scoreItem = item as PromData.QuestionnaireScoreItem;
-    //     const isScoreItem =
-    //       Object.hasOwn(item, "range") &&
-    //       Object.hasOwn(item, "scoreHealthCorrelation") &&
-    //       scoreItem.range !== undefined &&
-    //       scoreItem.scoreHealthCorrelation !== undefined;
-    //     const questionItem = item as PromData.QuestionnaireItem;
-    //     const isQuestionItem = questionItem.answerOptions.length > 0;
-    //     if ((!isScoreItem && !isQuestionItem) || item.dimension === "") {
-    //       delete items[linkId];
-    //       // Add error message
-    //       questionnaireErrors.push({
-    //         id: `${questionnaire.id}-ItemError-${Math.random().toString(36).substring(2, 9)}`,
-    //         level: "warning",
-    //         message: `Questionnaire with id ${questionnaire.id} contains item with linkId ${linkId} which does not have answer options, a range or a score-health correlation and/or does not have a dimension assigned and is therefore omitted.`,
-    //       });
-    //     }
-    //   });
-    // });
-
-    // // LinkId in response item verweist nicht auf LinkId in Questionnaire -> delete item from response
-    // const filteredPromDataQuestionnaireResponsesWithValidLinkIds =
-    //   filteredPromDataQuestionnaireResponses.map((response) => {
-    //     const questionnaire = response.questionnaire;
-    //     const questionnaireLinkIds = Object.keys(questionnaire.items);
-    //     const responseLinkIds = Object.keys(response.items);
-    //     const validLinkIds = responseLinkIds.filter((linkId) =>
-    //       questionnaireLinkIds.includes(linkId),
-    //     );
-    //     const filteredItems: Record<string, PromData.ResponseItem> = {};
-    //     validLinkIds.forEach((linkId) => {
-    //       filteredItems[linkId] = response.items[linkId];
-    //     });
-    //     // Add errors for invalid linkIds
-    //     const invalidLinkIds = _.difference(responseLinkIds, validLinkIds);
-    //     invalidLinkIds.forEach((linkId) => {
-    //       responseErrors.push({
-    //         id: `${response.id}-LinkIdError-${Math.random().toString(36).substring(2, 9)}`,
-    //         level: "error",
-    //         message: `QuestionnaireResponse with id ${response.id} contains item with linkId ${linkId} which does not exist in the corresponding questionnaire and is therefore omitted.`,
-    //       });
-    //     });
-    //     return {
-    //       ...response,
-    //       items: filteredItems,
-    //     };
-    //   });
-
-    // responses in Record umwandeln
-    const questionnaireResponsesRecord: Record<
+    /* Questionnaire Response */
+    const questionnaireResponseIdsWithErrors = errors
+      .filter(
+        (error) =>
+          error.level === "error" &&
+          error.resourceType === "QuestionnaireResponse" &&
+          error.linkId === undefined,
+      )
+      .map((error) => error.resourceId);
+    const linkIdsWithErrors = errors
+      .filter((error) => error.level === "error" && error.linkId !== undefined)
+      .map((error) => error.linkId);
+    const promDataQuestionnaireResponsesWithoutErrors =
+      promDataQuestionnaireResponses.filter(
+        (questionnaireResponse) =>
+          !questionnaireResponseIdsWithErrors.includes(
+            questionnaireResponse.id,
+          ),
+      );
+    const promDataQuestionnaireResponsesWithFilteredItems =
+      promDataQuestionnaireResponsesWithoutErrors.map((response) => {
+        const items: Record<string, Mapping.ResponseItem> = {};
+        Object.keys(response.items).forEach((linkId) => {
+          if (!linkIdsWithErrors.includes(linkId)) {
+            items[linkId] = response.items[linkId];
+          }
+        });
+        return {
+          ...response,
+          items: items,
+        };
+      });
+    
+    // Tranform Questionnaire Responses to Record
+    // const questionnaireResponsesRecord: Record<
+    //   string,
+    //   Mapping.QuestionnaireResponse
+    // > = {};
+    // promDataQuestionnaireResponsesWithConfigurations.forEach(
+    //   (questionnaireResponse) => {
+    //     questionnaireResponsesRecord[questionnaireResponse.id] =
+    //       questionnaireResponse;
+    //   },
+    // );
+    // console.log(
+    //   "Questionnaire Responses in Record: ",
+    //   // questionnaireResponsesRecord,
+    // );
+    const questionnaireResponsesWithFilteredItems: Record<
       string,
-      PromData.QuestionnaireResponse
+      Mapping.QuestionnaireResponse
     > = {};
-    promDataQuestionnaireResponsesWithConfigurations.forEach(
-      // TO DO: change to filtered data
+    promDataQuestionnaireResponsesWithFilteredItems.forEach(
       (questionnaireResponse) => {
-        questionnaireResponsesRecord[questionnaireResponse.id] =
+        questionnaireResponsesWithFilteredItems[questionnaireResponse.id] =
           questionnaireResponse;
       },
     );
     console.log(
-      "Questionnaire Responses in Record: ",
-      questionnaireResponsesRecord,
+      "Filtered Questionnaire Responses in Record: ",
+      questionnaireResponsesWithFilteredItems,
     );
 
-    // set variables
-    setQuestionnaires(promDataQuestionnairesWithConfigurations);
-    setQuestionnaireResponses(questionnaireResponsesRecord);
+    /* Errors and Warnings */
+    const uniqueErrors: GlobalTypes.DataIssue[] = [];
+    errors.forEach((error) => {
+      if (!uniqueErrors.map((err) => err.message).includes(error.message)) {
+        uniqueErrors.push(error);
+      }
+    });
+
+    /* Questionnaires */
+    const questionnaires = [... new Set(promDataQuestionnairesWithConfigurations)];
+    console.log("Questionnaires: ", questionnaires);
+
+    // Set variables
+    setQuestionnaires(questionnaires);
+    setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
     setDataIssues([
-      ...questionnaireErrors,
-      ...responseErrors,
-      ...observationDefinitionErrors,
-      ...observationErrors,
-      // ...bundleErrors,
+      ...new Set(uniqueErrors)
     ]);
     setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
+    setDomains(domains);
     setQuestionnairesReady(true);
-    //  } else {
-    //    hasMounted.current = true;
-    //  }
+    setSelectedQuestionnaires(questionnaires.map((questionnaire) => questionnaire.id));
+    // setDisplayedQuestionnaires(questionnaires);
+    // setDisplayedQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
   }, [
     fhirQuestionnaires,
     fhirQuestionnaireResponses,
     fhirObservationDefinitions,
     fhirObservations,
-    // fhirBundles,
     dataLoaded,
   ]);
 
-  // useEffect(() => {
-  //   if (dataIssues.length > 0) {
-  //     setIsModalOpen(true);
-  //   }
-  // }, [dataIssues]);
+ // Data visualization
 
-  console.log("Data issues: ", dataIssues);
+  useEffect(() => {
+    if (!questionnairesReady) {
+      return;
+    }
+    if (dataIssues.length > 0) {
+      setIsModalOpen(true);
+    }
+   
+    const questionnairesForChart = questionnaires; //.filter((questionnaire) => selectedQuestionnaires.includes(questionnaire.id));
+    const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = questionnaireResponses;
+    // Object.entries(questionnaireResponses).forEach(([key, response]) => {
+    //   if (selectedQuestionnaires.includes(response.questionnaire.id)) {
+    //     questionnaireResponsesForChart[key] = response;
+    //   }
+    // });
+
+    const questionnairesByDate = createDateQuestionnaireNamesRecord(
+      questionnaireResponses,
+    );
+
+    const chartData = createChartData(questionnaireResponsesForChart);
+    console.log("Chart Data: ", chartData); 
+
+    // Questionnaire Card
+    const questionnaireCardData = createQuestionnaireCardData(questionnairesForChart);
+    console.log("Questionnaire Card Data: ", questionnaireCardData)
+    const questionnaireNames = Object.keys(questionnaireCardData);
+    const longestQuestionnaireName = questionnaireNames.reduce(
+      (longest, current) => (current.length > longest.length ? current : longest),
+      "",
+    );
+    const lengthOfLongestQuestionnaireName = longestQuestionnaireName.length;
+
+    // Line Chart
+    const globalScoresDataSeries =
+      globalHealthDimensions.length > 0
+        ? chartData.yData.filter(
+            (dataseries) =>
+              dataseries.seriesType === ITEM_TYPES.score &&
+              globalHealthDimensions.includes(dataseries.domain),
+          )
+        : undefined;
+    const dimensionScoresDataSeries = chartData.yData.filter(
+      (dataseries) =>
+        dataseries.seriesType === ITEM_TYPES.score &&
+        (globalHealthDimensions.length === 0 ||
+          !globalHealthDimensions.includes(dataseries.domain)),
+    );
+    console.log("Scores: ", globalScoresDataSeries);
+    console.log("Dimension Scores: ", dimensionScoresDataSeries);
+
+    const itemsDataSeries = chartData.yData.filter(
+      (dataseries) => dataseries.seriesType === ITEM_TYPES.item,
+    );
+    console.log("Items: ", itemsDataSeries);
+
+    const allScoresDataSeries =
+      globalScoresDataSeries !== undefined
+        ? [...globalScoresDataSeries, ...dimensionScoresDataSeries]
+        : dimensionScoresDataSeries;
+    console.log("All Scores: ", allScoresDataSeries);
+
+    // const chartDimensions = [
+    //   ...new Set([
+    //     ...itemDataSeries.map((item) => item.dimension),
+    //     ...scoreDataSeries.map((score) => score.dimension),
+    //   ]),
+    // ]; 
+
+    const lineChartData: Visualization.ChartData = {
+      xData: chartData.xData,
+      yData: globalScoresDataSeries ?? [],
+    }
+    const scoreChartSubTitle = Array.from(
+      new Set(
+        Object.values(questionnaireResponses).map(
+          (questionnaireResponse) => {
+            return questionnaireResponse.questionnaire.name;
+          },
+        ),
+      ),
+    );
+    
+    // Heatmap
+    const heatmapDataByDomain: Record<string, Visualization.ChartData> =
+      createHeatmapData(
+        domains,
+        questionnairesForChart,
+        allScoresDataSeries,
+        itemsDataSeries,
+        chartData.xData,
+      );
+    console.log("Chart Data by Dimension: ", heatmapDataByDomain);
+
+    // Table
+    const tableDataByQuestionnaire: Record<string, Visualization.ChartData> =
+      createTableData(questionnairesForChart, chartData);
+    console.log("Table Data by Questionnaire: ", tableDataByQuestionnaire);
+
+    // Header Cards
+    const resourceIdsWithIssues = dataIssues
+      .map((issue) => issue.resourceId)
+      .filter((id) => id !== undefined);
+    console.log("IDs of resources with issues: ", resourceIdsWithIssues);
+
+    const itemWarningsByQuestionnaireId = _.groupBy(
+      dataIssues.filter(
+        (issue) => issue.level === "warning" && issue.linkId !== undefined,
+      ),
+      (issue) => issue.resourceId,
+    );
+    console.log(
+      "Item Warnings by Questionnaire ID: ",
+      itemWarningsByQuestionnaireId,
+    );
+    // const periodOfObservations = calculatePeriodOfObservations(
+    //   questionnaireResponses,
+    // );
+
+    // set variables
+    // setDisplayedQuestionnaires(questionnairesForChart);
+    // setDisplayedQuestionnaireResponses(questionnaireResponsesForChart);
+    setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
+    setLineChartData(lineChartData);
+    setQuestionnairesByDate(questionnairesByDate);
+    setHeatmapDataByDomain(heatmapDataByDomain);
+    setTableDataByQuestionnaire(tableDataByQuestionnaire);
+    setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
+    setQuestionnaireCardData(questionnaireCardData);
+    // setPeriodOfObservations(periodOfObservations);
+    setScoreChartSubTitle(scoreChartSubTitle);
+    setIdsOfResourcesWithIssues(resourceIdsWithIssues);
+  }, [
+    questionnaires,
+    questionnaireResponses,
+    dataIssues,
+    globalHealthDimensions,
+    questionnairesReady,
+    domains,
+    // selectedQuestionnaires,
+  ]);
+
+  // Handlers
 
   const handleContinue = () => {
     setIsModalOpen(false);
@@ -618,225 +738,38 @@ function App() {
     console.log("Toggled showErrors: ", showErrors);
   };
 
-  /**--------------------------------------------- */
-  // const patientData = useMemo(() => {
-  //   return mockPatient;
-  // }, [mockPatient]);
+  const handleQuestionnaireSelection = (questionnaireId: string) => {
+    setSelectedQuestionnaires((prev) => {
+      const index = prev.indexOf(questionnaireId);
+      if (index === -1) {
+        return [...prev, questionnaireId];
+      } else {
+        return prev.filter((id) => id !== questionnaireId);
+      }
+    });
+    // TODO: filtern hier (Funktion in utils), state für filteredQuestionnaires, filteredQuestionnaireResponses
+    
+    console.log("Selected Questionnaires: ", selectedQuestionnaires);
+  }
 
-  useEffect(() => {
-    if (!questionnairesReady) {
-      return;
-    }
-    if (dataIssues.length > 0) {
-      setIsModalOpen(true);
-    }
-    console.log("Questionnaires ready for chart: ", questionnaires); // ok
-    console.log(
-      "Questionnaire Responses ready for chart: ",
-      questionnaireResponses,
+  // Loading Errors
+  if (configError)
+    return (
+      <React.Fragment>
+        <div>Failed to load config</div>
+        <div>{configError}</div>
+      </React.Fragment>
     );
-    // Create chart data
-    const questionnaireResponsesForChart = questionnaireResponses; // questionnaireResponses; // patientData.proms
-    console.log(
-      "Questionnaire Responses for chart: ",
-      questionnaireResponsesForChart,
+  if (fhirError)
+    return (
+      <React.Fragment>
+        <div>Failed to load FHIR data</div>
+        <div>{fhirError}</div>
+      </React.Fragment>
     );
-    // only questionnaires referenced by responses
-    const questionnairesForChart = [...new Set(questionnaires)];
-    // getUniqueQuestionnaires(questionnaireResponsesForChart);
-    console.log("Unique Questionnaires: ", questionnairesForChart);
-
-    const questionnairesByDate = createDateQuestionnairesRecord(
-      questionnaireResponsesForChart,
-    );
-
-    const chartData = createChartData(questionnaireResponsesForChart);
-    setChartData(chartData);
-    console.log("Chart Data: ", chartData);
-
-    console.log(
-      "Global Health Dimensions from config: ",
-      globalHealthDimensions,
-    );
-
-    const chartGlobalScoreData =
-      globalHealthDimensions.length > 0
-        ? chartData.yData.filter(
-            (dataseries) =>
-              dataseries.seriesType === ITEM_TYPES.score &&
-              globalHealthDimensions.includes(dataseries.dimension),
-          )
-        : undefined;
-    const chartDimensionScoreData = chartData.yData.filter(
-      (dataseries) =>
-        dataseries.seriesType === ITEM_TYPES.score &&
-        (globalHealthDimensions.length === 0 ||
-          !globalHealthDimensions.includes(dataseries.dimension)),
-    );
-    console.log("Scores: ", chartGlobalScoreData);
-    console.log("Dimension Scores: ", chartDimensionScoreData);
-
-    const itemDataSeries = chartData.yData.filter(
-      (dataseries) => dataseries.seriesType === ITEM_TYPES.item,
-    );
-    console.log("Items: ", itemDataSeries);
-
-    const scoreDataSeries =
-      chartGlobalScoreData !== undefined
-        ? [...chartGlobalScoreData, ...chartDimensionScoreData]
-        : chartDimensionScoreData;
-    console.log("All Scores: ", scoreDataSeries);
-
-    const chartDimensions = [
-      ...new Set([
-        ...itemDataSeries.map((item) => item.dimension),
-        ...scoreDataSeries.map((score) => score.dimension),
-      ]),
-    ];
-
-    const dimensions = sortDimensions(chartDimensions, globalHealthDimensions);
-    console.log("Sorted Dimensions: ", dimensions);
-
-    // const unusedDimensions = _.difference(DIMENSIONS, chartDimensions);
-
-    // group chartData by dimension for Matrix
-    // TO add: sort scores and items within each dimension by their values (e.g. mean or min)
-    // and do not show items which are part of score calculation.
-    // FILTER ITEMS
-    const chartDataByDimension: Record<string, Visualization.ChartData> =
-      createDimensionChartDataRecord(
-        dimensions,
-        questionnairesForChart,
-        scoreDataSeries,
-        itemDataSeries,
-        chartData.xData,
-      );
-    console.log("Chart Data by Dimension: ", chartDataByDimension);
-
-    //const matrixData = createMatrixData(questionnaireResponses, chartData);
-    //console.log("Matrix Data: ", matrixData);
-
-    // const matrixDimensions = createMatrixDimensionsData(
-    //   questionnaireResponses,
-    //   chartItemsData,
-    //   chartScoreData,
-    // );
-    //console.log(matrixDimensions);
-
-    // group chartData by questionnaireId for table
-    const chartDataByQuestionnaire: Record<string, Visualization.ChartData> =
-      createQuestionnaireChartDataRecord(questionnairesForChart, chartData);
-    console.log("Chart Data by Questionnaire: ", chartDataByQuestionnaire);
-
-    const radarChartData = createRadarData(chartData);
-    console.log("Radar Chart Data: ", radarChartData);
-
-    const periodOfObservations = calculatePeriodOfObservations(
-      questionnaireResponsesForChart,
-    );
-
-    const scoreChartSubTitle = Array.from(
-      new Set(
-        Object.values(questionnaireResponsesForChart).map(
-          (questionnaireResponse) => {
-            return questionnaireResponse.questionnaire.name;
-          },
-        ),
-      ),
-    );
-
-    const resourceIdsWithIssues = dataIssues
-      .map((issue) => issue.resourceId)
-      .filter((id) => id !== undefined);
-    console.log("IDs of resources with issues: ", resourceIdsWithIssues);
-
-    // set variables
-
-    // setQuestionnaireResponsesForChart(questionnaireResponsesForChart);
-    setQuestionnairesForChart(questionnairesForChart);
-    setQuestionnairesByDate(questionnairesByDate);
-    setGlobalScoreChartData(chartGlobalScoreData);
-    setDimensions(dimensions);
-    setChartDataByDimension(chartDataByDimension);
-    setChartDataByQuestionnaire(chartDataByQuestionnaire);
-    setRadarChartData(radarChartData);
-    setPeriodOfObservations(periodOfObservations);
-    setScoreChartSubTitle(scoreChartSubTitle);
-    setIdsOfResourcesWithIssues(resourceIdsWithIssues);
-
-    // if (chartGlobalScoreData == undefined) {
-    //   setShowScoreChart(false);
-    // }
-  }, [
-    questionnaires,
-    questionnaireResponses,
-    dataIssues,
-    globalHealthDimensions,
-    questionnairesReady,
-  ]);
-
-  /** TESTING FHIR NORMALIZATION
-   *
-   */
-
-  //   console.log("Original EQ-5D-5L Questionnaire: ", eq5d5lQuestionnaire);
-  //   console.log("Original PHQ-9 Questionnaire: ", phq9Questionnaire);
-  //   console.log("Original QLQ-C30 Questionnaire: ", qlqC30Questionnaire);
-  //   console.log("Original PROMIS Questionnaire: ", promisQuestionnaire);
-  //   console.log("Original EQ-5D-5L Response: ", eq5d5lResponse);
-  //   console.log("Original PHQ-9 Response: ", phq9Response);
-  //   console.log("Original QLQ-C30 Response: ", qlqC30Response);
-  //   console.log("Original PROMIS Response: ", promisResponse);
-
-  //  const normalizedEq5d5lQuestionnaire = normalizeQuestionnaire(eq5d5lQuestionnaire);
-  //  console.log("Normalized EQ-5D-5L Questionnaire: ", normalizedEq5d5lQuestionnaire);
-
-  //  const normalizedEq5d5lCollectableQuestionnaire = normalizeQuestionnaire(eq5d5lQuestionnaireCollectable);
-  //  console.log("Normalized EQ-5D-5L Collectable Questionnaire: ", normalizedEq5d5lCollectableQuestionnaire);
-
-  //  const normalizedPhq9Questionnaire = normalizeQuestionnaire(phq9Questionnaire);
-  //  console.log("Normalized PHQ-9 Questionnaire: ", normalizedPhq9Questionnaire);
-
-  //   const normalizedQlqC30Questionnaire = normalizeQuestionnaire(qlqC30Questionnaire);
-  //   console.log("Normalized QLQ-C30 Questionnaire: ", normalizedQlqC30Questionnaire);
-
-  //   const normalizedPromisQuestionnaire = normalizeQuestionnaire(promisQuestionnaire);
-  //   console.log("Normalized PROMIS Questionnaire: ", normalizedPromisQuestionnaire);
-
-  //   const normalizedEq5d5lResponse = normalizeQuestionnaireResponse(eq5d5lResponse);
-  //   console.log("Normalized EQ-5D-5L Response: ", normalizedEq5d5lResponse);
-
-  //   const normalizedPhq9Response = normalizeQuestionnaireResponse(phq9Response);
-  //   console.log("Normalized PHQ-9 Response: ", normalizedPhq9Response);
-
-  //   const normalizedQlqC30Response = normalizeQuestionnaireResponse(qlqC30Response);
-  //   console.log("Normalized QLQ-C30 Response: ", normalizedQlqC30Response);
-
-  //   const normalizedPromisResponse = normalizeQuestionnaireResponse(promisResponse);
-  //   console.log("Normalized PROMIS Response: ", normalizedPromisResponse);
-
-  if (configError) return (
-    <React.Fragment>
-      <div>
-        Failed to load config
-      </div>
-      <div>
-        {configError}
-      </div>
-    </React.Fragment>
-  );
-  if (fhirError) return (
-    <React.Fragment>
-      <div>
-        Failed to load FHIR data
-      </div>
-      <div>
-        {fhirError}
-      </div>
-    </React.Fragment>
-  );
   if (!dataLoaded.config || !dataLoaded.fhirData) return <div>Loading...</div>;
   if (!questionnairesReady) return <div>Processing data...</div>;
+
 
   return (
     <div className="tw:@container">
@@ -845,33 +778,31 @@ function App() {
           className={`${isModalOpen ? "pointer-events-none select-none" : ""}`}
         >
           {/* <Header /> */}
-          <main className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-4">
+          <main className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6">
             <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-center tw:items-start">
               <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md">
                 <div className="tw:card-body">
-                  <h2 className="tw:card-title">PROM Info</h2>
-                  {questionnairesForChart.map((questionnaire) => (
-                    <p key={questionnaire.id}>
-                      {questionnaire.name}:{" "}
-                      {questionnaire.url ? (
-                        <a
-                          className="tw:link tw:link-hover"
-                          target="_blank"
-                          href={questionnaire.url}
-                          rel="noopener noreferrer"
-                        >
-                          {questionnaire.url}
-                        </a>
-                      ) : (
-                        "No URL available"
-                      )}
-                    </p>
-                  ))}
+                  <h3 className="tw:card-title">Filter Options</h3>
+                  <div>
+                    <p>Questionnaires</p>
+                  </div>
+                  <div>
+                    {questionnaires.map((questionnaire) => (
+                      <label key={questionnaire.id} className="tw:label tw:text-gray-900">
+                        <input type="checkbox" checked={selectedQuestionnaires.includes(questionnaire.id)} onChange={() => handleQuestionnaireSelection(questionnaire.id)} className="tw:checkbox" />
+                        {questionnaire.name}
+                      </label>
+                    ))}
+                  </div>
+                  <div>
+                    <p>Time Range</p> 
+                      <DateRangePicker />
+                  </div>
                 </div>
               </div>
-              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md">
+              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md tw:overflow-y-auto tw:max-h-[60vh]">
                 <div className="tw:card-body">
-                  <h2 className="tw:card-title">Data Info</h2>
+                  <h3 className="tw:card-title">Data Info</h3>
                   {/* <p>Total number of questionnaires: {Object.keys(questionnaireResponses).length}</p>
                 <p>Number of different questionnaires: {questionnaires.length}</p>
                 <p>Period of observations: {calculatePeriodOfObservations(questionnaireResponses)}</p> */}
@@ -880,11 +811,11 @@ function App() {
                     ([date, questionnaires]) => (
                       <div key={date}>
                         {date}:
-                      <ul className="tw:list-disc tw:pl-5">
-                      {questionnaires.map((questionnaire) => (
-                        <li key={questionnaire}>{questionnaire}</li>
-                      ))}
-                      </ul>
+                        <ul className="tw:list-disc tw:pl-5">
+                          {questionnaires.map((questionnaire) => (
+                            <li key={questionnaire}>{questionnaire}</li>
+                          ))}
+                        </ul>
                       </div>
                     ),
                   )}
@@ -903,14 +834,14 @@ function App() {
               <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md tw:overflow-y-auto tw:max-h-[60vh]">
                 {/* tw:col-span-3 tw:sm:col-span-3 tw:lg:col-span-1*/}
                 <div className="tw:card-body">
-                  <h2 className="tw:card-title">Error Info</h2>
+                  <h3 className="tw:card-title">Error Info</h3>
                   <p>
                     For FHIR resources with follwing ids there have been errors
                     detected:
                   </p>
                   {idsOfResourcesWithIssues.length > 0 ? (
                     <ul className="tw:list-disc tw:pl-5">
-                      {idsOfResourcesWithIssues.map((id) => (
+                      {[...new Set(idsOfResourcesWithIssues)].map((id) => (
                         <li key={id}>{id}</li>
                       ))}
                     </ul>
@@ -919,12 +850,14 @@ function App() {
                   )}
                   {dataIssues.length > 0 && (
                     <div>
-                    <button
-                      className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
-                      onClick={toggleErrorDetails}
-                    >
-                      {showErrors ? "Hide error details" : "Show error details"}
-                    </button>
+                      <button
+                        className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
+                        onClick={toggleErrorDetails}
+                      >
+                        {showErrors
+                          ? "Hide error details"
+                          : "Show error details"}
+                      </button>
                     </div>
                   )}
                   {showErrors && dataIssues.length > 0 && (
@@ -935,25 +868,27 @@ function App() {
                         </p>
                       )}
                       <ul className="tw:list-disc tw:pl-5">
-                      {dataIssues.map(
-                        (issue) =>
-                          issue.level === "error" && ( 
+                        {dataIssues.map(
+                          (issue) =>
+                            issue.level === "error" && (
                               <li key={issue.id}>{issue.message}</li>
-                          ),
-                      )}
-                       </ul>
-                      {dataIssues.some((issue) => issue.level === "warning") && (
+                            ),
+                        )}
+                      </ul>
+                      {dataIssues.some(
+                        (issue) => issue.level === "warning",
+                      ) && (
                         <p className="tw:mt-2 tw:mb-2">
                           <span className="tw:font-semibold">Warnings</span>
                         </p>
                       )}
                       <ul className="tw:list-disc tw:pl-5">
-                      {dataIssues.map(
-                        (issue) =>
-                          issue.level === "warning" && (                            
-                              <li key={issue.id}>{issue.message}</li>  
-                          ),
-                      )}
+                        {dataIssues.map(
+                          (issue) =>
+                            issue.level === "warning" && (
+                              <li key={issue.id}>{issue.message}</li>
+                            ),
+                        )}
                       </ul>
                     </div>
                   )}
@@ -961,45 +896,89 @@ function App() {
               </div>
             </div>
             {/* <div className="tw:divider" /> */}
-
-            <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4">
-              <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
+             <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                      Dimension Coverage by Questionnaire
+                    </h2>
+            <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-left tw:items-start">
+            
+              {/* {chartData && questionnaireCardData && (
+                <div className="flex flex-col">
+                  {dimensions.map(dim => (
+                    <div key={dim} className="h-6 text-xs flex items-center">
+                      {dim}
+                    </div>
+                  ))}
+                </div>
+              )} */}
+               { questionnaires && questionnaireCardData && (
+                Object.entries(questionnaireCardData).filter(([id, _]) => (
+                  selectedQuestionnaires.includes(id)
+                )).
+                map(([id, [name, questionnaireDimensions]]) => (
+                <QuestionnaireCard key={id} questionnaire={{name: name, dimensions: questionnaireDimensions}} dimensions={domains} lengthOfLongestQuestionnaireName={lengthOfLongestQuestionnaireName} />
+                )))
+                }
+            </div>
+           
+            {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4">
+              <div className="tw:col-span-15 tw:lg:col-span-15 tw:2xl:col-span-15">
                 <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-                  Health Indication
+                  Dimension Covering
                 </p>
-                {radarChartData && (
-                  <RadarChart
-                    data={radarChartData}
-                    dimensions={dimensions.filter((dimension) => dimension !== unspecifiedDimension && dimension !== "")}
+                {chartData && questionnaireCardData && (
+                  <Matrix
+                    data={questionnaireCardData}
+                    dimensions={[
+                      ...new Set(
+                        dimensions.filter(
+                          (dimension) =>
+                            dimension !== unspecifiedDimension &&
+                            dimension !== "",
+                        ),
+                      ),
+                    ]}
                     //subtitle={"Health indication per dimension where points closer to edges indicate better health status"}
                   />
                 )}
               </div>
+            </div> */}
+            {/* 16 6 5*/}
+            <div className="tw:grid tw:grid-cols-12 tw:item-center tw:py-4">
+              {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
+                <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                  Dimension Covering
+                </p>
+                {chartData && questionnaireCardData && (
+                  <Matrix
+                    data={questionnaireCardData}
+                    dimensions={dimensions}
+                    //subtitle={"Health indication per dimension where points closer to edges indicate better health status"}
+                  />
+                )}
+              </div> */}
 
               {/* </div>
+              
           
-          <div className="tw:flex-1 tw:item-center tw:py-4"> */}
-              <div className="tw:col-span-15 tw:lg:col-span-9 tw:2xl:col-span-10">
-                {globalScoreChartData && (
+                  <div className="tw:flex-1 tw:item-center tw:py-4"> */}
+                 
+              <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3">
+                {lineChartData && lineChartData.yData.length > 0 && (
                   <>
-                    <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                       Global Health Scores (Normalized)
-                    </p>
-                    {chartData && (
-                      <LineChart
-                        subtitle={
-                          "Questionnaires: " + scoreChartSubTitle.join(", ")
-                        }
-                        data={{
-                          xData: chartData.xData,
-                          yData: globalScoreChartData,
-                        }}
-                      />
-                    )}
+                    </h2>
+
+                    <LineChart
+                      subtitle={
+                        "Questionnaires: " + scoreChartSubTitle.join(", ")
+                      }
+                      data={lineChartData}
+                    />
                   </>
                 )}
-                {!globalScoreChartData && (
-                  <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                {lineChartData === undefined || lineChartData.yData.length === 0 && (
+                  <p className="tw:text-lg tw:text-center tw:text-[#333]">
                     No global health scores available
                   </p>
                 )}
@@ -1019,32 +998,40 @@ function App() {
               {showItemDetails ? "Show Dimensions Only" : "Show Item Details"}
             </button>
            
-            <Matrix showItemDetails={showItemDetails} />
+            <Heatmap showItemDetails={showItemDetails} />
           </div> */}
 
             {/* <div className="tw:flex-1 tw:py-8">
             <div className="tw:join tw:join-vertical tw:bg-base-100" style={{display: "flex", alignItems: "center"}}>   
-            <Matrix data={chartData} />
+            <Heatmap data={chartData} />
             
           </div>
           </div> */}
-            <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-              Selected PROs by Dimensions
-            </p>
-
-            <div className="tw:grid tw:grid-cols-6 tw:py-8">
+            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+              Selected PROs by Domain
+            </h2>
+            <div className="tw:grid tw:grid-cols-6 tw:py-8 tw:gap-8">
               {/* <div className="tw:join tw:join-vertical tw:bg-base-100" style={{display: "flex", alignItems: "center"}}>    */}
-              {dimensions.map((dimension) => (
-                <div
-                  className="tw:col-span-6 tw:md:col-span-3 tw:lg:col-span-2"
-                  key={dimension}
-                >
-                  <p className="tw:text-lg tw:font-bold tw:text-[#333]">
-                    {dimension}
-                  </p>
-                  <Matrix data={chartDataByDimension[dimension]} />
-                </div>
-              ))}
+              {domains && heatmapDataByDomain && domains
+                .map((domain) => (
+                  <div
+                    key={domain}
+                    className="tw:col-span-6 tw:md:col-span-3 tw:lg:col-span-2"
+                  > 
+                  {heatmapDataByDomain[domain] !== undefined && heatmapDataByDomain[domain].yData.length > 0 && (
+
+                  
+                    <div className="tw:card tw:bg-base-100 tw:shadow-md">
+                      <div className="tw:card-body">
+                        <p className="tw:text-lg tw:font-bold tw:text-[#333]">
+                          {domain}
+                        </p>
+                        <Heatmap data={heatmapDataByDomain[domain]} />
+                      </div>
+                    </div>
+                  )}
+                  </div>
+                ))}
               {/* {unusedDimensions.map((dimension) => (
                 <React.Fragment key={dimension}>
                   <p className="tw:text-lg tw:font-bold tw:text-[#333]">{dimension}</p>
@@ -1055,26 +1042,64 @@ function App() {
               {/* </div> */}
             </div>
 
-            <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
               Complete PROs by PROM/Questionnaire
-            </p>
+            </h2>
+
+            {/* <div className="tw:flex-1 tw:py-8">
+              <div
+                className="tw:join tw:join-vertical tw:bg-base-100" */}
+            {/* //     style={{ display: "flex", alignItems: "center" }}
+            //   >
+            //     {questionnairesForChart.map((questionnaire) => (
+            //       <React.Fragment key={questionnaire.id}>
+            //         <Collapse
+            //           title={questionnaire.name}
+            //           children={
+            //             <Table
+            //               data={tableDataByQuestionnaire[questionnaire.id]}
+            //               dimensions={dimensions}
+            //               errors={
+            //                 itemWarningsByQuestionnaireId[questionnaire.id] !==
+            //                 undefined
+            //                   ? itemWarningsByQuestionnaireId[questionnaire.id]
+            //                   : undefined
+            //               }
+            //             />
+            //           }
+            //         />
+            //       </React.Fragment>
+            //     ))}
+            //   </div>
+            // </div> */}
 
             <div className="tw:flex-1 tw:py-8">
               <div
                 className="tw:join tw:join-vertical tw:bg-base-100"
                 style={{ display: "flex", alignItems: "center" }}
               >
-                {questionnairesForChart.map((questionnaire) => (
+                {questionnaires && tableDataByQuestionnaire && questionnaires.filter((questionnaire) => (
+                  selectedQuestionnaires.includes(questionnaire.id)
+                )).
+                map((questionnaire) => (
                   <React.Fragment key={questionnaire.id}>
-                    <Collapse
+                    {tableDataByQuestionnaire[questionnaire.id] !== undefined && (
+                     <Collapse
                       title={questionnaire.name}
                       children={
-                        <Table
-                          data={chartDataByQuestionnaire[questionnaire.id]}
-                          dimensions={dimensions}
+                        <SimpleDataTable
+                          data={tableDataByQuestionnaire[questionnaire.id]}
+                          domains={domains}
+                          errors={
+                            itemWarningsByQuestionnaireId[questionnaire.id] !==
+                            undefined
+                              ? itemWarningsByQuestionnaireId[questionnaire.id]
+                              : undefined
+                          }
+                         
                         />
                       }
-                    />
+                    />)}
                   </React.Fragment>
                 ))}
               </div>
@@ -1084,9 +1109,9 @@ function App() {
             {/* <button onClick={toggleExpandAll} className="tw:btn">
               {expandAll ? "Collapse All" : "Expand All"}
             </button> */}
-            {/* <CollapsibleMatrix
+            {/* <CollapsibleHeatmap
               columns={chartXData}
-              dimensions={matrixDimensions}
+              dimensions={heatmapDimensions}
               allRowsExpanded={expandAll}
             />
           </div> */}
@@ -1096,7 +1121,7 @@ function App() {
       </div>
       {dataIssues.length > 0 && (
         <ErrorModal
-          data={dataIssues}
+          data={[...new Set(dataIssues)]}
           open={isModalOpen}
           onClose={handleContinue}
         />

@@ -1,5 +1,5 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import type { Visualization } from "@customTypes/visualization";
+import type { Visualization } from "@utils/visualization/types";
 
 export interface BarChartProps {
   timeXAxis: boolean;

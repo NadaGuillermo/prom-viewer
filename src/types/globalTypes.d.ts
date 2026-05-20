@@ -1,10 +1,10 @@
-export namespace Mapping {
+export namespace GlobalTypes {
     type DataIssue = {
         id: string;
         level: 'warning' | 'error';
         message: string;
         resourceId: string | undefined;
-        resourceType: string | undefined;
+        resourceType: 'Questionnaire' | 'QuestionnaireResponse' | 'ObservationDefinition' | 'Observation' | undefined;
         linkId: string | undefined;
     };
 
@@ -12,4 +12,6 @@ export namespace Mapping {
         data: T;
         issues: DataIssue[];
     };
+
+    type NumberOrNull = number | null;
 }

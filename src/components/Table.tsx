@@ -1,6 +1,6 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import type { Visualization } from "@customTypes/visualization";
-import type { VariableDomains as Domains } from "@customTypes/variableDomains";
+// import type { Visualization } from "@utils/visualization";
+// import type { VariableDomains as Domains } from "@customTypes/variableDomains";
 import * as echarts from "echarts/core";
 
 import "@styles/echartStyles.css";
@@ -8,13 +8,19 @@ import "@styles/echartStyles.css";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
-  getNameForDataSeriesFromShortName,
-} from "@utils/helpers";
-import { globalDimension } from "@data/mapping/constants";
+  getNameForDataSeriesFromShortName, type Visualization,
+} from "@utils/visualization";
+import { globalDimension } from "@utils/mapping";
 
-import _ from "lodash";
+import * as _ from "lodash-es";
 
-const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) => {
+const Table = ({
+  title,
+  subtitle,
+  data,
+  dimensions,
+  errors,
+}: Visualization.TableProps) => {
   // data already for one questionnaire
 
   // add questionnaire name to yData
@@ -23,12 +29,13 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   //     const label = series.name;
   //     return { ...series, name: label };
   //   });
+  console.log("Table: Data Series: ", matrixDataSeries);
   const scores = matrixDataSeries.filter(
     (dataseries) => dataseries.seriesType === "score",
   );
 
   const globalScores = scores.filter(
-    (score) => score.dimension === globalDimension,
+    (score) => score.domain === globalDimension,
   );
 
   // const otherScores = scores.filter(
@@ -41,7 +48,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   const dimensionScores = _.difference(scores, globalScores);
 
   const dimensionScoresSorted = dimensions.flatMap((dimension) =>
-    dimensionScores.filter((score) => score.dimension === dimension),
+    dimensionScores.filter((score) => score.domain === dimension),
   );
 
   const itemsNotReferencedInScores = matrixDataSeries.filter(
@@ -74,7 +81,22 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   // const items = data.yData.filter(dataseries =>
   //   dataseries.seriesType === "item"
   // );
-  const xData = data.xData;
+  const xAxisData = [...data.xData]; //.concat("Health Trend");
+  console.log("table original x data: ", data.xData);
+
+  // add error column if needed
+  if (
+    errors !== undefined &&
+    errors.length > 0 &&
+    _.intersection(
+      errors.map((error) => error.linkId),
+      sortedMatrixDataSeries.map((series) => series.id),
+    ).length > 0
+  ) {
+    xAxisData.push("Issues");
+  }
+
+  console.log("Table X Data: ", xAxisData);
 
   // const itemsGroupedByDimension = groupItemsByDimension(items);
   // const dimensionScoresGroupedByDimension = groupItemsByDimension(dimensionScores);
@@ -82,21 +104,27 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   // add additional row to xData
   // xData.unshift("");
 
-  const chartData: [string, string, Domains.NumberOrNull][] = [];
+  const chartData: [string, string, number][] = [];
   const yAxisData: string[] = [];
 
   sortedMatrixDataSeries.forEach((series) => {
-    const rows: [string, string, Domains.NumberOrNull][] = xData.map(
-      (x, index) => {
-        yAxisData.push(series.shortName);
+    yAxisData.push(series.shortName);
+    const row: [string, string, number][] = xAxisData.map((x, index) => {
+      if (index < data.xData.length) {
+        // normal data
         return [
           x,
           series.shortName,
           series.data[index] === null ? Infinity : series.data[index],
         ];
-      },
-    );
-    chartData.push(...rows);
+      } else if (errors?.map((error) => error.linkId).includes(series.id)) {
+        // error
+        return [x, series.shortName, -Infinity];
+      } else {
+        return [x, series.shortName, Infinity];
+      }
+    });
+    chartData.push(...row);
   });
 
   // const itemDimensions = Object.keys(itemsGroupedByDimension);
@@ -145,13 +173,19 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   //     },
   //     label: {
   //       show: true,
-  //       formatter: (params: any) => labelWithOriginalScores(params), // params.value[2].toFixed(3), //labelWithOriginalScores(params),
+  //       formatter: (params: any) => labelFormatter(params), // params.value[2].toFixed(3), //labelFormatter(params),
   //     },
   //   };
   // });
 
-  const labelWithOriginalScores = (params: any) => {
+  const labelFormatter = (params: any) => {
     const { value } = params;
+    if (value[2] === Infinity) {
+      return "";
+    }
+    if (value[2] === -Infinity) {
+      return "\u26A0";
+    }
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
       sortedMatrixDataSeries,
       value[2],
@@ -159,13 +193,38 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
     );
     const valueIsScore = isScoreSeries(scores, value[1]);
     const originalValueString =
-      originalValue !== null && originalValue !== undefined
-        ? originalValue.toString()
-        : "undefined";
+      originalValue !== null ? originalValue.toString() : "";
 
-    return valueIsScore
-      ? `{score|${originalValueString}}`
-      : `{item|${originalValueString}}`;
+    if (originalValueString.length > 0) {
+      return valueIsScore
+        ? `{score|${originalValueString}}`
+        : `{item|${originalValueString}}`;
+    }
+    return "";
+  };
+
+  const tooltipFormatter = (params: any) => {
+    const { value, name } = params;
+    if (value[2] === -Infinity) {
+      const linkId = matrixDataSeries.find(
+        (series) => series.shortName === value[1],
+      )?.id;
+      const errorMessages = errors?.filter((error) => error.linkId === linkId);
+      if (errorMessages !== undefined) {
+        return `
+            <div class="tooltip-content">
+              ${errorMessages.map((errorMsg) => {
+                return `${echarts.format.encodeHTML(errorMsg.message)} <br/>`;
+              })}
+              </div>
+            `;
+      }
+    }
+    return "";
+    // return echarts.format.encodeHTML(value[2]);
+    // return `<div class="tooltip-content">
+    //   ${echarts.format.encodeHTML(value[2])}
+    // </div>`;
   };
 
   const yAxisFormatter = (value: string) => {
@@ -174,16 +233,15 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   };
 
   const yAxisTooltipFormatter = (params: any) => {
-      const { value } = params;
-      // console.log("yAxisTooltipFormatter params: ", params);
-      const longName = getNameForDataSeriesFromShortName(matrixDataSeries, value);
-      return `
+    const { value } = params;
+    // console.log("yAxisTooltipFormatter params: ", params);
+    const longName = getNameForDataSeriesFromShortName(matrixDataSeries, value);
+    return `
         <div class="tooltip-content">
           ${echarts.format.encodeHTML(longName ? longName : value)}
         </div>
       `;
-    };
-
+  };
 
   // const tooltipFormatter = (params: any) => {
   //   const { value, name } = params;
@@ -207,7 +265,6 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
   //   }
   //   return echarts.format.encodeHTML(value[2]);
   // };
-  
 
   const options: Visualization.EChartsOption = {
     animation: false,
@@ -216,27 +273,30 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
       subtext: subtitle,
     },
     tooltip: {
-      show: false,
-      renderMode: 'html',
-      className: 'echarts-tooltip',
+      show: true,
+      renderMode: "html",
+      className: "echarts-tooltip",
       confine: true,
+      formatter: (params: any) => tooltipFormatter(params),
+      displayTransition: false,
+      transitionDuration: 0,
     },
     xAxis: [
       {
         type: "category",
-        data: xData,
+        data: xAxisData,
         splitLine: {
           show: false,
         },
         // position: "top",
       },
-      // {
-      //   type: "category",
-      //   data: xData,
-      //   splitLine: {
-      //     show: false,
-      //   },
-      // },
+      {
+        type: "category",
+        data: xAxisData,
+        splitLine: {
+          show: false,
+        },
+      },
     ],
     yAxis: {
       type: "category",
@@ -258,7 +318,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
       tooltip: {
         show: true,
         // @ts-ignore
-        formatter: (params:any) => yAxisTooltipFormatter(params),
+        formatter: (params: any) => yAxisTooltipFormatter(params),
       },
     },
     visualMap: {
@@ -280,7 +340,7 @@ const Table = ({ title, subtitle, data, dimensions }: Visualization.TableProps) 
       label: {
         show: true,
         color: "#666",
-        formatter: (params: any) => labelWithOriginalScores(params), // params.value[2].toFixed(3), //labelWithOriginalScores(params),
+        formatter: (params: any) => labelFormatter(params), // params.value[2].toFixed(3), //labelFormatter(params),
         rich: {
           score: { fontWeight: "bold", fontSize: 10 },
           item: { fontSize: 10 },

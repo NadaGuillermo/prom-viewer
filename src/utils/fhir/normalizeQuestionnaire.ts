@@ -1,17 +1,15 @@
 import type { NormalizedFHIR } from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
-import type { Mapping } from "@data/globalTypes";
+import type { GlobalTypes } from "@customTypes/globalTypes";
 
 export const normalizeQuestionnaire = (
   resource: any,
-): Mapping.Result<NormalizedFHIR.Questionnaire> => {
+): GlobalTypes.Result<NormalizedFHIR.Questionnaire> => {
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
-  const issues: Mapping.DataIssue[] = [];
+  const issues: GlobalTypes.DataIssue[] = [];
 
-const extractAnswerOptions = (
-    item: any,
-  ): NormalizedFHIR.AnswerOption[] => {
+  const extractAnswerOptions = (item: any): NormalizedFHIR.AnswerOption[] => {
     let answerOptions: any[] = [];
 
     if (item.answerOption) {
@@ -20,10 +18,19 @@ const extractAnswerOptions = (
         let value: any;
         // search for extension with value
         const extension = opt.extension?.find((ext: any) => {
-          return ext.valueDecimal !== undefined || ext.valueInteger !== undefined || ext.valueString !== undefined || ext.valueBoolean !== undefined || ext.valueDate !== undefined || ext.valueDateTime !== undefined || ext.valueTime !== undefined;
+          return (
+            ext.valueDecimal !== undefined ||
+            ext.valueInteger !== undefined ||
+            ext.valueString !== undefined ||
+            ext.valueBoolean !== undefined ||
+            ext.valueDate !== undefined ||
+            ext.valueDateTime !== undefined ||
+            ext.valueTime !== undefined
+          );
         });
         if (extension !== undefined) {
-          value = extension.valueDecimal ??
+          value =
+            extension.valueDecimal ??
             extension.valueInteger ??
             extension.valueString ??
             extension.valueBoolean ??
@@ -32,7 +39,7 @@ const extractAnswerOptions = (
             extension.valueTime ??
             undefined; // will be sorted out in mapping step
         } else if (opt.valueCoding !== undefined) {
-          value = opt.valueCoding.code; // Code, manchmal auch Wert 
+          value = opt.valueCoding.code; // Code, manchmal auch Wert
         } else {
           value = undefined; // sorted out in mapping
         }
@@ -81,9 +88,7 @@ const extractAnswerOptions = (
     return answerOptions; // can be empty
   };
 
-  const extractReferenceQuestionnaireItems = (
-    item: any,
-  ) => {
+  const extractReferenceQuestionnaireItems = (item: any) => {
     let referenceQuestionnaireItems: string[] = [];
 
     let calculationFormula = item.extension?.find((ext: any) => {
@@ -94,7 +99,9 @@ const extractAnswerOptions = (
       // check if calculationFormula is only a reference
       if (calculationFormula.charAt(0) === "%") {
         // try to find in resource
-        const valueExpressions = resource.extension?.filter((ext: any) => ext.valueExpression?.expression !== undefined);
+        const valueExpressions = resource.extension?.filter(
+          (ext: any) => ext.valueExpression?.expression !== undefined,
+        );
         if (valueExpressions !== undefined) {
           const expressionReference = calculationFormula;
           for (const valueEx of valueExpressions) {
@@ -105,26 +112,31 @@ const extractAnswerOptions = (
           }
         }
       }
-      const referencedLinkIds = extractLinkIdsFromFhirPath(
-        calculationFormula
-      );
+      const referencedLinkIds = extractLinkIdsFromFhirPath(calculationFormula);
       if (referencedLinkIds.includes(item.linkId)) {
-        referencedLinkIds.splice(referencedLinkIds.indexOf(item.linkId))
+        referencedLinkIds.splice(referencedLinkIds.indexOf(item.linkId));
       }
       referenceQuestionnaireItems.push(...referencedLinkIds);
     }
 
-    return referenceQuestionnaireItems.length > 0 ? referenceQuestionnaireItems : undefined;
+    return referenceQuestionnaireItems.length > 0
+      ? referenceQuestionnaireItems
+      : undefined;
   };
 
   const extractRange = (item: any): [number, number] | undefined => {
-    const extensionMinVal = item.extension?.find((ext: any) => ext.url?.includes("minValue"));
-    const extensionMaxVal = item.extension?.find((ext: any) => ext.url?.includes("maxValue"));
+    const extensionMinVal = item.extension?.find((ext: any) =>
+      ext.url?.includes("minValue"),
+    );
+    const extensionMaxVal = item.extension?.find((ext: any) =>
+      ext.url?.includes("maxValue"),
+    );
 
     if (extensionMinVal === undefined || extensionMaxVal === undefined) {
       return undefined;
     }
-    const low = extensionMinVal.valueDecimal ??
+    const low =
+      extensionMinVal.valueDecimal ??
       extensionMinVal.valueInteger ??
       extensionMinVal.valueDecimal ??
       extensionMinVal.valueString ??
@@ -133,8 +145,9 @@ const extractAnswerOptions = (
       extensionMinVal.valueDateTime ??
       extensionMinVal.valueTime ??
       undefined;
-    
-    const high = extensionMaxVal.valueDecimal ??
+
+    const high =
+      extensionMaxVal.valueDecimal ??
       extensionMaxVal.valueInteger ??
       extensionMaxVal.valueDecimal ??
       extensionMaxVal.valueString ??
@@ -148,27 +161,28 @@ const extractAnswerOptions = (
       return [low, high];
     }
     return undefined;
-  }
+  };
 
-  const traverse = (
-    itemsInput: any[] | undefined,
-  ) => {
+  const traverse = (itemsInput: any[] | undefined) => {
     if (!itemsInput) return;
 
     for (const item of itemsInput) {
-      // ignore all items with certain types      
-      if (QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED.includes(item.type)) { // type immer gegeben
+      // ignore all items with certain types
+      if (QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED.includes(item.type)) {
+        // type immer gegeben
         continue;
       }
       const referenceQuestionnaires = extractReferenceQuestionnaireItems(item);
       const itemValueRange = extractRange(item);
-      
+
       items[item.linkId] = {
         linkId: item.linkId, // immer gegeben
         text: item.text, // optional
         answerOptions: extractAnswerOptions(item),
-        ...(referenceQuestionnaires !== undefined && {referenceQuestionnaireItems: referenceQuestionnaires}),
-        ...(itemValueRange !== undefined && {range: itemValueRange}),
+        ...(referenceQuestionnaires !== undefined && {
+          referenceQuestionnaireItems: referenceQuestionnaires,
+        }),
+        ...(itemValueRange !== undefined && { range: itemValueRange }),
       };
 
       if (item.item) {
@@ -198,12 +212,12 @@ const extractAnswerOptions = (
 
   return {
     data: {
-    id: resource.id, // sollte immer gegeben sein
-    name: resource.title, // optional
-    url: resource.url, // immer gegeben
-    description: resource.description, // optional
-    items, // optional
+      id: resource.id, // sollte immer gegeben sein
+      name: resource.title, // optional
+      url: resource.url, // immer gegeben
+      description: resource.description, // optional
+      items, // optional
     },
-    issues: issues
+    issues: issues,
   };
 };

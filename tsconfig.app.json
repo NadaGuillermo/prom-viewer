@@ -19,8 +19,7 @@
       "@utils/*": ["src/utils/*"],
       "@customTypes/*": ["src/types/*"],
       "@styles/*": ["src/styles/*"],
-      "@data/*": ["src/data/*"],
-      "@services/*": ["src/services/*"],
+      "@services/*": ["src/services/*"]
     },
 
     /* Bundler mode */

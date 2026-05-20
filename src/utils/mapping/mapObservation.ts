@@ -1,11 +1,11 @@
-import type { NormalizedFHIR } from "@data/fhir";
-import type { PromData } from "@data/mapping/types";
-import type { Mapping } from "@data/globalTypes";
+import type { NormalizedFHIR } from "@utils/fhir";
+import type { Mapping } from "./types";
+import type { GlobalTypes } from "@customTypes/globalTypes";
 
 export const mapNormalizedObservationToPromDataObservation = (
   observation: NormalizedFHIR.Observation,
-): Mapping.Result<PromData.Observation> => {
-  const issues: Mapping.DataIssue[] = [];
+): GlobalTypes.Result<Mapping.Observation> => {
+  const issues: GlobalTypes.DataIssue[] = [];
   const observationId = observation.id;
   const value = observation.value;
   const questionnaireResponse = observation.questionnaireResponse;

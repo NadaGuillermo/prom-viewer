@@ -1,20 +1,21 @@
-import type { VariableDomains as Domains } from "@customTypes/variableDomains";
-import _ from "lodash";
-import type { PromData } from "@data/mapping";
-import type { Visualization } from "@customTypes/visualization";
-import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS } from "@data/mapping";
+// import * as _ from "lodash-es";
+import type { Mapping } from "@utils/mapping";
+import type { Visualization } from "./types";
+import type { GlobalTypes } from "@customTypes/globalTypes";
+import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS } from "@utils/mapping";
 import {
   addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate,
   createCommonTimeAxis,
   groupQuestionnaireResponsesByQuestionnaireId,
-  normalizeValue,
   isQuestionnaireScoreItem,
   getMinAndMaxAnswerOptionValueForItem,
   calculateRadarChartValue,
-} from "@utils/helpers";
+} from "./utils";
+
+import { normalizeValue } from "./helpers";
 
 export const createChartData = (
-  questionnaireResponses: Record<string, PromData.QuestionnaireResponse>,
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ): Visualization.ChartData => {
   const xData = createCommonTimeAxis(questionnaireResponses);
 
@@ -31,17 +32,22 @@ export const createChartData = (
   const yData = Object.values(
     groupedAndSortedQuestionnaireResponsesWithNullQuestionnaireResponses,
   ).flatMap((questionnaireResponses) => {
+    // responses for one questionnaire
     const dataSeriesOfQuestionnaire: Visualization.DataSeries[] = [];
     const itemKeys = questionnaireResponses.flatMap((response) => {
       return Object.keys(response.items);
     });
     const uniqueItemKeys = [...new Set(itemKeys)];
     uniqueItemKeys.forEach((linkId) => {
-      const data: Domains.NumberOrNull[] = [];
-      const originalData: Domains.NumberOrNull[] = [];
+      const data: GlobalTypes.NumberOrNull[] = [];
+      const originalData: GlobalTypes.NumberOrNull[] = [];
       const dataLabels: string[] = [];
       questionnaireResponses.forEach((questionnaireResponse) => {
-        const responseItem = questionnaireResponse.items[linkId];
+        // item might not exist -> null value
+        const responseItem = questionnaireResponse.items[linkId] ?? {
+          linkId: linkId,
+          answer: null,
+        };
         originalData.push(responseItem.answer);
         // normlize everything
         // console.log(
@@ -94,7 +100,7 @@ export const createChartData = (
           dataLabels.push("");
         }
       });
-      let seriesType: Domains.ItemType;
+      let seriesType: string;
       const questionnaireItem =
         questionnaireResponses[0].questionnaire.items[linkId];
       // // console.log("questionnaireItem: ", questionnaireItem)
@@ -118,19 +124,23 @@ export const createChartData = (
 
       dataSeriesOfQuestionnaire.push({
         id: linkId,
-        name: questionnaireResponses[0].questionnaire.items[linkId].text ?? linkId,
-        shortName: questionnaireResponses[0].questionnaire.items[linkId].shortText ?? linkId,
+        name:
+          questionnaireResponses[0].questionnaire.items[linkId].text ?? linkId,
+        shortName:
+          questionnaireResponses[0].questionnaire.items[linkId].shortText ??
+          linkId,
         data: data,
         originalData: originalData,
         dataLabels: dataLabels,
         seriesType: seriesType,
-        dimension:
-          questionnaireResponses[0].questionnaire.items[linkId].dimension,
+        domain:
+          questionnaireResponses[0].questionnaire.items[linkId].domain,
         questionnaire: questionnaireResponses[0].questionnaire.id,
         questionnaireName: questionnaireResponses[0].questionnaire.name,
         referencedItems: referencedItems,
       });
     });
+
     return dataSeriesOfQuestionnaire;
   });
 
@@ -140,14 +150,14 @@ export const createChartData = (
   };
 };
 
-export const createRadarData = (
+export const createRadarChartData = (
   chartData: Visualization.ChartData,
 ): Visualization.ChartData => {
   // for every date calculate dataseries (one value per dimension)
   const dimensions = [
     ...new Set(
       chartData.yData.map((dataSeries) => {
-        return dataSeries.dimension;
+        return dataSeries.domain;
       }),
     ),
   ];
@@ -159,15 +169,14 @@ export const createRadarData = (
   const yData: Visualization.DataSeries[] = [];
 
   dimensions.forEach((dimension) => {
-    const dimensionDataSeries = chartData.yData.filter((dataSeries) => {
-      // TODO: Besser filtern
-      return dataSeries.dimension === dimension; // && dataSeries.seriesType === ITEM_TYPEs.score;
-    });
+    const dimensionDataSeries = chartData.yData.filter((series) => 
+      series.domain === dimension && series.seriesType === ITEM_TYPES.score
+    );
     // console.log("dimensionDataSeries: ", dimension, ": ", dimensionDataSeries);
     const dimensionData = dimensionDataSeries.map(
-      (dataSeries) => dataSeries.data,
+      (series) => series.data,
     ); // oder originalData
-    const data: Domains.NumberOrNull[] = [];
+    const data: GlobalTypes.NumberOrNull[] = [];
     xData.forEach((_, index) => {
       const dimensionDataForOneDate = dimensionData.map((data) => data[index]);
       const dimensionValue = calculateRadarChartValue(dimensionDataForOneDate);
@@ -182,7 +191,7 @@ export const createRadarData = (
       originalData: data,
       dataLabels: [],
       seriesType: ITEM_TYPES.score,
-      dimension: dimension,
+      domain: dimension,
       questionnaire: "",
       questionnaireName: "",
     });
@@ -195,7 +204,7 @@ export const createRadarData = (
 };
 
 // const createScoreDataSeries = (
-//   questionnaireResponses: PromData.QuestionnaireResponse[],
+//   questionnaireResponses: Mapping.QuestionnaireResponse[],
 //   scoreRecord: Record<string, Visualization.OriginalAndNormalizedScore>
 // ) => {
 //   const name = questionnaireResponses[0].questionnaire.score?.name ?? "";
@@ -221,7 +230,7 @@ export const createRadarData = (
 
 // /** Group and join items of multiple QuestionnaireResponse instances of a Questionnaire as DataSeries */
 // const createItemsDataSeries = (
-//   questionnaireResponses: PromData.QuestionnaireResponse[]
+//   questionnaireResponses: Mapping.QuestionnaireResponse[]
 // ) => {
 
 //   const allLinkIds = questionnaireResponses.map(
@@ -243,8 +252,8 @@ export const createRadarData = (
 //   );
 
 //   uniqueLinkIds.forEach((linkId, index) => {
-//     const originalAnswersForItemOfAllQuestionnaireResponses: PromData.AnswerValue[] = [];
-//     const normalizedAnswersForItemOfAllQuestionnaireResponses: PromData.AnswerValue[] = [];
+//     const originalAnswersForItemOfAllQuestionnaireResponses: Mapping.AnswerValue[] = [];
+//     const normalizedAnswersForItemOfAllQuestionnaireResponses: Mapping.AnswerValue[] = [];
 //     let correspondingQuestionnaireItemLabel: string = "";
 
 //     questionnaireResponses.forEach((questionnaireResponse) => {
@@ -281,7 +290,7 @@ export const createRadarData = (
 //   return itemsDataSeries;
 // };
 
-// export const createMatrixData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>, data: Visualization.DataSeries[]) => {
+// export const createMatrixData = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, data: Visualization.DataSeries[]) => {
 //   const chartScoreData = data.filter(dataseries =>
 //     dataseries.seriesType === "questionnaireScore"
 //   );
@@ -313,7 +322,7 @@ export const createRadarData = (
 //   return matrixData;
 // }
 
-// export const createMatrixDimensionsData = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>, itemsData: Visualization.DataSeries[], scoreData?: Visualization.DataSeries[],) => {
+// export const createMatrixDimensionsData = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, itemsData: Visualization.DataSeries[], scoreData?: Visualization.DataSeries[],) => {
 //   const questionnaireResponsesGroupedByQuestionnaireId = groupQuestionnaireResponsesByQuestionnaireId(questionnaireResponses);
 //   const matrixDimensions: Visualization.MatrixDimension[] = [];
 
@@ -338,8 +347,8 @@ export const createRadarData = (
 // };
 
 // // questionnaireResponses for one questionnaire
-// const createItemsBelongingToOneQuestionnaireForMatrixRow = (questionnaireResponses: PromData.QuestionnaireResponse[], itemsData: Visualization.DataSeries[]) => {
-//   const items: Record<string, Domains.NumberOrNull[]> = {};
+// const createItemsBelongingToOneQuestionnaireForMatrixRow = (questionnaireResponses: Mapping.QuestionnaireResponse[], itemsData: Visualization.DataSeries[]) => {
+//   const items: Record<string, Visualization.NumberOrNull[]> = {};
 //   const itemKeys = questionnaireResponses.map((response) => {
 //     return Object.keys(response.items);
 //   }).flat();

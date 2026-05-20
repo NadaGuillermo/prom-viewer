@@ -1,5 +1,5 @@
 import type { Patient } from "@customTypes/patient";
-import type { PromData } from "@data/mapping/types";
+import type { PromData } from "@utils/mapping/types";
 import eq5d5lQuestionnaire from "./eq5d5lQuestionnaire";
 import oxfordHipScoreQuestionnaire from "./oxfordHipScoreQuestionnaire";
 import qlqC30Questionnaire from "./qlqc30Questionnaire";

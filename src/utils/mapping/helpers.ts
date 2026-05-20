@@ -1,6 +1,4 @@
-import type { VariableDomains as Domains} from "@customTypes/variableDomains";
-
-export const convertFhirDateTimeToDateFormat = (isoDate: string): Domains.DateFormat => {
+export const convertFhirDateTimeToDateFormat = (isoDate: string): string => {
   //   const date = new Date(isoDate);
   //   // Check if the date is valid // handle error differently
   // if (isNaN(date.getTime())) {

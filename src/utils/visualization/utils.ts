@@ -1,19 +1,21 @@
-import type { Visualization } from "@customTypes/visualization";
-import type { VariableDomains as Domains } from "@customTypes/variableDomains";
-import type { PromData } from "@data/mapping";
-import _ from "lodash";
-import { unspecifiedDimension } from "@data/mapping";
+import type { Visualization } from "./types";
+import { unspecifiedDimension, type Mapping } from "@utils/mapping";
+import type { GlobalTypes } from "@customTypes/globalTypes";
+import * as _ from "lodash-es";
+import { calculateMean } from "./helpers";
 
 export const isScoreSeries = (
   series: Visualization.DataSeries[],
   seriesName: string,
 ) => {
-  return series.some((s) => s.name === seriesName || s.shortName === seriesName);
+  return series.some(
+    (s) => s.name === seriesName || s.shortName === seriesName,
+  );
 };
 
 export const getLabelFromOriginalValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],
-  originalValue: Domains.NumberOrNull,
+  originalValue: GlobalTypes.NumberOrNull,
   seriesName: string,
 ) => {
   const correspondingSeries = yData.find(
@@ -60,7 +62,7 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
     (yValue) => yValue !== null,
   );
 
-  let originalValue: Domains.NumberOrNull = null;
+  let originalValue: GlobalTypes.NumberOrNull = null;
 
   if (
     correspondingOriginalSeries !== undefined &&
@@ -73,7 +75,9 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
     correspondingOriginalSeries.data = originalDataWithoutNulls;
     const dataIndex =
       correspondingNormalizedSeries.data.indexOf(normalizedValue);
-    originalValue = correspondingOriginalSeries.data[dataIndex];
+    if (dataIndex !== -1) {
+      originalValue = correspondingOriginalSeries.data[dataIndex];
+    }
   }
   return originalValue;
 };
@@ -82,20 +86,22 @@ export const getNameForDataSeriesFromShortName = (
   yData: Visualization.DataSeries[],
   dataSeriesName: string,
 ) => {
-  const correspondingSeries = yData.find((series) => series.shortName === dataSeriesName);
+  const correspondingSeries = yData.find(
+    (series) => series.shortName === dataSeriesName,
+  );
   return correspondingSeries ? correspondingSeries.name : "";
-}
+};
 
 // ok
 export const isQuestionnaireScoreItem = (
-  item: PromData.Item,
-): item is PromData.QuestionnaireScoreItem => {
-  return (item as PromData.QuestionnaireScoreItem).range !== undefined;
+  item: Mapping.Item,
+): item is Mapping.QuestionnaireScoreItem => {
+  return (item as Mapping.QuestionnaireScoreItem).range !== undefined;
 };
 
-export const groupItemsByDimension = (items: Visualization.DataSeries[]) => {
-  const itemsByDimension = _.groupBy(items, (item) => item.dimension);
-  return itemsByDimension;
+export const groupItemsByDomain = (items: Visualization.DataSeries[]) => {
+  const itemsByDomain = _.groupBy(items, (item) => item.domain);
+  return itemsByDomain;
 };
 
 /** Matrix */
@@ -153,15 +159,15 @@ export const groupItemsByDimension = (items: Visualization.DataSeries[]) => {
 //   dimensions: Visualization.MatrixDimension[],
 //   rows: Visualization.RowMeta[],
 //   columns: string[],
-// ): [number, number, Domains.NumberOrNull][] => {
+// ): [number, number, Visualization.NumberOrNull][] => {
 //   const dimMap = new Map(dimensions.map((d) => [d.id, d]));
-//   const data: [number, number, Domains.NumberOrNull][] = [];
+//   const data: [number, number, Visualization.NumberOrNull][] = [];
 
 //   for (const row of rows) {
 //     const dim = dimMap.get(row.dimensionId);
 //     const reversedRowIndex = rows.length - 1 - row.rowIndex;
 
-//     let values: Domains.NumberOrNull[];
+//     let values: Visualization.NumberOrNull[];
 //     if (row.isDimension) {
 //       values = dim?.dimensionValues ?? [];
 //     } else {
@@ -179,43 +185,43 @@ export const groupItemsByDimension = (items: Visualization.DataSeries[]) => {
 //   return data;
 // }
 
-export const sortDimensions = (
-  dimensions: string[],
+export const sortDomains = (
+  domains: string[],
   globalHealthDimensions: string[],
 ) => {
-  const sortedDimensions = dimensions;
-  const globalDimensions = dimensions.filter((dimension) =>
-    globalHealthDimensions.includes(dimension),
+  const sortedDomains = domains;
+  const globalDimensions = domains.filter((domain) =>
+    globalHealthDimensions.includes(domain),
   );
   // const other = dimensions.find((dimension) => dimension === otherDimension);
-  const unspecified = dimensions.find((dimension) => dimension === unspecifiedDimension);
+  const unspecified = domains.find(
+    (domain) => domain === unspecifiedDimension,
+  );
 
   if (globalDimensions.length > 0) {
     for (let dim of globalDimensions) {
-      const index = sortedDimensions.indexOf(dim);
-      sortedDimensions.splice(index, 1);
-      sortedDimensions.unshift(dim);
+      const index = sortedDomains.indexOf(dim);
+      sortedDomains.splice(index, 1);
+      sortedDomains.unshift(dim);
     }
   }
-  if (unspecified) {
-    sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
-    sortedDimensions.push(unspecified);
-  }
-  return sortedDimensions;
-};
+  // delete unspecified and empty
+  const filteredDomains = sortedDomains.filter(
+    (domain) => domain !== unspecified && domain !== ""
+  );
 
-export const calculateMean = (data: Domains.NumberOrNull[]) => {
-  const filteredData = data.filter((value) => value !== null);
-  if (filteredData.length === 0) {
-    return null;
-  }
-  const sum = filteredData.reduce((a, b) => a + b, 0);
-  const mean = sum / filteredData.length;
-  return mean;
+  const uniqueDomains = [...new Set(filteredDomains)];
+  // sortedDimensions.splice(0, sortedDimensions.length, ...uniqueDimensions);
+  
+  // if (unspecified) {
+  //   sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
+  //   sortedDimensions.push(unspecified);
+  // }
+  return uniqueDomains;
 };
 
 // TODO: Berechnung ggf. anpassen
-export const calculateRadarChartValue = (data: Domains.NumberOrNull[]) => {
+export const calculateRadarChartValue = (data: GlobalTypes.NumberOrNull[]) => {
   const mean = calculateMean(data);
   if (mean === null) {
     return 0; // 0 oder null
@@ -224,36 +230,8 @@ export const calculateRadarChartValue = (data: Domains.NumberOrNull[]) => {
 };
 
 // ok
-export const normalizeValue = (
-  value: number,
-  minValue: number,
-  maxValue: number,
-) => {
-  if (minValue > maxValue) {
-    // swap
-    const temp = minValue;
-    minValue = maxValue;
-    maxValue = temp;
-  }
-  if (minValue === maxValue) {
-    return value;
-  }
-  if (minValue < 0) {
-    minValue = 0;
-  }
-  if (value < minValue) {
-    return 0;
-  }
-  if (value > maxValue) {
-    return 1;
-  }
-
-  return (value - minValue) / (maxValue - minValue);
-};
-
-// ok
 export const getMinAndMaxAnswerOptionValueForItem = (
-  item: PromData.QuestionnaireItem,
+  item: Mapping.QuestionnaireItem,
 ) => {
   const answerOptions = item.answerOptions;
   const answerOptionValues = answerOptions.map((answerOption) => {
@@ -265,7 +243,7 @@ export const getMinAndMaxAnswerOptionValueForItem = (
 };
 
 // not needed
-// export const normalizeQuestionnaireScores = (questionnaireResponses: Record<string, PromData.QuestionnaireResponse>) => {
+// export const normalizeQuestionnaireScores = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>) => {
 //   const originalAndNormalizedScoreValues: Record<string, Visualization.OriginalAndNormalizedScore> = {};
 //   const questionnaireResponsesArrayWithNormalizedScores = Object.entries(questionnaireResponses).map(([key, questionnaireResponse]) => {
 //     const questionnaire = questionnaireResponse.questionnaire;
@@ -295,12 +273,12 @@ export const getMinAndMaxAnswerOptionValueForItem = (
 //         normalizedQuestionnaireResponse: {
 //         ...questionnaireResponse,
 //         scoreValue: normalizedScore,
-//       } as PromData.QuestionnaireResponse };
+//       } as Mapping.QuestionnaireResponse };
 
 //     //}
 //   });
 
-//   let questionnaireResponsesWithNormalizedScores: Record<string, PromData.QuestionnaireResponse> = {};
+//   let questionnaireResponsesWithNormalizedScores: Record<string, Mapping.QuestionnaireResponse> = {};
 //   questionnaireResponsesArrayWithNormalizedScores.forEach((questionnaireResponse) => {
 //     if (questionnaireResponse == undefined) {
 //       return;
@@ -314,7 +292,7 @@ export const getMinAndMaxAnswerOptionValueForItem = (
 
 // ok
 export const sortQuestionnaireResponsesByDate = (
-  questionnaireResponses: PromData.QuestionnaireResponse[],
+  questionnaireResponses: Mapping.QuestionnaireResponse[],
 ) => {
   return questionnaireResponses.sort((a, b) => {
     const aDate = new Date(a.authored);
@@ -325,7 +303,7 @@ export const sortQuestionnaireResponsesByDate = (
 
 // ok
 export const createCommonTimeAxis = (
-  questionnaireResponses: Record<string, PromData.QuestionnaireResponse>,
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
   const allQuestionnaireResponseDates = Object.keys(questionnaireResponses).map(
     (key) => {
@@ -340,7 +318,7 @@ export const createCommonTimeAxis = (
 
 // ok
 export const groupQuestionnaireResponsesByQuestionnaireId = (
-  questionnaireResponses: Record<string, PromData.QuestionnaireResponse>,
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
   const questionnaireResponsesGroupedByQuestionnaire = _.groupBy(
     questionnaireResponses,
@@ -351,8 +329,8 @@ export const groupQuestionnaireResponsesByQuestionnaireId = (
 
 // ok
 export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
-  questionnaireResponses: _.Dictionary<PromData.QuestionnaireResponse[]>,
-  commonTimeAxisDates: Domains.DateFormat[],
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse[]>,
+  commonTimeAxisDates: string[],
 ) => {
   const groupedQuestionnaireResponses = questionnaireResponses;
 
@@ -376,7 +354,7 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
         item.answer = null;
       });
 
-      const nullQuestionnaireResponse: PromData.QuestionnaireResponse = {
+      const nullQuestionnaireResponse: Mapping.QuestionnaireResponse = {
         id: `null-${groupedQuestionnaireResponses[key][0].questionnaire.name}-${date}`,
         questionnaire: groupedQuestionnaireResponses[key][0].questionnaire,
         authored: date,
@@ -397,7 +375,7 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
 
 // ok
 // export const getUniqueQuestionnaires = (
-//   proms: Record<string, PromData.QuestionnaireResponse>,
+//   proms: Record<string, Mapping.QuestionnaireResponse>,
 // ) => {
 //   const questionnaires = Object.values(proms).map((prom) => {
 //     return prom.questionnaire;
@@ -409,7 +387,7 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
 
 // ok
 export const calculatePeriodOfObservations = (
-  proms: Record<string, PromData.QuestionnaireResponse>,
+  proms: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
   const questionnaireResponses = Object.values(proms);
   const years = questionnaireResponses.map((prom) => {
@@ -426,11 +404,11 @@ export const calculatePeriodOfObservations = (
   }
 };
 
-export const createDateQuestionnairesRecord = (
-  proms: Record<string, PromData.QuestionnaireResponse>,
+export const createDateQuestionnaireNamesRecord = (
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
   const questionnairesByDate: Record<string, string[]> = {};
-  Object.values(proms).forEach((questionnaireResponse) => {
+  Object.values(questionnaireResponses).forEach((questionnaireResponse) => {
     const questionnaireName = questionnaireResponse.questionnaire.name;
     const date = questionnaireResponse.authored;
     if (!questionnairesByDate[date]) {
@@ -452,8 +430,59 @@ export const createDateQuestionnairesRecord = (
   return sortedQuestionnairesByDate;
 };
 
-export const createQuestionnaireChartDataRecord = (
-  questionnaires: PromData.Questionnaire[],
+// TODO
+export const createRadarData = (
+  chartData: Visualization.ChartData,
+): Visualization.RadarData => {
+  
+  const yDataByQuestionnaire: Record<string, Visualization.DataSeries[]> = {};
+  chartData.yData.forEach((series) =>{
+    if (!yDataByQuestionnaire[series.questionnaireName]) {
+      yDataByQuestionnaire[series.questionnaireName] = [];
+    }
+    yDataByQuestionnaire[series.questionnaireName].push(series);
+  });
+
+  const domainsByQuestionnaire: Record<string, string[]> = {};
+  Object.entries(yDataByQuestionnaire).forEach(([key, series]) => {
+    const domains = series.map((series) => series.domain);
+    const uniqueDomains = [...new Set(domains)];
+    if (!domainsByQuestionnaire[key]) {
+      domainsByQuestionnaire[key] = [];
+    }
+    domainsByQuestionnaire[key].push(... uniqueDomains); 
+  });
+
+  return {
+    data: domainsByQuestionnaire
+  };
+}
+
+export const createQuestionnaireCardData = (
+  questionnaires: Mapping.Questionnaire[],
+): Record<string, [string, string[]]> => {
+  
+  const questionnaireDimensions: Record<string, [string, string[]]> = {};
+  questionnaires.forEach((questionnaire) => {
+    const questionnaireNameAndDimensions: [string, string[]] = ["", []];
+    const dimensions = Object.values(questionnaire.items).map((item) => item.domain);
+    const uniqueDimensions = [...new Set(dimensions)];
+    const name = questionnaire.name;
+    questionnaireNameAndDimensions[0] = name;
+    questionnaireNameAndDimensions[1] = uniqueDimensions;
+    questionnaireDimensions[questionnaire.id] = questionnaireNameAndDimensions;
+  });
+
+  return questionnaireDimensions;
+    
+}
+
+export const filterQuestionnairesAndQuestionnaireResponsesBasedOnSelectedFilters = (questionnaires: Mapping.Questionnaire[], questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, selectedQuestionnaireIds: string[], selectedStartDate: string, selectedEndDate: string) => {
+
+}
+
+export const createTableData = (
+  questionnaires: Mapping.Questionnaire[],
   chartData: Visualization.ChartData,
 ) => {
   const chartDataByQuestionnaire: Record<string, Visualization.ChartData> = {};
@@ -468,6 +497,7 @@ export const createQuestionnaireChartDataRecord = (
   });
 
   // delete null columns in chartDataByQuestionnaire
+  // Otherwise all dates are shown in table even if no instance of questionnaire was filled out then
   const chartDataByQuestionnaireWithoutNulls: Record<
     string,
     Visualization.ChartData
@@ -485,6 +515,9 @@ export const createQuestionnaireChartDataRecord = (
           data: series.data.filter(
             (_, index) => !columnsToRemove.includes(chartData.xData[index]),
           ),
+          originalData: series.originalData.filter((_, index) =>
+            !columnsToRemove.includes(chartData.xData[index]),
+          ),
         };
       });
       chartDataByQuestionnaireWithoutNulls[questionnaireId] = {
@@ -492,29 +525,30 @@ export const createQuestionnaireChartDataRecord = (
         yData: newYData,
       };
     } else {
-      chartDataByQuestionnaireWithoutNulls[questionnaireId] = chartDataByQuestionnaire[questionnaireId];
+      chartDataByQuestionnaireWithoutNulls[questionnaireId] =
+        chartDataByQuestionnaire[questionnaireId];
     }
   });
 
   return chartDataByQuestionnaireWithoutNulls;
 };
 
-export const createDimensionChartDataRecord = (
-  dimensions: string[],
-  questionnaires: PromData.Questionnaire[],
-  scoresDataSeries: Visualization.DataSeries[],
+export const createHeatmapData = (
+  domains: string[],
+  questionnaires: Mapping.Questionnaire[],
+  allScoresDataSeries: Visualization.DataSeries[],
   itemsDataSeries: Visualization.DataSeries[],
   xData: string[],
 ) => {
-  const chartDataByDimension: Record<string, Visualization.ChartData> = {};
-  dimensions.forEach((dimension) => {
-    const scores = scoresDataSeries.filter(
-      (score) => score.dimension === dimension,
+  const chartDataByDomain: Record<string, Visualization.ChartData> = {};
+  domains.forEach((domain) => {
+    const scores = allScoresDataSeries.filter(
+      (score) => score.domain === domain,
     );
     const items = itemsDataSeries.filter(
-      (item) => item.dimension === dimension,
+      (item) => item.domain === domain,
     );
-    // Filter
+    // Filter, besser: valueExpression attribut -> gesamtes Fhir Format ändern
     scores.forEach((score) => {
       const scoreQuestionnaire = questionnaires.find((q) =>
         Object.keys(q.items).includes(score.id),
@@ -522,7 +556,7 @@ export const createDimensionChartDataRecord = (
       if (scoreQuestionnaire) {
         const scoreItem = scoreQuestionnaire.items[
           score.id
-        ] as PromData.QuestionnaireScoreItem;
+        ] as Mapping.QuestionnaireScoreItem;
         const itemsToBeRemoved = scoreItem.referenceQuestionnaireItems
           ? scoreItem.referenceQuestionnaireItems
               .map((linkId) => items.find((item) => item.id === linkId))
@@ -536,11 +570,11 @@ export const createDimensionChartDataRecord = (
     // console.log("Scores after filtering: ", scores);
     // console.log("Items after filtering: ", items);
     const yData = [...scores, ...items]; // scores and items on same level
-    chartDataByDimension[dimension] = {
+    chartDataByDomain[domain] = {
       xData: xData,
       yData,
     };
   });
 
-  return chartDataByDimension;
+  return chartDataByDomain;
 };

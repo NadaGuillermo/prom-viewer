@@ -29,9 +29,9 @@
   "questionnaires": [
     {
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable",
-      "dimensionItemMapping": [
+      "domainItemMapping": [
         {
-          "dimension": "Mobility",
+          "domain": "Mobility",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q01-MO",
@@ -40,7 +40,7 @@
           ]
         },
         {
-          "dimension": "Self-Care",
+          "domain": "Self-Care",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q02-SC",
@@ -49,7 +49,7 @@
           ]
         },
         {
-          "dimension": "Usual Activities",
+          "domain": "Usual Activities",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q03-UA",
@@ -58,7 +58,7 @@
           ]
         },
         {
-          "dimension": "Pain/Discomfort",
+          "domain": "Pain/Discomfort",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q04-PD",
@@ -67,7 +67,7 @@
           ]
         },
         {
-          "dimension": "Anxiety/Depression",
+          "domain": "Anxiety/Depression",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q05-AD",
@@ -76,7 +76,7 @@
           ]
         },
         {
-          "dimension": "Global Health",
+          "domain": "Global Health",
           "isGlobalHealthDimension": true,
           "questions": [
             {
@@ -93,9 +93,9 @@
     },
     {
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
-      "dimensionItemMapping": [
+      "domainItemMapping": [
         {
-          "dimension": "Global Health",
+          "domain": "Global Health",
           "isGlobalHealthDimension": true,
           "questions": [
             {
@@ -113,7 +113,7 @@
           ]
         },
         {
-          "dimension": "Functional",
+          "domain": "Functional",
           "questions": [
             {
               "itemId": "qlq-c30-q01"
@@ -193,44 +193,8 @@
           ]
         },
         {
-          "dimension": "Symptoms",
+          "domain": "Symptoms",
           "questions": [
-            {
-              "itemId": "qlq-c30-q08"
-            },
-            {
-              "itemId": "qlq-c30-q09"
-            },
-            {
-              "itemId": "qlq-c30-q10"
-            },
-            {
-              "itemId": "qlq-c30-q11"
-            },
-            {
-              "itemId": "qlq-c30-q12"
-            },
-            {
-              "itemId": "qlq-c30-q13"
-            },
-            {
-              "itemId": "qlq-c30-q14"
-            },
-            {
-              "itemId": "qlq-c30-q15"
-            },
-            {
-              "itemId": "qlq-c30-q16"
-            },
-            {
-              "itemId": "qlq-c30-q17"
-            },
-            {
-              "itemId": "qlq-c30-q18"
-            },
-            {
-              "itemId": "qlq-c30-q19"
-            },
             {
               "itemId": "score-pa",
               "shortName": "Pain",
@@ -282,7 +246,38 @@
           ]
         },
         {
-            "dimension": "Other",
+          "questions": [
+            {
+              "itemId": "qlq-c30-q11"
+            },
+            {
+              "itemId": "qlq-c30-q12"
+            },
+            {
+              "itemId": "qlq-c30-q13"
+            },
+            {
+              "itemId": "qlq-c30-q14"
+            },
+            {
+              "itemId": "qlq-c30-q15"
+            },
+            {
+              "itemId": "qlq-c30-q16"
+            },
+            {
+              "itemId": "qlq-c30-q17"
+            },
+            {
+              "itemId": "qlq-c30-q18"
+            },
+            {
+              "itemId": "qlq-c30-q19"
+            }
+          ]
+        },
+        {
+            "domain": "Other",
             "questions": [
                 {
                     "itemId": "qlq-c30-q28"

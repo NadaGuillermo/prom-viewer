@@ -1,8 +1,9 @@
 import type { CSSProperties } from "react";
-import { VariableDomains as Domains } from "@customTypes/variableDomains";
-import { PromData } from "@data/mapping";
+import type { Mapping } from "@utils/mapping";
 import React from "react";
-import type { Mapping } from "@data/globalTypes";
+import type { GlobalTypes } from "@customTypes/globalTypes";
+import { ITEM_TYPES } from "@utils/mapping";
+
 
 import type { ComposeOption, SetOptionOpts } from "echarts/core";
 import type {
@@ -20,6 +21,14 @@ import type {
 import type Radar from "echarts/types/src/coord/radar/Radar.js";
 
 export namespace Visualization {
+
+
+   // type NumberOrNull = number | null;
+
+    // type ScoreHealthCorrelation = SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
+
+    type ItemType = ITEM_TYPES.item | ITEM_TYPES.score;
+
   // Combine an Option type with only required components and charts via ComposeOption
   type EChartsOption = ComposeOption<
     | BarSeriesOption
@@ -48,11 +57,11 @@ export namespace Visualization {
     id: string; // linkId
     name: string;
     shortName: string;
-    data: Domains.NumberOrNull[];
-    originalData: Domains.NumberOrNull[];
+    data: NumberOrNull[];
+    originalData: NumberOrNull[];
     dataLabels: string[];
-    seriesType: Domains.ItemType;
-    dimension: string; // vordefinierte Dimensionen in variableDomains definieren -> für Gesamtübersicht
+    seriesType: ItemType;
+    domain: string;
     questionnaire: string; // questionnaireId
     questionnaireName: string;
     referencedItems?: string[]; // linkIds of items used for score calculation
@@ -61,6 +70,10 @@ export namespace Visualization {
   interface ChartData {
     xData: string[];
     yData: DataSeries[];
+  }
+
+  interface RadarData {
+    data: Record<string, string[]>;
   }
 
   interface ChartProps {
@@ -75,18 +88,27 @@ export namespace Visualization {
     // scoreRecord?: Record<string, OriginalAndNormalizedScore>;
   }
 
-  /** Matrix */
-
-  interface MatrixProps extends ChartProps {
+  interface HeatmapProps extends ChartProps {
     // yScoreData?: DataSeries[];
-    // questionnaires: PromData.Questionnaire[];
+    // questionnaires: Mapping.Questionnaire[];
   }
 
   interface TableProps extends ChartProps {
     dimensions: string[];
+    errors?: GlobalTypes.DataIssue[];
   }
 
-  interface RadarProps extends ChartProps {
+  interface RadarProps {
+    title?: string;
+    subtitle?: string;
+    data: RadarData;
+    dimensions: string[];
+  }
+
+  interface MatrixProps {
+    title?: string;
+    subtitle?: string;
+    data: RadarData;
     dimensions: string[];
   }
 
@@ -96,9 +118,22 @@ export namespace Visualization {
   }
 
   interface ErrorModalProps {
-    data: Mapping.DataIssue[];
+    data: GlobalTypes.DataIssue[];
     open: boolean;
     onClose: () => void;
+  }
+
+  interface QuestionnaireCardProps {
+    questionnaire: {
+      name: string;
+      dimensions: string [];
+    }
+    dimensions: string [];
+    lengthOfLongestQuestionnaireName: number;
+  }
+
+  interface DatePickerProps {
+    isStart: boolean;
   }
 
   /* interface MatrixItem {
@@ -110,7 +145,7 @@ export namespace Visualization {
   // interface MatrixDimension {
   //   id: string;
   //   name: string;
-  //   questionnaire: PromData.Questionnaire;
+  //   questionnaire: Mapping.Questionnaire;
   //   dimensionValues: Domains.NumberOrNull[];
   //   items: Record<string, Domains.NumberOrNull[]>;
   // }

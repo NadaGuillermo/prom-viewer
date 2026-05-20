@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://example.com/example.json",
     "title": "PRO Viewer Configuration",
-    "description": "Configuration settings for PRO Viewer: defines questionnaires; maps dimensions with questionnaire items & score items with observation definitions; defines score ranges and score health correlations; defines global health dimensions",
+    "description": "Configuration settings for PRO Viewer: defines questionnaires; maps questionnaire items with domains & scores with observation definitions; defines score ranges and score health correlations; defines global health dimensions",
     "type": "object",
     "$definitions": {
         "scoreDefinitions": {
@@ -50,19 +50,19 @@
                         "format": "uri",
                         "description": "Canonical URI of FHIR Questionnaire resource"
                     },  
-                    "dimensionItemMapping": {
+                    "domainItemMapping": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "dimension": {
+                                "domain": {
                                     "type": "string",
-                                    "description": "Dimension/Domain into which items are grouped"
+                                    "description": "Domain into which items are grouped"
                                 },
                                 "isGlobalHealthDimension": {
                                     "type": "boolean",
                                     "default": false,
-                                    "description": "This flag determines whether the items with this dimension should be displayed in the Global Health chart",
+                                    "description": "This flag determines whether the items with this domain should be displayed in the Global Health chart",
                                     "$comment": "If this property is missing, its value is treated as false"
                                 },
                                 "questions": {
@@ -97,12 +97,12 @@
                                     "minItems": 1
                                 }
                             },
-                            "required": ["dimension"]
+                            "required": []
                         },
                         "minItems": 1 
                     }
                 },
-                "required": ["questionnaire", "dimensionItemMapping"]
+                "required": ["questionnaire", "domainItemMapping"]
             },
             "minItems": 1
         }

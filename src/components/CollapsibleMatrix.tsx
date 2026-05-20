@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import type { ECharts } from "echarts/core";
-import { buildRows, buildSeriesData } from "@utils/helpers";
+import { buildRows, buildSeriesData } from "@utils/visualization/utils";
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import type { Visualization } from "@customTypes/visualization";
+import type { Visualization } from "@utils/visualization/types";
 
 const THRESHOLDS = [0.3, 0.65];
 

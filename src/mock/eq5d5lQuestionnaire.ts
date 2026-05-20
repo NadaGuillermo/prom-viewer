@@ -1,4 +1,4 @@
-import type { PromData } from "@data/mapping/types";
+import type { PromData } from "@utils/mapping/types";
 
 const eq5d5lQuestionnaire: PromData.Questionnaire = {
   id: "eq5d-5l",
