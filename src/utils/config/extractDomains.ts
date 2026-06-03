@@ -1,3 +1,5 @@
+import * as _ from "lodash-es";
+
 export const extractDomainsFromConfig = (config: any): string[] => {
      const domains: string[] = [];
      
@@ -8,12 +10,19 @@ export const extractDomainsFromConfig = (config: any): string[] => {
     return [...new Set(domains)];
 }
 
-export const extractGlobalHealthDimensionsFromConfig = (config: any): string[] => {
-    const globalDimensions: string[] = [];
+export const extractGlobalHealthDomainsFromConfig = (config: any): string[] => {
+    const globalDomains: string[] = [];
     
     config.questionnaires.forEach((questionnaire: any) => {
-        const questionnaireDomains = questionnaire.domainItemMapping.filter((dom:any) => dom.isGlobalHealthDimension === true);
-        globalDimensions.push(...questionnaireDomains.map((dom:any) => dom.domain));
+        const globalScores = questionnaire.globalScores;
+        const domainsOfGlobalScores: string[] = [];
+        globalScores.forEach((scoreId: any) => {
+            const domain = questionnaire.domainItemMapping.find((mapping: any) => mapping.questions.map((q: any) => q.itemId).includes(scoreId)).domain;
+            if (domain !== undefined) {
+                domainsOfGlobalScores.push(domain);
+            }
+        });
+        globalDomains.push(...domainsOfGlobalScores);
     });
-    return [... new Set(globalDimensions)];
+    return _.uniq(globalDomains);
 }

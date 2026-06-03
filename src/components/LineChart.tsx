@@ -4,13 +4,16 @@ import { Tooltip, Title } from "@styles/chartLayout";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
-  getNameForDataSeriesFromShortName, type Visualization,
+  getDataSeriesNameFromShortName, type Visualization,
 } from "@utils/visualization";
 
 import "@styles/echartStyles.css";
 
 const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
   const { xData, yData } = data;
+
+  console.log("Line Chart xData: ", xData);
+  console.log("Line Chart yData: ", yData)
 
   const generateSeriesList = () => {
     const seriesList: any[] = [];
@@ -24,7 +27,7 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
           focus: "series",
         },
         endLabel: {
-          show: true,
+          show: false,
           formatter: "{a}",
           distance: 20,
         },
@@ -49,21 +52,40 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     return value.toString();
   };
 
+  const legendTooltipFormatter = (params: any) => {
+    console.log("Legend Params: ", params);
+    const { name } = params;
+    console.log("Legend Name: ", name);
+    const longName = getDataSeriesNameFromShortName(yData, name);
+    const questionnaireName = yData.find(
+      (series) => series.shortName === name
+    )?.questionnaireName;
+    const questionnaireLabel = questionnaireName ? `${questionnaireName}` : "";
+    return `
+      <div class="tooltip-content">
+        ${echarts.format.encodeHTML(name)}: ${echarts.format.encodeHTML(longName ? longName : "")} (${echarts.format.encodeHTML(questionnaireLabel)})
+      </div>
+    `;
+  };
+
   const tooltipFormatter = (params: any) => {
     const { seriesName, value, name } = params;
+    console.log("Tooltip Params: ", params);
+    console.log("Tooltip Series Name: ", seriesName);
+    console.log("Tooltip Value: ", value);
+    console.log("Tooltip date: ", name);
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
       yData,
       value,
       seriesName,
     );
-    const longName = getNameForDataSeriesFromShortName(yData, seriesName);
+    const longName = getDataSeriesNameFromShortName(yData, seriesName);
     const displayName = longName ? longName : seriesName;
 
     if (originalValue !== null) {
       return `
       <div class="tooltip-content">
-        ${displayName === seriesName ? echarts.format.encodeHTML(displayName) : echarts.format.encodeHTML(displayName)}
-        &nbsp;(${echarts.format.encodeHTML(seriesName)})<br/>
+        ${echarts.format.encodeHTML(seriesName)}<br/>
         ${echarts.format.encodeHTML(name)}:
         &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
       </div>
@@ -82,7 +104,15 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
       text: title,
       subtext: subtitle,
     }),
-    //legend: {},
+    legend: {
+      tooltip: {
+        show: true,
+        renderMode: "html",
+        className: "echarts-tooltip",
+        confine: true,
+        formatter: (params: any) => legendTooltipFormatter(params),
+      }
+    },
     tooltip: {
       show: true,
       renderMode: "html",

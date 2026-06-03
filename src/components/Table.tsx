@@ -8,7 +8,7 @@ import "@styles/echartStyles.css";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
-  getNameForDataSeriesFromShortName, type Visualization,
+  getDataSeriesNameFromShortName, type Visualization,
 } from "@utils/visualization";
 import { globalDimension } from "@utils/mapping";
 
@@ -108,7 +108,7 @@ const Table = ({
   const yAxisData: string[] = [];
 
   sortedMatrixDataSeries.forEach((series) => {
-    yAxisData.push(series.shortName);
+    yAxisData.push(series.shortName ?? series.name);
     const row: [string, string, number][] = xAxisData.map((x, index) => {
       if (index < data.xData.length) {
         // normal data
@@ -235,7 +235,7 @@ const Table = ({
   const yAxisTooltipFormatter = (params: any) => {
     const { value } = params;
     // console.log("yAxisTooltipFormatter params: ", params);
-    const longName = getNameForDataSeriesFromShortName(matrixDataSeries, value);
+    const longName = getDataSeriesNameFromShortName(matrixDataSeries, value);
     return `
         <div class="tooltip-content">
           ${echarts.format.encodeHTML(longName ? longName : value)}

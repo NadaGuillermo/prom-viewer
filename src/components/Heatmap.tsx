@@ -5,7 +5,7 @@ import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
   getLabelFromOriginalValueAndDataSeriesName,
-  getNameForDataSeriesFromShortName, type Visualization,
+  getDataSeriesNameFromShortName, type Visualization,
 } from "@utils/visualization";
 
 import "@styles/echartStyles.css";
@@ -145,7 +145,7 @@ const Heatmap = ({
       value[1],
     );
     const questionnaireName = heatmapDataSeries.find(
-      (series) => series.shortName === value[1],
+      (series) => series.shortName === value[1]
     )?.questionnaireName;
     const questionnaireLabel = questionnaireName ? `${questionnaireName}` : "";
 
@@ -178,9 +178,9 @@ const Heatmap = ({
   const yAxisTooltipFormatter = (params: any) => {
     const { value } = params;
     //console.log("yAxisTooltipFormatter params: ", params);
-    const longName = getNameForDataSeriesFromShortName(heatmapDataSeries, value);
+    const longName = getDataSeriesNameFromShortName(heatmapDataSeries, value);
     const questionnaireName = heatmapDataSeries.find(
-      (series) => series.shortName === value,
+      (series) => series.shortName === value
     )?.questionnaireName;
     const questionnaireLabel = questionnaireName ? `${questionnaireName}` : "";
     return `

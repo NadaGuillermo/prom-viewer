@@ -1,14 +1,14 @@
 import type { Mapping } from "@utils/mapping/types";
 import { addObservationItemsToQuestionnaireResponse } from "./utils";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { issueFactories, type Errors } from "@utils/errors";
 import * as _ from "lodash-es";
 
 export const addConfigurationsToQuestionnaireResponse = (
   response: Mapping.QuestionnaireResponse,
   observations: Mapping.Observation[],
   config: any,
-): GlobalTypes.Result<Mapping.QuestionnaireResponse> => {
-  const issues: GlobalTypes.DataIssue[] = [];
+): Errors.Result<Mapping.QuestionnaireResponse> => {
+  const issues: Errors.DataIssue[] = [];
 
   const responseLinkIds = Object.keys(response.items);
   const questionnaireLinkIds = Object.keys(response.questionnaire.items);
@@ -19,14 +19,7 @@ export const addConfigurationsToQuestionnaireResponse = (
 
   if (linkIdsInResponseButNotInQuestionnaire.length > 0) {
     linkIdsInResponseButNotInQuestionnaire.forEach((linkId) => {
-      issues.push({
-        id: `issue-response-${Math.random().toString(36).substring(2, 9)}`,
-        level: "error",
-        message: `Item with linkId ${linkId} exists in QuestionnaireResponse with id ${response.id} but does not exist in Questionnaire with url ${response.questionnaire.url}. It will not be displayed.`,
-        resourceId: response.id,
-        resourceType: "QuestionnaireResponse",
-        linkId: linkId,
-      });
+      issues.push(issueFactories.questionnaireResponse.unreferencedItem(response, linkId));
     });
   }
   // LinkIds in Q but not in R not a problem since they won't be displayed

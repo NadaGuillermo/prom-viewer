@@ -9,12 +9,9 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 library.add(fas);
 
 import {
-  getOriginalValueFromNormalizedValueAndDataSeriesName,
-  isScoreSeries,
-  getNameForDataSeriesFromShortName,
   type Visualization,
 } from "@utils/visualization";
-import { globalDimension } from "@utils/mapping";
+// import { globalDimension } from "@utils/mapping";
 
 import type { GlobalTypes } from "@customTypes/globalTypes";
 
@@ -57,41 +54,7 @@ const SimpleDataTable = ({
 }: Props) => {
   const xData = data.xData;
   console.log("css table original x data: ", xData);
-  const scores = data.yData.filter((series) => series.seriesType === "score");
-  const globalScores = scores.filter(
-    (score) => score.domain === globalDimension,
-  );
-  const dimensionScores = _.difference(scores, globalScores);
-  const dimensionScoresGroupedByDomain = domains.flatMap((domain) =>
-    dimensionScores.filter((score) => score.domain === domain),
-  );
-
-  const itemsNotReferencedInScoreExpressions = data.yData.filter(
-    (series) =>
-      series.seriesType === "item" &&
-      !scores.some((score) => score.referencedItems?.includes(series.id)),
-  );
-
-  const dimensionScoresWithReferencedItems =
-    dimensionScoresGroupedByDomain.map((score) => {
-      const referencedItems = data.yData.filter(
-        (series) =>
-          series.seriesType === "item" &&
-          score.referencedItems?.includes(series.id),
-      );
-      return { score: score, items: referencedItems };
-    });
-
-  const sortedDataSeries = [
-    ...globalScores,
-    ...dimensionScoresWithReferencedItems.flatMap((scoreItemObj) => [
-      scoreItemObj.score,
-      ...scoreItemObj.items,
-    ]),
-    ...itemsNotReferencedInScoreExpressions,
-  ];
-  const yData = sortedDataSeries;
-
+  const yData = data.yData;
   console.log("simple table data yData: ", yData);
 
   const cellWarnings: Record<string, string[]> = {};
@@ -164,7 +127,7 @@ const SimpleDataTable = ({
                       <span
                         className={`tw:truncate tw:max-w-45 ${row.seriesType === "score" ? "tw:font-bold" : "tw:font-normal"}`}
                       >
-                        {row.shortName || row.name}
+                        {row.shortName}
                       </span>
                     </div>
                   </th>

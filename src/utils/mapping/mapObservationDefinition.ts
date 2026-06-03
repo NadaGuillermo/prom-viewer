@@ -1,12 +1,12 @@
 import type { NormalizedFHIR } from "@utils/fhir";
 import type { Mapping } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { type Errors } from "@utils/errors";
 
 export const mapNormalizedObservationDefinitionToPromDataObservationDefinition =
   (
     normalizedObservationDefinition: NormalizedFHIR.ObservationDefinition,
-  ): GlobalTypes.Result<Mapping.ObservationDefinition> => {
-    const issues: GlobalTypes.DataIssue[] = [];
+  ): Errors.Result<Mapping.ObservationDefinition> => {
+    const issues: Errors.DataIssue[] = [];
 
     return {
       data: {

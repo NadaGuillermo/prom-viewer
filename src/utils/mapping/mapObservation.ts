@@ -1,11 +1,11 @@
 import type { NormalizedFHIR } from "@utils/fhir";
 import type { Mapping } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { issueFactories, type Errors } from "@utils/errors";
 
 export const mapNormalizedObservationToPromDataObservation = (
   observation: NormalizedFHIR.Observation,
-): GlobalTypes.Result<Mapping.Observation> => {
-  const issues: GlobalTypes.DataIssue[] = [];
+): Errors.Result<Mapping.Observation> => {
+  const issues: Errors.DataIssue[] = [];
   const observationId = observation.id;
   const value = observation.value;
   const questionnaireResponse = observation.questionnaireResponse;
@@ -29,14 +29,7 @@ export const mapNormalizedObservationToPromDataObservation = (
   const answerNumber = Number(value);
 
   if (Number.isNaN(answerNumber) || value === null) {
-    issues.push({
-      id: `issue-observation-${Math.random().toString(36).substring(2, 9)}`,
-      level: "error",
-      message: `Value for observation with id ${observationId} could not be converted or mapped to a number and is therefore omitted. Value was: ${value}.`,
-      resourceId: observation.id,
-      resourceType: "Observation",
-      linkId: undefined,
-    });
+    issues.push(issueFactories.observation.invalidObservationValue(observation));
   }
 
   return {

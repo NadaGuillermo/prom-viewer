@@ -1,5 +1,6 @@
 import { type Mapping, SCORE_HEALTH_CORRELATIONS } from "@utils/mapping";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+
+import { issueFactories, type Errors } from "@utils/errors";
 
 export const addDomainToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
@@ -48,8 +49,8 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
   questionnaire: Mapping.Questionnaire,
   observationDefinitions: Mapping.ObservationDefinition[],
   config: any,
-): GlobalTypes.Result<Record<string, Mapping.Item>> => {
-  const issues: GlobalTypes.DataIssue[] = [];
+): Errors.Result<Record<string, Mapping.Item>> => {
+  const issues: Errors.DataIssue[] = [];
   const items: Record<string, Mapping.Item> = {};
   const questionnaireDomainItemMapping = config.questionnaires.find(
     (q: any) => q.questionnaire === questionnaire.url,
@@ -68,9 +69,8 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
     let scoreHealthCorrelation: string | undefined = undefined;
 
     // check if ObservationDefinition exists for this item
-    const domainItemMapping = questionnaireDomainItemMapping?.find(
-      (dim: any) =>
-        dim.questions.map((question: any) => question.itemId).includes(linkId),
+    const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
+      dim.questions.map((question: any) => question.itemId).includes(linkId),
     );
     const observationDefinitionUrl = domainItemMapping?.questions.find(
       (question: any) => question.itemId === linkId,
@@ -102,45 +102,21 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
           Number(scoreDefinition.range[0]),
           Number(scoreDefinition.range[1]),
         ];
-        const configScoreHealthCorrelation =
+        const configScoreHealthCorrelation: string =
           scoreDefinition.scoreHealthCorrelation;
-        if (
-          range !== undefined &&
-          (range[0] !== configRange[0] || range[1] !== configRange[1])
-        ) {
-          issues.push({
-            id: `issue-observationDefinition-${Math.random().toString(36).substring(2, 9)}`,
-            level: "warning",
-            message: `Range definition for score with linkId ${linkId} in ObservationDefinition with url ${observationDefinitionUrl} and range 
-              definition in configuration file for score with id ${scoreDefinitionId} contradict each other: 
-              range in ObservationDefinition is ${range[0]} ${range[1]} and 
-              range in configuration file is ${configRange}.
-              The latter will be used.`,
-            resourceId: correspondingObservationDefinition
-              ? correspondingObservationDefinition.id
-              : undefined,
-            resourceType: "ObservationDefinition",
-            linkId: linkId,
-          });
-        }
-        if (
-          scoreHealthCorrelation !== undefined &&
-          scoreHealthCorrelation !== configScoreHealthCorrelation
-        ) {
-          issues.push({
-            id: `issue-observationDefinition-${Math.random().toString(36).substring(2, 9)}`,
-            level: "warning",
-            message: `ScoreHealthCorrelation definition for score with linkId ${linkId} in ObservationDefinition with url ${observationDefinitionUrl} and scoreHealthCorrelation 
-              definition in configuration file for score with id ${scoreDefinitionId} contradict each other: 
-              scoreHealthCorrelation in ObservationDefinition is ${scoreHealthCorrelation} and 
-              scoreHealthCorrelation in configuration file is ${configScoreHealthCorrelation}.
-              The latter will be used.`,
-            resourceId: correspondingObservationDefinition
-              ? correspondingObservationDefinition.id
-              : undefined,
-            resourceType: "ObservationDefinition",
-            linkId: linkId,
-          });
+        if (correspondingObservationDefinition !== undefined) {
+          if (
+            range !== undefined &&
+            (range[0] !== configRange[0] || range[1] !== configRange[1])
+          ) {
+            issues.push(issueFactories.observationDefinition.contradictingRangeInConfig(correspondingObservationDefinition));
+          }
+          if (
+            scoreHealthCorrelation !== undefined &&
+            scoreHealthCorrelation !== configScoreHealthCorrelation
+          ) {
+            issues.push(issueFactories.observationDefinition.contradictingScoreHealthCorrelationInConfig(correspondingObservationDefinition));
+          }
         }
         // overwrite values
         range = configRange;
@@ -156,17 +132,13 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
         ) {
           items[linkId].range = [range[0], range[1]];
         } else {
-          issues.push({
-            id: `issue-observationDefinition-${Math.random().toString(36).substring(2, 9)}`,
-            level: "error",
-            message: `No range could be found for score with linkId ${linkId} in ObservationDefinition with url ${observationDefinitionUrl} or it is invalid.
-              Range was: ${isNaN(range[0]) || isNaN(range[1]) || range === undefined ? "undefined" : range}. The score will be omitted.`,
-            resourceId: correspondingObservationDefinition
-              ? correspondingObservationDefinition.id
-              : undefined,
-            resourceType: "ObservationDefinition",
-            linkId: linkId,
-          });
+          if (correspondingObservationDefinition !== undefined) {
+            if (range === undefined) {
+              issues.push(issueFactories.observationDefinition.missingRange(correspondingObservationDefinition));
+            } else if (isNaN(range[0]) || isNaN(range[1]) || range[0] > range[1]) {
+              issues.push(issueFactories.observationDefinition.invalidRange(correspondingObservationDefinition));
+            }
+          }
         }
         // add scoreHealthCorrelation
         if (
@@ -175,17 +147,14 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
         ) {
           items[linkId].scoreHealthCorrelation = scoreHealthCorrelation;
         } else {
-          issues.push({
-            id: `issue-observationDefinition-${Math.random().toString(36).substring(2, 9)}`,
-            level: "error",
-            message: `No scoreHealthCorrelation could be found for score with linkId ${linkId} in ObservationDefinition with url ${observationDefinitionUrl} or is invalid.
-              ScoreHealthCorrelation was: ${scoreHealthCorrelation}. The score will be omitted.`,
-            resourceId: correspondingObservationDefinition
-              ? correspondingObservationDefinition.id
-              : undefined,
-            resourceType: "ObservationDefinition",
-            linkId: linkId,
-          });
+          if (correspondingObservationDefinition !== undefined) {
+            if (scoreHealthCorrelation === undefined) {
+              issues.push(issueFactories.observationDefinition.missingScoreHealthCorrelation(correspondingObservationDefinition));
+            }
+            else {
+              issues.push(issueFactories.observationDefinition.invalidScoreHealthCorrelation(correspondingObservationDefinition));
+            }
+          }
         }
       }
     } else {
@@ -201,16 +170,15 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
 export const addShortNamesToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
   config: any,
-): GlobalTypes.Result<Record<string, Mapping.Item>> => {
+): Errors.Result<Record<string, Mapping.Item>> => {
   const items: Record<string, Mapping.Item> = {};
-  const issues: GlobalTypes.DataIssue[] = [];
+  const issues: Errors.DataIssue[] = [];
   const questionnaireDomainItemMapping = config.questionnaires.find(
     (q: any) => q.questionnaire === questionnaire.url,
   )?.domainItemMapping;
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
-    const domainItemMapping = questionnaireDomainItemMapping?.find(
-      (dim: any) =>
-        dim.questions.map((question: any) => question.itemId).includes(linkId),
+    const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
+      dim.questions.map((question: any) => question.itemId).includes(linkId),
     );
     const shortName = domainItemMapping?.questions.find(
       (question: any) => question.itemId === linkId,
@@ -218,25 +186,73 @@ export const addShortNamesToQuestionnaireItems = (
     items[linkId] = item;
     if (shortName !== undefined) {
       items[linkId].shortText = shortName;
-    } else {
+    } 
+    // else {
       // shortText is linkId
       // cut length of linkId (should not be necessary in practice)
-      const itemShortText = item.shortText;
-      const shortenedItemText = item.shortText.slice(0, 25);
-      items[linkId].shortText = shortenedItemText;
-      if (shortenedItemText !== itemShortText) {
-        // warning
-        issues.push({
-          id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-          level: "warning",
-          message: `The name for item with linkId ${linkId} in Questionnaire with 
-            url ${questionnaire.url} had to be shortened 
-            to ${shortenedItemText} since it exceeds the maximum of 25 characters.`,
-          resourceId: questionnaire.id,
-          resourceType: "Questionnaire",
-          linkId: linkId,
-        });
-      }
+      // const itemShortText = item.shortText;
+      // const shortenedItemText = item.shortText.slice(0, 25);
+      // items[linkId].shortText = shortenedItemText;
+      // if (shortenedItemText !== itemShortText) {
+      //   // warning
+      //   issues.push({
+      //     id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
+      //     level: "warning",
+      //     message: `The name for item with linkId ${linkId} in Questionnaire with 
+      //       url ${questionnaire.url} had to be shortened 
+      //       to ${shortenedItemText} since it exceeds the maximum of 25 characters.`,
+      //     resourceId: questionnaire.id,
+      //     resourceType: "Questionnaire",
+      //     linkId: linkId,
+      //   });
+      // }
+    // }
+  });
+  return {
+    data: items,
+    issues: issues,
+  };
+};
+
+export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
+  questionnaire: Mapping.Questionnaire,
+  config: any,
+): Errors.Result<Record<string, Mapping.Item>> => {
+  const items: Record<string, Mapping.Item> = {};
+  const issues: Errors.DataIssue[] = [];
+  const questionnaireFromConfig = config.questionnaires.find(
+    (q: any) => q.questionnaire === questionnaire.url,
+  );
+  const questionnaireDomainItemMapping =
+    questionnaireFromConfig?.domainItemMapping;
+  const globalScoreLinkIds = questionnaireFromConfig?.globalScores;
+  const domainScoreLinkId = questionnaireDomainItemMapping?.domainScore;
+  Object.entries(questionnaire.items).forEach(([linkId, item]) => {
+    const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
+      dim.questions.map((question: any) => question.itemId).includes(linkId),
+    );
+    const dimension = domainItemMapping?.questions.find(
+      (question: any) => question.itemId === linkId,
+    )?.dimension;
+    const isDimensioScore = domainItemMapping?.questions.find(
+      (question: any) => question.itemId === linkId,
+    )?.isDimensionScore;
+
+    items[linkId] = item;
+    if (dimension !== undefined && dimension.length > 0) {
+      items[linkId].dimension = dimension;
+    }
+    if (isDimensioScore !== undefined && isDimensioScore) {
+      items[linkId].isDimensionScore = true;
+    }
+    if (domainScoreLinkId !== undefined && linkId === domainScoreLinkId) {
+      (items[linkId] as Mapping.QuestionnaireScoreItem).isDomainScore = true;
+    }
+    if (
+      globalScoreLinkIds !== undefined &&
+      globalScoreLinkIds.includes(linkId)
+    ) {
+      (items[linkId] as Mapping.QuestionnaireScoreItem).isGlobalScore = true;
     }
   });
   return {
@@ -265,11 +281,10 @@ export const addObservationItemsToQuestionnaireResponse = (
       (q: any) => q.questionnaire === questionnaireUrl,
     )?.domainItemMapping;
 
-    const domainItemMapping = questionnaireDomainItemMapping?.find(
-      (dim: any) =>
-        dim.questions
-          .map((question: any) => question.observationDefinition)
-          .includes(observationDefinition),
+    const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
+      dim.questions
+        .map((question: any) => question.observationDefinition)
+        .includes(observationDefinition),
     );
     const linkId = domainItemMapping?.questions.find(
       (question: any) =>

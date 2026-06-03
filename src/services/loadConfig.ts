@@ -1,5 +1,5 @@
 export async function loadConfig(): Promise<any> {
-    const response = await fetch('/config/config.json');
+    const response = await fetch('/config/config2.json');
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }

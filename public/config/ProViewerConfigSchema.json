@@ -59,12 +59,6 @@
                                     "type": "string",
                                     "description": "Domain into which items are grouped"
                                 },
-                                "isGlobalHealthDimension": {
-                                    "type": "boolean",
-                                    "default": false,
-                                    "description": "This flag determines whether the items with this domain should be displayed in the Global Health chart",
-                                    "$comment": "If this property is missing, its value is treated as false"
-                                },
                                 "questions": {
                                     "type": "array",
                                     "items": {
@@ -90,16 +84,39 @@
                                                 "type": "string",
                                                 "description": "Id of an item in scoreDefinitions",
                                                 "$comment": "Must match an id from scoreDefinitions"
+                                            },
+                                            "isDimensionScore": {
+                                                "type": "boolean",
+                                                "description": "Flag that determines whether the item is treated as a score for a health dimension",
+                                                "$comment": "Scores of a questionnaire which are not global health scores should be marked as dimension scores. Sometimes even simple items can be dimension scores"
+                                            },
+                                            "dimension": {
+                                                "type": "string",
+                                                "description": "Dimension to which is measured by the item",
+                                                "$comment": "If isDimensionScore is set to true, a dimension must be given. If the isDimensionScore is not set, an item is assigned to a dimension either through the value in this field or through reference in a dimension score's calculation expression"
                                             }
                                         },
                                         "required": ["itemId"]
                                     },
                                     "minItems": 1
+                                },
+                                "domainScore": {
+                                    "type": "string",
+                                    "description": "Id of one item, ideally a score, that represents the health state for the entire domain",
+                                    "$comment": "Must match an itemId from questions"
                                 }
                             },
                             "required": []
                         },
                         "minItems": 1 
+                    },
+                    "globalScores": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "description": "Id of an item that represents a global or overall health score",
+                            "$comment": "Must match an itemId from questions of the domainItemMapping array"                
+                        }
                     }
                 },
                 "required": ["questionnaire", "domainItemMapping"]

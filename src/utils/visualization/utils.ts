@@ -3,6 +3,7 @@ import { unspecifiedDimension, type Mapping } from "@utils/mapping";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 import { calculateMean } from "./helpers";
+import { ITEM_TYPES } from "@utils/mapping";
 
 export const isScoreSeries = (
   series: Visualization.DataSeries[],
@@ -37,14 +38,14 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
 ) => {
   const originalData = yData.map((series) => {
     return {
-      name: series.shortName,
+      name: series.shortName ?? series.name,
       data: series.originalData,
     };
   });
 
   const normalizedData = yData.map((series) => {
     return {
-      name: series.shortName,
+      name: series.shortName ?? series.name,
       data: series.data,
     };
   });
@@ -82,12 +83,12 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
   return originalValue;
 };
 
-export const getNameForDataSeriesFromShortName = (
+export const getDataSeriesNameFromShortName = (
   yData: Visualization.DataSeries[],
-  dataSeriesName: string,
+  name: string,
 ) => {
   const correspondingSeries = yData.find(
-    (series) => series.shortName === dataSeriesName,
+    (series) => series.shortName === name,
   );
   return correspondingSeries ? correspondingSeries.name : "";
 };
@@ -187,30 +188,30 @@ export const groupItemsByDomain = (items: Visualization.DataSeries[]) => {
 
 export const sortDomains = (
   domains: string[],
-  globalHealthDimensions: string[],
+  globalHealthDomains?: string[],
 ) => {
   const sortedDomains = domains;
-  const globalDimensions = domains.filter((domain) =>
-    globalHealthDimensions.includes(domain),
+  const globalDomains = domains.filter((domain) =>
+    globalHealthDomains?.includes(domain),
   );
   // const other = dimensions.find((dimension) => dimension === otherDimension);
-  const unspecified = domains.find(
-    (domain) => domain === unspecifiedDimension,
-  );
+  // const unspecified = domains.find(
+  //   (domain) => domain === unspecifiedDimension,
+  // );
 
-  if (globalDimensions.length > 0) {
-    for (let dim of globalDimensions) {
+  if (globalDomains.length > 0) {
+    for (let dim of globalDomains) {
       const index = sortedDomains.indexOf(dim);
       sortedDomains.splice(index, 1);
       sortedDomains.unshift(dim);
     }
   }
-  // delete unspecified and empty
+  // delete empty
   const filteredDomains = sortedDomains.filter(
-    (domain) => domain !== unspecified && domain !== ""
+    (domain) => domain !== ""
   );
 
-  const uniqueDomains = [...new Set(filteredDomains)];
+  const uniqueDomains = _.uniq(filteredDomains);
   // sortedDimensions.splice(0, sortedDimensions.length, ...uniqueDimensions);
   
   // if (unspecified) {
@@ -219,6 +220,10 @@ export const sortDomains = (
   // }
   return uniqueDomains;
 };
+
+export const addUnspecifiedDimensionToDomains = (domains: string[]) => {
+  return [...domains, unspecifiedDimension];
+}
 
 // TODO: Berechnung ggf. anpassen
 export const calculateRadarChartValue = (data: GlobalTypes.NumberOrNull[]) => {
@@ -419,10 +424,10 @@ export const createDateQuestionnaireNamesRecord = (
     }
   });
   // console.log("questionnairesByDate: ", questionnairesByDate);
-  // sort by key
+  // sort by key descending (newest first)
   let sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
-    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
     .forEach((key) => {
       sortedQuestionnairesByDate[key] = questionnairesByDate[key];
     });
@@ -430,10 +435,10 @@ export const createDateQuestionnaireNamesRecord = (
   return sortedQuestionnairesByDate;
 };
 
-// TODO
+
 export const createRadarData = (
   chartData: Visualization.ChartData,
-): Visualization.RadarData => {
+): Record<string, string[]> => {
   
   const yDataByQuestionnaire: Record<string, Visualization.DataSeries[]> = {};
   chartData.yData.forEach((series) =>{
@@ -453,9 +458,7 @@ export const createRadarData = (
     domainsByQuestionnaire[key].push(... uniqueDomains); 
   });
 
-  return {
-    data: domainsByQuestionnaire
-  };
+  return domainsByQuestionnaire;
 }
 
 export const createQuestionnaireCardData = (
@@ -488,7 +491,7 @@ export const createTableData = (
   const chartDataByQuestionnaire: Record<string, Visualization.ChartData> = {};
   questionnaires.forEach((questionnaire) => {
     const questionnaireData = chartData.yData.filter(
-      (data) => data.questionnaire === questionnaire.id,
+      (series) => series.questionnaireId === questionnaire.id,
     );
     chartDataByQuestionnaire[questionnaire.id] = {
       xData: chartData.xData,
@@ -496,7 +499,7 @@ export const createTableData = (
     };
   });
 
-  // delete null columns in chartDataByQuestionnaire
+  // delete null columns
   // Otherwise all dates are shown in table even if no instance of questionnaire was filled out then
   const chartDataByQuestionnaireWithoutNulls: Record<
     string,
@@ -530,46 +533,163 @@ export const createTableData = (
     }
   });
 
-  return chartDataByQuestionnaireWithoutNulls;
+  // Sort rows: globalScores -> dimensionScores per domain + referenced Items + rest
+  const sortedChartDataByQuestionnaire: Record<
+    string,
+    Visualization.ChartData
+  > = {};
+  Object.entries(chartDataByQuestionnaireWithoutNulls).forEach(([questionnaireId, chartData]) => {
+    const questionnaire = questionnaires.find((q) => q.id === questionnaireId);
+    if (questionnaire === undefined) {
+      return;
+    }   
+    const scoreSeries = chartData.yData.filter((series) => series.seriesType === ITEM_TYPES.score);
+    const globalScoreSeries = scoreSeries.filter((series) => {
+      const questionnaireItem = questionnaire.items[series.id];
+      if (questionnaireItem === undefined) {
+        return false;
+      }
+      return (questionnaireItem as Mapping.QuestionnaireScoreItem).isGlobalScore;
+    });
+    const domainScoreSeries = scoreSeries.filter((series) => {
+      const questionnaireItem = questionnaire.items[series.id];
+      if (questionnaireItem === undefined) {
+        return false;
+      }
+      return (questionnaireItem as Mapping.QuestionnaireScoreItem).isDomainScore;
+    });
+    const dimensionScoreSeries = scoreSeries.filter((series) => {
+      const questionnaireItem = questionnaire.items[series.id];
+      if (questionnaireItem === undefined) {
+        return false;
+      }
+      return (questionnaireItem as Mapping.QuestionnaireScoreItem).isDimensionScore;
+    });
+    const sortedScores = _.uniq([...globalScoreSeries, ...domainScoreSeries, ...dimensionScoreSeries]);
+    const scoreSeriesWithReferencedItems: Visualization.DataSeries[] = []; 
+    sortedScores.forEach((scoreSeries) => {
+      scoreSeriesWithReferencedItems.push(scoreSeries);
+      const scoreItem = questionnaire.items[scoreSeries.id];
+      if (scoreItem === undefined) {
+        return;
+      }
+      const referencedItemIds = (scoreItem as Mapping.QuestionnaireScoreItem).referenceQuestionnaireItems;
+      if (referencedItemIds === undefined) {
+        return;
+      }
+      const referencedItems = chartData.yData.filter((series) => referencedItemIds.includes(series.id));
+      referencedItems.forEach((item) => {
+        scoreSeriesWithReferencedItems.push(item);
+      });
+    });
+
+    // rest
+    const restSeries = chartData.yData.filter((series) => !scoreSeriesWithReferencedItems.map((s) => s.id).includes(series.id));
+    const sortedDataSeries = [...scoreSeriesWithReferencedItems, ...restSeries];
+    sortedChartDataByQuestionnaire[questionnaireId] = {
+      xData: chartData.xData,
+      yData: sortedDataSeries,
+    };
+  });
+
+  return sortedChartDataByQuestionnaire;
 };
+
+export const createDomainQuestionnaireNamesDimensionsRecord = (
+  domains: string[],
+  dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
+): Record<string, Record<string, string[]>> => {
+
+  const dimensionsByQuestionnaireAndDomain: Record<string, Record<string, string[]>> = {};
+  domains.forEach((domain) => {
+    if(!dimensionsByQuestionnaireAndDomain[domain]) {
+      dimensionsByQuestionnaireAndDomain[domain] = {};
+    }
+    const dimensionScoresDataSeries = dimensionScoresDataSeriesByDomain[domain];
+    
+    dimensionScoresDataSeries.forEach((series) => {
+      const questionnaireName = series.questionnaireName;
+      const dimension = series.shortName ?? series.name;
+      if (!dimensionsByQuestionnaireAndDomain[domain][questionnaireName]) {
+        dimensionsByQuestionnaireAndDomain[domain][questionnaireName] = [];;
+      }
+      if (!dimensionsByQuestionnaireAndDomain[domain][questionnaireName].includes(dimension)) {
+        dimensionsByQuestionnaireAndDomain[domain][questionnaireName].push(dimension);
+      }
+    });  
+  });
+
+  return dimensionsByQuestionnaireAndDomain;
+}
+
+// export const extractDimensionScoresDataSeriesBelongingToDomain = (
+//   domain: string,
+//   questionnaires: Mapping.Questionnaire[],
+//   allScoresDataSeries: Visualization.DataSeries[],
+//   itemsDataSeries: Visualization.DataSeries[],
+// ):Visualization.DataSeries[] => {
+//   const dimensionScoresDataSeries: Visualization.DataSeries[] = [];
+  
+//     const scores = allScoresDataSeries.filter(
+//       (score) => score.domain === domain,
+//     );
+//     const items = itemsDataSeries.filter(
+//       (item) => item.domain === domain,
+//     );
+//     // Filter, besser: valueExpression attribut -> gesamtes Fhir Format ändern
+//     scores.forEach((score) => {
+//       const scoreQuestionnaire = questionnaires.find((q) =>
+//         Object.keys(q.items).includes(score.id),
+//       );
+//       if (scoreQuestionnaire) {
+//         const scoreItem = scoreQuestionnaire.items[
+//           score.id
+//         ] as Mapping.QuestionnaireScoreItem;
+
+//         const itemsToBeRemoved = scoreItem.referenceQuestionnaireItems
+//           ? scoreItem.referenceQuestionnaireItems
+//               .map((linkId) => items.find((item) => item.id === linkId))
+//               .filter((item) => {
+//                 if (item === undefined) {
+//                   return true; // remove
+//                 }
+//                 // keep items that have a scoreExpression (intermediate scores)
+//                 const questionnaireItem = questionnaires.find((q) =>
+//                   Object.keys(q.items).includes(item.id),
+//                 )?.items[item.id] as Mapping.QuestionnaireScoreItem;
+//                 if (questionnaireItem === undefined) {
+//                   return true; // remove
+//                 }
+//                 if (questionnaireItem.scoreExpression !== undefined) {
+//                   return false; // keep intermediate scores
+//                 }
+//                 return true; // remove raw questions
+//               })
+//           : [];
+//         if (itemsToBeRemoved.length > 0) {
+//           _.pullAll(items, itemsToBeRemoved);
+//         }
+//       }
+//     });
+//     // console.log("Scores after filtering: ", scores);
+//     // console.log("Items after filtering: ", items);
+//     dimensionScoresDataSeries.push(...scores);
+//     dimensionScoresDataSeries.push(...items);
+    
+//     return dimensionScoresDataSeries;
+// }
 
 export const createHeatmapData = (
   domains: string[],
-  questionnaires: Mapping.Questionnaire[],
-  allScoresDataSeries: Visualization.DataSeries[],
-  itemsDataSeries: Visualization.DataSeries[],
+  dataSeries: Visualization.DataSeries[],
   xData: string[],
 ) => {
   const chartDataByDomain: Record<string, Visualization.ChartData> = {};
   domains.forEach((domain) => {
-    const scores = allScoresDataSeries.filter(
-      (score) => score.domain === domain,
+    const dimensionScoreDataSeries = dataSeries.filter((series) => 
+    series.domain === domain && series.isDimensionScore
     );
-    const items = itemsDataSeries.filter(
-      (item) => item.domain === domain,
-    );
-    // Filter, besser: valueExpression attribut -> gesamtes Fhir Format ändern
-    scores.forEach((score) => {
-      const scoreQuestionnaire = questionnaires.find((q) =>
-        Object.keys(q.items).includes(score.id),
-      );
-      if (scoreQuestionnaire) {
-        const scoreItem = scoreQuestionnaire.items[
-          score.id
-        ] as Mapping.QuestionnaireScoreItem;
-        const itemsToBeRemoved = scoreItem.referenceQuestionnaireItems
-          ? scoreItem.referenceQuestionnaireItems
-              .map((linkId) => items.find((item) => item.id === linkId))
-              .filter((item) => item !== undefined)
-          : [];
-        if (itemsToBeRemoved.length > 0) {
-          _.pullAll(items, itemsToBeRemoved);
-        }
-      }
-    });
-    // console.log("Scores after filtering: ", scores);
-    // console.log("Items after filtering: ", items);
-    const yData = [...scores, ...items]; // scores and items on same level
+    const yData = dimensionScoreDataSeries;
     chartDataByDomain[domain] = {
       xData: xData,
       yData,
@@ -578,3 +698,228 @@ export const createHeatmapData = (
 
   return chartDataByDomain;
 };
+
+export const extractDomainDataSeries = (
+  data: Visualization.DataSeries[], 
+  questionnaires: Mapping.Questionnaire[],
+  domain: string,
+): Visualization.DataSeries[] => {
+  const domainDataSeries = data.filter((series) => {
+    const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+    if (questionnaire === undefined) {
+      return false;
+    }
+    const correspondingQuestionnaireItem = Object.values(questionnaire.items).find((item) => series.id === item.linkId);
+    if (correspondingQuestionnaireItem === undefined) {
+      return false;
+    }
+    if (correspondingQuestionnaireItem.domain === domain) {
+      return true;
+    }
+    return false;
+  });
+  return domainDataSeries;
+}
+
+export const extractGlobalScoresDataSeries = (
+    data: Visualization.DataSeries[], 
+    questionnaires: Mapping.Questionnaire[],
+  ):Visualization.DataSeries[] => {
+  
+  const globalScores = data.filter((series) => {
+    const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+    if (questionnaire === undefined) {
+      return false;
+    }
+    const correspondingQuestionnaireItem = questionnaire.items[series.id];
+    if (correspondingQuestionnaireItem === undefined) {
+      return false;
+    }
+    if ((correspondingQuestionnaireItem as Mapping.QuestionnaireScoreItem).isGlobalScore) {
+      return true;
+    }
+    return false; 
+  });
+  return globalScores;
+}
+
+export const extractDomainScoresDataSeries = (
+    domainData: Visualization.DataSeries[], 
+    questionnaires: Mapping.Questionnaire[],
+  ):Visualization.DataSeries[] => {
+    const domainScores = domainData.filter((series) => {
+      const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+      if (questionnaire === undefined) {
+        return false;
+      }
+      const correspondingQuestionnaireItem = questionnaire.items[series.id];
+      if (correspondingQuestionnaireItem === undefined) {
+        return false;
+      }
+      if ((correspondingQuestionnaireItem as Mapping.QuestionnaireScoreItem).isDomainScore) {
+        return true;
+      }
+      return false;
+    });
+    return domainScores;
+}
+
+export const extractDimensionScoresDataSeries = (
+    domainData: Visualization.DataSeries[], 
+    questionnaires: Mapping.Questionnaire[],
+    domainScoresDataSeries: Visualization.DataSeries[],
+    removeDomainScores: boolean = false,
+  ):Visualization.DataSeries[] => {
+    const dimensionScores = domainData.filter((series) => {
+      const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+      if (questionnaire === undefined) {
+        return false;
+      }
+      const correspondingQuestionnaireItem = questionnaire.items[series.id];
+      if (correspondingQuestionnaireItem === undefined) {
+        return false;
+      }
+      if (correspondingQuestionnaireItem.isDimensionScore) {
+        return true;
+      }
+      return false;
+    });
+    if (removeDomainScores) {
+      return dimensionScores.filter((series) => !domainScoresDataSeries.map((s) => s.id).includes(series.id));
+    }
+    return dimensionScores;
+  }
+
+export const extractItemsDataSeries = (
+    domainData: Visualization.DataSeries[],
+    domainScoresDataSeries: Visualization.DataSeries[],
+    dimensionScoresDataSeries: Visualization.DataSeries[],
+    questionnaires: Mapping.Questionnaire[],
+  ): Record<string, Visualization.DataSeries[]> => {
+    const dimensionItemDataSeriesRecord: Record<string, Visualization.DataSeries[]> = {};
+    dimensionScoresDataSeries.forEach((series) => {
+      const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+      const correspondingQuestionnaireItem = questionnaire !== undefined ? questionnaire.items[series.id] : undefined;
+      if (correspondingQuestionnaireItem !== undefined) {
+        const dimension = correspondingQuestionnaireItem.dimension;
+        const referencedItems = domainData.filter((series) => 
+          (correspondingQuestionnaireItem as Mapping.QuestionnaireScoreItem).referenceQuestionnaireItems?.includes(series.id)
+        );
+        const dimensionItems = domainData.filter((series) => {
+          const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+          if (questionnaire === undefined) {
+            return false;
+          }
+          const questionnaireItem = questionnaire.items[series.id];
+          if (questionnaireItem === undefined) {
+            return false;
+          }
+          return questionnaireItem.dimension === dimension;
+        });
+        const items = referencedItems !== undefined ? _.uniqBy([...dimensionItems, ...referencedItems], (series) => series.id) : _.uniqBy(dimensionItems, (series) => series.id);
+        const domainScoreIds = domainScoresDataSeries.map((series) => series.id);
+        const otherDimensionScoreIds = dimensionScoresDataSeries.map((series) => series.id).filter((id) => !dimensionItems.map((s) => s.id).includes(id));
+        const allScoreIds = [...domainScoreIds, ...otherDimensionScoreIds];
+        const itemsForDimension = items.filter((item) => !allScoreIds.includes(item.id));
+
+        if(dimension !== undefined && itemsForDimension.length > 0) {
+          if (!dimensionItemDataSeriesRecord[dimension]) {
+            dimensionItemDataSeriesRecord[dimension] = itemsForDimension;
+          }
+          else {
+            dimensionItemDataSeriesRecord[dimension] = _.uniqBy([...dimensionItemDataSeriesRecord[dimension], ...itemsForDimension], (series) => series.id);
+          }
+        }  
+      }
+    });
+    return dimensionItemDataSeriesRecord;
+  }
+
+export const createQuestionnaireMostRecentResponseDateRecord = (questionnaireNamesByDate: Record<string, string[]>) => {
+  const questionnaireMostRecentResponseDateRecord: Record<string, string> = {};
+  Object.entries(questionnaireNamesByDate).forEach(([questionnaireName, responseDates]) => {
+      const mostRecentResponseDate = responseDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+      questionnaireMostRecentResponseDateRecord[questionnaireName] = mostRecentResponseDate;
+    });
+  return questionnaireMostRecentResponseDateRecord;
+}
+
+export const createDomainDimensionsRecord = (
+  questionnaires: Mapping.Questionnaire[],
+  dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
+) => {
+  const domainDimensionsRecord: Record<string, string[]> = {};
+  Object.entries(dimensionScoresDataSeriesByDomain).forEach(([domain, dimensionScoresDataSeries]) => {
+    const dimensions = dimensionScoresDataSeries.map((series) => {
+      const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
+      if (questionnaire !== undefined) {
+        const questionnaireItem = questionnaire.items[series.id];
+        if (questionnaireItem !== undefined) {
+          return questionnaireItem.dimension;
+        }
+        return undefined;
+      }
+      return undefined;
+    });
+    const uniqueDimensions = _.uniq(dimensions.filter((dim) => dim !== undefined));
+    domainDimensionsRecord[domain] = uniqueDimensions;
+  });
+  return domainDimensionsRecord;
+}
+
+
+export const filterQuestionnaireResponsesThatAreWithinDates = (
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
+  startDate: string,
+  endDate: string,
+) => {
+  if(startDate.length === 0 || endDate.length === 0) {
+    return questionnaireResponses;
+  }
+  const questionnaireResponsesWithinDateRange: Record<string, Mapping.QuestionnaireResponse> = {};
+  Object.entries(questionnaireResponses).forEach(([questionnaireResponseId, questionnaireResponse]) => {
+    const date = new Date(questionnaireResponse.authored);
+    if (date >= new Date(startDate) && date <= new Date(endDate)) {
+      questionnaireResponsesWithinDateRange[questionnaireResponseId] = questionnaireResponse;
+    }
+  });
+  return questionnaireResponsesWithinDateRange;
+}
+
+export const filterQuestionnaireResponsesThatAreOnSingleDates = (
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
+  dates: string[],
+) => {
+  if (dates.length === 0) {
+    return {};
+  }
+  const datesAsDates = dates.map((date) => new Date(date));
+  const questionnaireResponsesOnDates: Record<string, Mapping.QuestionnaireResponse> = {};
+  Object.entries(questionnaireResponses).forEach(([questionnaireResponseId, questionnaireResponse]) => {
+    const date = new Date(questionnaireResponse.authored);
+    if (datesAsDates.some((d) => d.getTime() === date.getTime())) {
+      questionnaireResponsesOnDates[questionnaireResponseId] = questionnaireResponse;
+    }
+  });
+  return questionnaireResponsesOnDates;
+}
+
+export const filterQuestionnaireResponsesByQuestionnaireIds = (
+  questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, 
+  questionnaireIds: string[]) => {
+  const questionnaireResponsesFilteredBySelectedQuestionnaires: Record<string, Mapping.QuestionnaireResponse> = {};
+  Object.entries(questionnaireResponses).forEach(([key, response]) => {
+    if (questionnaireIds.includes(response.questionnaire.id)) {
+      questionnaireResponsesFilteredBySelectedQuestionnaires[key] = response;
+    }
+  });
+  return questionnaireResponsesFilteredBySelectedQuestionnaires;
+}
+
+export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>) => {
+  const dates = Object.values(questionnaireResponses).map((questionnaireResponse) => {
+    return questionnaireResponse.authored;
+  });
+  const uniqueDates = _.uniq(dates);
+  return uniqueDates;
+}

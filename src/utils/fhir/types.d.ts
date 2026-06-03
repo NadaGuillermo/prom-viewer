@@ -17,6 +17,7 @@ export namespace NormalizedFHIR {
     // observationCode?: string; // from Observation
     observationDefinition?: string; // id for ObservationDefinition
     scoreHealthCorrelation?: string; // from ObservationDefinition
+    scoreExpression?: string;
   }
 
   interface Questionnaire {

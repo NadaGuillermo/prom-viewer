@@ -1,18 +1,18 @@
 import type { NormalizedFHIR } from "@utils/fhir";
 import type { Mapping } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { issueFactories, type Errors } from "@utils/errors";
 // import * as _ from "lodash-es";
 import { unspecifiedDimension } from "./constants";
 
 export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
   questionnaire: NormalizedFHIR.Questionnaire,
-): GlobalTypes.Result<Mapping.Questionnaire> => {
+): Errors.Result<Mapping.Questionnaire> => {
   const questionnaireId = questionnaire.id;
   const name = questionnaire.name;
   const url = questionnaire.url;
   const description = questionnaire.description;
   const items: Record<string, Mapping.Item> = {};
-  const issues: GlobalTypes.DataIssue[] = [];
+  const issues: Errors.DataIssue[] = [];
 
   // if (
   //     questionnaire.items === undefined ||
@@ -35,23 +35,15 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
     const answerOptions = item.answerOptions?.map((opt) => {
       // Error: answerOptions are not numbers
       const answerOptionNumber = Number(opt.value);
-      if (Number.isNaN(answerOptionNumber)) {
-        issues.push({
-          id: `issue-questionnaire-item-${Math.random().toString(36).substring(2, 9)}`,
-          level: "warning",
-          message: `At least one answer option for item with linkId ${linkId} in questionnaire 
-            with url ${url} could not be converted or mapped to a number and is therefore omitted. 
-            Answer option was: ${opt.value}`,
-          resourceId: questionnaireId,
-          resourceType: "Questionnaire",
-          linkId: linkId,
-        });
-      }
       return {
         value: answerOptionNumber, // NaN possible
         label: opt.label,
       };
     });
+
+    if (answerOptions?.some((opt) => isNaN(opt.value))) {
+      issues.push(issueFactories.questionnaire.invalidItemAnswerOption(questionnaire, linkId, item.answerOptions));
+    }
 
     let filteredAnswerOptions: Mapping.AnswerOption[] = [];
 
@@ -72,16 +64,16 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       filteredAnswerOptions = answerOptions.filter((opt) => !isNaN(opt.value));
     }
 
-    const dimension = unspecifiedDimension;
     const range = item.range;
     const scoreHealthCorrelation = item.scoreHealthCorrelation;
     const referenceQuestionnaireItems = item.referenceQuestionnaireItems;
+    const scoreExpression = item.scoreExpression;
+
     items[linkId] = {
       linkId: linkId,
-      text: item.text ?? linkId,
-      shortText: linkId,
+      domain: unspecifiedDimension,
       answerOptions: filteredAnswerOptions,
-      domain: dimension,
+      ...(item.text !== undefined && { text: item.text}),
       ...(range !== undefined && { range: range }),
       ...(scoreHealthCorrelation !== undefined && {
         scoreHealthCorrelation: scoreHealthCorrelation,
@@ -89,6 +81,7 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       ...(referenceQuestionnaireItems !== undefined && {
         referenceQuestionnaireItems: referenceQuestionnaireItems,
       }),
+      ...(scoreExpression !== undefined && { scoreExpression: scoreExpression }),   
     };
   });
 

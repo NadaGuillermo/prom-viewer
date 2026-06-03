@@ -7,9 +7,11 @@ export namespace Mapping {
 
   interface BaseItem {
     linkId: string;
-    text: string;
-    shortText: string;
     domain: string;
+    text?: string;
+    shortText?: string;
+    dimension?: string;
+    isDimensionScore?: boolean;
     thresholds?: number[];
   }
 
@@ -26,7 +28,10 @@ export namespace Mapping {
   interface QuestionnaireScoreItem extends BaseItem {
     range: [number, number];
     scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
+    isDomainScore?: boolean;
+    isGlobalScore?: boolean;
     referenceQuestionnaireItems?: string[]; // linkIds
+    scoreExpression?: string;
   }
 
   interface Questionnaire {

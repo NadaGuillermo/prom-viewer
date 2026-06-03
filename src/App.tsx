@@ -10,12 +10,17 @@ import DateRangePicker from "@components/DateRangePicker";
 import LineChart from "@components/LineChart";
 import Heatmap from "@components/Heatmap";
 import QuestionnaireCard from "@components/QuestionnaireCard";
+import SankeyDemo from "@components/SankeyDemo";
+import SankeyChart from "@components/SankeyChart";
+import DomainCard from "@components/DomainCard";
 import SimpleDataTable from "@components/SimpleDataTable";
 import Collapse from "@components/Collapse";
 import ErrorModal from "@components/ErrorModal";
 
+import RadarChart from "@components/RadarChart";
+
 // Types
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import type { Errors } from "@utils/errors";
 import type { Visualization } from "@utils/visualization";
 import { ITEM_TYPES, type Mapping } from "@utils/mapping";
 
@@ -53,10 +58,24 @@ import {
   createChartData,
   // calculatePeriodOfObservations,
   sortDomains,
+  addUnspecifiedDimensionToDomains,
   createDateQuestionnaireNamesRecord,
   createTableData,
   createHeatmapData,
   createQuestionnaireCardData,
+  createRadarData,
+  createDomainQuestionnaireNamesDimensionsRecord,
+  extractGlobalScoresDataSeries,
+  extractDomainScoresDataSeries,
+  extractDimensionScoresDataSeries,
+  extractDomainDataSeries,
+  extractItemsDataSeries,
+  createQuestionnaireMostRecentResponseDateRecord,
+  createDomainDimensionsRecord,
+  filterQuestionnaireResponsesThatAreWithinDates,
+  filterQuestionnaireResponsesThatAreOnSingleDates,
+  filterQuestionnaireResponsesByQuestionnaireIds,
+  extractDatesOfQuestionnaireResponses,
 } from "@utils/visualization";
 
 // Config
@@ -64,7 +83,8 @@ import {
   addConfigurationsToQuestionnaire,
   addConfigurationsToQuestionnaireResponse,
   extractQuestionnairesFromConfig,
-  extractGlobalHealthDimensionsFromConfig,
+  findQuestionnairesNotListedInConfig,
+  extractGlobalHealthDomainsFromConfig,
   extractDomainsFromConfig,
 } from "@utils/config";
 
@@ -95,14 +115,14 @@ function App() {
   const [questionnaireResponses, setQuestionnaireResponses] = useState<
     Record<string, Mapping.QuestionnaireResponse>
   >({}); 
-  const [dataIssues, setDataIssues] = useState<GlobalTypes.DataIssue[]>([]);
+  const [dataIssues, setDataIssues] = useState<Errors.DataIssue[]>([]);
   const [globalHealthDimensions, setGlobalHealthDimensions] = useState<
     string[]
   >([]);
   const [domains, setDomains] = useState<string[]>([]);
   
   // Data transformation
-  const [questionnairesByDate, setQuestionnairesByDate] = useState<
+  const [questionnaireNamesByDate, setQuestionnaireNamesByDate] = useState<
     Record<string, string[]>
   >({});
 
@@ -115,7 +135,7 @@ function App() {
   // const [questionnairesForChart, setQuestionnairesForChart] = useState<
   //   Mapping.Questionnaire[]
   // >([]);
-  const [scoreChartSubTitle, setScoreChartSubTitle] = useState<string[]>([]);
+  // const [scoreChartSubTitle, setScoreChartSubTitle] = useState<string[]>([]);
   // const [globalScoreChartData, setGlobalScoreChartData] = useState<
   //   Visualization.DataSeries[] | undefined
   // >();
@@ -129,20 +149,46 @@ function App() {
   >({});
   const [questionnaireCardData, setQuestionnaireCardData] = useState<
     Record<string, [string, string[]]>>({});
-  const [lineChartData, setLineChartData] = useState<Visualization.ChartData>();
+  const [chartXData, setChartXData] = useState<string[]>([]);
+  const [globalScoresDataSeries, setGlobalScoresDataSeries] = useState<
+    Visualization.DataSeries[]
+  >([]);
+  const [domainScoresDataSeriesByDomain, setDomainScoresDataSeriesByDomain] = useState<
+    Record<string, Visualization.DataSeries[]>
+  >({});
+  const [dimensionScoresDataSeriesByDomain, setDimensionScoresDataSeriesByDomain] =
+    useState<Record<string, Visualization.DataSeries[]>>({});
+  const [itemDataSeriesByDomainAndDimension, setItemDataSeriesByDomainAndDimension] = useState<
+    Record<string, Record<string, Visualization.DataSeries[]>>
+  >({});
+  const [domainsForChart, setDomainsForChart] = useState<string[]>([]);
+  const [dimensionsByDomain, setDimensionsByDomain] = useState<Record<string, string[]>>({});
+  const [domainsSankeyData, setDomainsSankeyData] = useState<Record<string, Record<string, string[]>>>();
+  const [globalScoresLineChartData, setGlobalScoresLineChartData] = useState<Visualization.ChartData>();
+  const [radarChartData, setRadarChartData] = useState<Record<string, string[]>>();
   const [lengthOfLongestQuestionnaireName, setLengthOfLongestQuestionnaireName] = useState<number>(0);
   const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
-    useState<Record<string, GlobalTypes.DataIssue[]>>({});
+    useState<Record<string, Errors.DataIssue[]>>({});
   const [idsOfResourcesWithIssues, setIdsOfResourcesWithIssues] = useState<
     string[]
   >([]);
+  const [allDatesOfQuestionnaireResponses, setAllDatesOfQuestionnaireResponses] = useState<string[]>([]);
   const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>(
     [],
   );
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [selectedQuestionnaireResponses, setSelectedQuestionnaireResponses] = useState<string[]>([]);
+  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+  const [selectedDimensionsByDomain, setSelectedDimensionsByDomain] = useState<Record<string, string[]>>({});
   // const [displayedQuestionnaires, setDisplayedQuestionnaires] = useState<Mapping.Questionnaire[]>([]);
   // const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const [modalShown, setModalShown] = useState(false);
+  const [allDomainsSelected, setAllDomainsSelected] = useState(false);
+
+  const [dateValue, setDateValue] = useState<string>("");
+  const [dateRange, setDateRange] = useState<Visualization.RangeState>({ start: "", end: "" });
 
   // Load data
   useEffect(() => {
@@ -215,105 +261,90 @@ function App() {
     if (!dataLoaded.config || !dataLoaded.fhirData) {
       return;
     }
-    const errors: GlobalTypes.DataIssue[] = [];
+    const errors: Errors.DataIssue[] = [];
     
     // only questionnaires and responses that are defined in config file
     const questionnairesInConfig = extractQuestionnairesFromConfig(config);
     
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Questionnaires */
-    const normalizedFhirQuestionnairesWithErrorMessages = fhirQuestionnaires
+    const normalizedFhirQuestionnairesResult = fhirQuestionnaires
       .map((questionnaire) => normalizeQuestionnaire(questionnaire))
       .filter((result) => questionnairesInConfig.includes(result.data.url));
     const normalizedFhirQuestionnaires =
-      normalizedFhirQuestionnairesWithErrorMessages.map(
+      normalizedFhirQuestionnairesResult.map(
         (questionnaire) => questionnaire.data,
       );
-    const normalizedFhirQuestionnaireErrors =
-      normalizedFhirQuestionnairesWithErrorMessages.flatMap(
+    const normalizedFhirQuestionnaireIssues =
+      normalizedFhirQuestionnairesResult.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    errors.push(...normalizedFhirQuestionnaireErrors);
+    errors.push(...normalizedFhirQuestionnaireIssues);
     console.log(
       "Normalized FHIR Questionnaires: ",
       normalizedFhirQuestionnaires,
     );
 
     /* Questionnaire Responses */
-    const allNormalizedFhirQuestionnaireResponsesWithErrorMessages = 
+    const allNormalizedFhirQuestionnaireResponsesResult = 
       fhirQuestionnaireResponses.map((response) =>
         normalizeQuestionnaireResponse(response, normalizedFhirQuestionnaires),
       );
     const allNormalizedFhirQuestionnaireResponses =
-      allNormalizedFhirQuestionnaireResponsesWithErrorMessages
+      allNormalizedFhirQuestionnaireResponsesResult
         .map((response) => response.data);
-    const normalizedFhirQuestionnaireResponsesWithErrorMessages =
-      allNormalizedFhirQuestionnaireResponsesWithErrorMessages.filter(
+    const normalizedFhirQuestionnaireResponsesResult =
+      allNormalizedFhirQuestionnaireResponsesResult.filter(
           (result) =>
             result.data !== undefined && result.data.questionnaire !== undefined &&
             questionnairesInConfig.includes(result.data.questionnaire),);
     const normalizedFhirQuestionnaireResponses =
-      normalizedFhirQuestionnaireResponsesWithErrorMessages
+      normalizedFhirQuestionnaireResponsesResult
         .map((response) => response.data); 
     
-    const excludedQuestionnaireResponseIds = _.difference(allNormalizedFhirQuestionnaireResponses.map((response) => response.id), 
-      normalizedFhirQuestionnaireResponses.map((response) => response.id));
-    const excludedQuestionnaireResponses = allNormalizedFhirQuestionnaireResponses.filter((response) => excludedQuestionnaireResponseIds.includes(response.id));
-    const excludedQuestionnaireResponsesGroupedByQuestionnaire =_.groupBy(excludedQuestionnaireResponses, (response) => response.questionnaire);
-
-    if (excludedQuestionnaireResponseIds.length > 0) {
-      Object.entries(excludedQuestionnaireResponsesGroupedByQuestionnaire).forEach(([url, responses]) => {
-         errors.push({
-        id: `issue-questionnaireResponse-${Math.random().toString(36).substring(2, 9)}`,
-        level: "warning",
-        message: `For the patient, there ${responses.length > 1 ? "exist QuestionnaireResponses with ids" : "exists a QuestionnaireResponse with id"} ${responses.map((response) => response.id)} for 
-          Questionnaire with url ${url}. 
-          Since the questionnaire is not defined in the config file, the ${responses.length > 1 ? "responses are" : "response is"} not displayed.`,
-        resourceId: undefined,
-        resourceType: "Questionnaire",
-        linkId: undefined,
-      });
-      });
-    }      
-    const normalizedFhirQuestionnaireResponseErrors =
-      normalizedFhirQuestionnaireResponsesWithErrorMessages.flatMap(
+    const questionnairesNotInConfigResult = findQuestionnairesNotListedInConfig(questionnairesInConfig, allNormalizedFhirQuestionnaireResponses, normalizedFhirQuestionnaires);
+    if (questionnairesNotInConfigResult.issues.length > 0) {
+      errors.push(...questionnairesNotInConfigResult.issues);
+    }
+    const normalizedFhirQuestionnaireResponseIssues =
+      normalizedFhirQuestionnaireResponsesResult.flatMap(
         (response) => response.issues,
       );
-    errors.push(...normalizedFhirQuestionnaireResponseErrors);
+    errors.push(...normalizedFhirQuestionnaireResponseIssues);
     console.log(
       "Normalized FHIR Questionnaire Responses: ",
       normalizedFhirQuestionnaireResponses,
     );
   
     /* Observations */
-    const normalizedFhirObservationsWithErrorMessages = fhirObservations.map(
+    const normalizedFhirObservationsResult = fhirObservations.map(
       (observation) => normalizeObservation(observation),
     );
     const normalizedFhirObservations =
-      normalizedFhirObservationsWithErrorMessages.map(
+      normalizedFhirObservationsResult.map(
         (observation) => observation.data,
       );
-    const normalizedFhirObservationErrors =
-      normalizedFhirObservationsWithErrorMessages.flatMap(
+    const normalizedFhirObservationIssues =
+      normalizedFhirObservationsResult.flatMap(
         (observation) => observation.issues,
       );
-    errors.push(...normalizedFhirObservationErrors);
+    errors.push(...normalizedFhirObservationIssues);
     console.log("Normalized FHIR Observations: ", normalizedFhirObservations);
 
     /* Observation Definitions */
-    const normalizedFhirObservationDefinitionsWithErrorMessages =
+    const normalizedFhirObservationDefinitionsResult =
       fhirObservationDefinitions.map((observationDefinition) =>
         normalizeObservationDefinition(observationDefinition),
       );
     const normalizedFhirObservationDefinitions =
-      normalizedFhirObservationDefinitionsWithErrorMessages.map(
+      normalizedFhirObservationDefinitionsResult.map(
         (observationDefinition) => observationDefinition.data,
       );
-    const normalizedFhirObservationDefinitionErrors =
-      normalizedFhirObservationDefinitionsWithErrorMessages.flatMap(
+    const normalizedFhirObservationDefinitionIssues =
+      normalizedFhirObservationDefinitionsResult.flatMap(
         (observationDefinition) => observationDefinition.issues,
       );
-    errors.push(...normalizedFhirObservationDefinitionErrors);
+    errors.push(...normalizedFhirObservationDefinitionIssues);
     console.log(
       "Normalized FHIR Observation Definitions: ",
       normalizedFhirObservationDefinitions,
@@ -321,22 +352,22 @@ function App() {
 
     /* ----------------------- Mapping ------------------------ */
     /* Questionnaires */
-    const promDataQuestionnairesWithErrorMessages =
+    const promDataQuestionnairesResult =
       normalizedFhirQuestionnaires.map((questionnaire) =>
         mapNormalizedQuestionnaireToPromDataQuestionnaire(questionnaire),
       );
-    const promDataQuestionnaires = promDataQuestionnairesWithErrorMessages.map(
+    const promDataQuestionnaires = promDataQuestionnairesResult.map(
       (questionnaire) => questionnaire.data,
     );
-    const promDataQuestionnaireErrors =
-      promDataQuestionnairesWithErrorMessages.flatMap(
+    const promDataQuestionnaireIssues =
+      promDataQuestionnairesResult.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    errors.push(...promDataQuestionnaireErrors);
+    errors.push(...promDataQuestionnaireIssues);
     console.log("Mapping Questionnaires: ", promDataQuestionnaires); // ok
 
     /* QuestionnaireResponses */
-    const questionnaireResponsesWithErrorMessages =
+    const questionnaireResponsesResult =
       normalizedFhirQuestionnaireResponses.map((response) =>
         mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse(
           response,
@@ -344,21 +375,21 @@ function App() {
         ),
       );
     const promDataQuestionnaireResponses =
-      questionnaireResponsesWithErrorMessages.map(
+      questionnaireResponsesResult.map(
         (questionnaireResponse) => questionnaireResponse.data,
       );
     console.log(
       "Mapping Questionnaire Responses: ",
       promDataQuestionnaireResponses,
     );
-    const promDataQuestionnaireResponseErrors =
-      questionnaireResponsesWithErrorMessages.flatMap(
+    const promDataQuestionnaireResponseIssues =
+      questionnaireResponsesResult.flatMap(
         (questionnaireResponse) => questionnaireResponse.issues,
       );
-    errors.push(...promDataQuestionnaireResponseErrors);
+    errors.push(...promDataQuestionnaireResponseIssues);
 
     /* Observations */
-    const promDataObservationsWithErrorMessages = normalizedFhirObservations
+    const promDataObservationsResult = normalizedFhirObservations
       .map((observation) =>
         mapNormalizedObservationToPromDataObservation(observation),
       )
@@ -369,21 +400,21 @@ function App() {
       );
     console.log(
       "Mapping Observations with Error Messages: ",
-      promDataObservationsWithErrorMessages,
+      promDataObservationsResult,
     );
-    const promDataObservations = promDataObservationsWithErrorMessages.map(
+    const promDataObservations = promDataObservationsResult.map(
       (observation) => observation.data,
     );
-    const promDataObservationErrors =
-      promDataObservationsWithErrorMessages.flatMap(
+    const promDataObservationIssues =
+      promDataObservationsResult.flatMap(
         (observation) => observation.issues,
       );
-    console.log("Mapping Observation Errors: ", promDataObservationErrors);
-    errors.push(...promDataObservationErrors);
+    console.log("Mapping Observation Issues: ", promDataObservationIssues);
+    errors.push(...promDataObservationIssues);
     console.log("Mapping Observations: ", promDataObservations); // ok
 
     /* ObservationDefinitions */
-    const promDataObservationDefinitionsWithErrorMessages =
+    const promDataObservationDefinitionsResult =
       normalizedFhirObservationDefinitions
         .map((observationDefinition) =>
           mapNormalizedObservationDefinitionToPromDataObservationDefinition(
@@ -397,14 +428,14 @@ function App() {
         );
 
     const promDataObservationDefinitions =
-      promDataObservationDefinitionsWithErrorMessages.map(
+      promDataObservationDefinitionsResult.map(
         (observationDefinition) => observationDefinition.data,
       );
-    const promDataObservationDefinitionErrors =
-      promDataObservationDefinitionsWithErrorMessages.flatMap(
+    const promDataObservationDefinitionIssues =
+      promDataObservationDefinitionsResult.flatMap(
         (observationDefinition) => observationDefinition.issues,
       );
-    errors.push(...promDataObservationDefinitionErrors);
+    errors.push(...promDataObservationDefinitionIssues);
     console.log(
       "Mapping Observation Definitions: ",
       promDataObservationDefinitions,
@@ -415,7 +446,7 @@ function App() {
       const error = errors[i];
       if (error.resourceType === "Observation") {
         const observation = promDataObservations.find(
-          (observation) => observation.id === error.resourceId,
+          (observation) => observation.id === error.context.resourceId,
         );
         if (observation === undefined) {
           errors.splice(i, 1);
@@ -425,7 +456,7 @@ function App() {
       if (error.resourceType === "ObservationDefinition") {
         const observationDefinition = promDataObservationDefinitions.find(
           (observationDefinition) =>
-            observationDefinition.id === error.resourceId,
+            observationDefinition.id === error.context.resourceId,
         );
         if (observationDefinition === undefined) {
           errors.slice(i, 1);
@@ -448,11 +479,11 @@ function App() {
       promDataQuestionnairesWithConfigurationsAndErrorMessages.map(
         (questionnaire) => questionnaire.data,
       );
-    const promDataQuestionnaireConfigurationErrors =
+    const promDataQuestionnaireConfigurationIssues =
       promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    errors.push(...promDataQuestionnaireConfigurationErrors);
+    errors.push(...promDataQuestionnaireConfigurationIssues);
     console.log(
       "Mapping Questionnaires with Configurations: ",
       promDataQuestionnairesWithConfigurations,
@@ -471,21 +502,24 @@ function App() {
       promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
         (questionnaire) => questionnaire.data,
       );
-    const promDataQuestionnaireResponsesConfigurationErrors =
+    const promDataQuestionnaireResponsesConfigurationIssues =
       promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
         (questionnaire) => questionnaire.issues,
       );
-    errors.push(...promDataQuestionnaireResponsesConfigurationErrors);
+    errors.push(...promDataQuestionnaireResponsesConfigurationIssues);
     console.log(
       "Mapping Questionnaire Responses with Configurations: ",
       promDataQuestionnaireResponsesWithConfigurations,
     );
 
     // Domains
-    const globalHealthDimensionsFromConfig =
-      extractGlobalHealthDimensionsFromConfig(config);
+    // const globalHealthDimensionsFromConfig =
+    //   extractGlobalHealthDimensionsFromConfig(config);
     const domainsFromConfig = extractDomainsFromConfig(config);
-    const domains = sortDomains(domainsFromConfig, globalHealthDimensionsFromConfig);
+    const globalHealthDomainsFromConfig = extractGlobalHealthDomainsFromConfig(config);
+    console.log("Global Health Domains from Config: ", globalHealthDomainsFromConfig);
+    const domains = sortDomains(domainsFromConfig, globalHealthDomainsFromConfig);
+    // const domainsWithUnspecifiedDomain = addUnspecifiedDimensionToDomains(domains);
 
     /* ----------------------- Clean data ------------------------ */
     /* Questionnaire Response */
@@ -494,12 +528,12 @@ function App() {
         (error) =>
           error.level === "error" &&
           error.resourceType === "QuestionnaireResponse" &&
-          error.linkId === undefined,
+          error.context.field === undefined,
       )
-      .map((error) => error.resourceId);
+      .map((error) => error.context.resourceId);
     const linkIdsWithErrors = errors
-      .filter((error) => error.level === "error" && error.linkId !== undefined)
-      .map((error) => error.linkId);
+      .filter((error) => error.level === "error" && error.context.field !== undefined)
+      .map((error) => error.context.field);
     const promDataQuestionnaireResponsesWithoutErrors =
       promDataQuestionnaireResponses.filter(
         (questionnaireResponse) =>
@@ -552,27 +586,29 @@ function App() {
     );
 
     /* Errors and Warnings */
-    const uniqueErrors: GlobalTypes.DataIssue[] = [];
-    errors.forEach((error) => {
-      if (!uniqueErrors.map((err) => err.message).includes(error.message)) {
-        uniqueErrors.push(error);
-      }
-    });
+    const errorsForDisplay = errors.filter((error) => error.showUser);
+    const uniqueErrorsForDisplay: Errors.DataIssue[] = _.uniqBy(errorsForDisplay, (error) => error.userMessage);
+    console.log("Unique Errors for Display: ", uniqueErrorsForDisplay);
 
     /* Questionnaires */
-    const questionnaires = [... new Set(promDataQuestionnairesWithConfigurations)];
+    const questionnaires = _.uniqBy(
+      promDataQuestionnairesWithConfigurations,
+      (questionnaire) => questionnaire.url,
+    );
     console.log("Questionnaires: ", questionnaires);
+
+    const allResponseDates = extractDatesOfQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
 
     // Set variables
     setQuestionnaires(questionnaires);
     setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
-    setDataIssues([
-      ...new Set(uniqueErrors)
-    ]);
-    setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
+    setDataIssues(uniqueErrorsForDisplay);
+    // setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
     setDomains(domains);
     setQuestionnairesReady(true);
     setSelectedQuestionnaires(questionnaires.map((questionnaire) => questionnaire.id));
+    setAllDatesOfQuestionnaireResponses(allResponseDates);
+    setSelectedDates(allResponseDates);
     // setDisplayedQuestionnaires(questionnaires);
     // setDisplayedQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
   }, [
@@ -589,24 +625,106 @@ function App() {
     if (!questionnairesReady) {
       return;
     }
-    if (dataIssues.length > 0) {
+    if (dataIssues.length > 0 && !modalShown) {
       setIsModalOpen(true);
     }
    
-    const questionnairesForChart = questionnaires; //.filter((questionnaire) => selectedQuestionnaires.includes(questionnaire.id));
-    const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = questionnaireResponses;
-    // Object.entries(questionnaireResponses).forEach(([key, response]) => {
-    //   if (selectedQuestionnaires.includes(response.questionnaire.id)) {
-    //     questionnaireResponsesForChart[key] = response;
-    //   }
-    // });
+    // Questionnaires, Questionnaire Responses and domains for chart
+    const questionnairesForChart = questionnaires.filter((questionnaire) => selectedQuestionnaires.includes(questionnaire.id));
+    console.log("Questionnaires for Chart: ", questionnairesForChart);
+    //const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = questionnaireResponses;
+    const questionnaireResponsesFilteredBySelectedQuestionnaires: Record<string, Mapping.QuestionnaireResponse> = filterQuestionnaireResponsesByQuestionnaireIds(questionnaireResponses, selectedQuestionnaires);
+    const questionnaireResponsesFilteredBySelectedDates: Record<string, Mapping.QuestionnaireResponse> = filterQuestionnaireResponsesThatAreOnSingleDates(questionnaireResponses, selectedDates);
+    const questionnaireResponsesFilteredBySelectedRange: Record<string, Mapping.QuestionnaireResponse> = filterQuestionnaireResponsesThatAreWithinDates(questionnaireResponses, dateRange.start, dateRange.end);
+    
+    console.log("Questionnaire Responses Filtered by Selected Questionnaires: ", questionnaireResponsesFilteredBySelectedQuestionnaires);
+    console.log("Questionnaire Responses Filtered by Selected Dates: ", questionnaireResponsesFilteredBySelectedDates);
+    console.log("Questionnaire Responses Filtered by Selected Range: ", questionnaireResponsesFilteredBySelectedRange);
 
-    const questionnairesByDate = createDateQuestionnaireNamesRecord(
-      questionnaireResponses,
+    const questionnaireResponseIdsForChart = _.intersection(
+      Object.keys(questionnaireResponsesFilteredBySelectedQuestionnaires), 
+      Object.keys(questionnaireResponsesFilteredBySelectedDates), 
+      Object.keys(questionnaireResponsesFilteredBySelectedRange)
     );
 
+    const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = {};
+    questionnaireResponseIdsForChart.forEach((id) => {
+      questionnaireResponsesForChart[id] = questionnaireResponses[id];
+    });
+    // questionnaireResponsesFilteredBySelectedQuestionnaires && Object.keys(questionnaireResponsesFilteredBySelectedQuestionnaires).forEach((id) => {
+    //   questionnaireResponsesForChart[id] = questionnaireResponsesFilteredBySelectedQuestionnaires[id];
+    // });
+    // questionnaireResponsesFilteredBySelectedDates && Object.keys(questionnaireResponsesFilteredBySelectedDates).forEach((id) => {
+    //   if (questionnaireResponsesForChart[id] === undefined) {
+    //     questionnaireResponsesForChart[id] = questionnaireResponsesFilteredBySelectedDates[id];
+    //   }
+    // });
+    // questionnaireResponsesFilteredBySelectedRange && Object.keys(questionnaireResponsesFilteredBySelectedRange).forEach((id) => {
+    //   if (questionnaireResponsesForChart[id] === undefined) {
+    //     questionnaireResponsesForChart[id] = questionnaireResponsesFilteredBySelectedRange[id];
+    //   }
+    // });
+    console.log("Questionnaire Responses for Chart: ", questionnaireResponsesForChart);
+    
+    const domainsForChart = domains.filter((domain) => questionnairesForChart.some((questionnaire) => Object.values(questionnaire.items).some((item) => item.domain === domain)))
+    console.log("Domains for Chart: ", domainsForChart);
+    const questionnaireNamesByDate: Record<string, string[]> = createDateQuestionnaireNamesRecord(
+      questionnaireResponses,
+    );
+    const questionnaireMostRecentResponseDateRecord: Record<string, string> = createQuestionnaireMostRecentResponseDateRecord(questionnaireNamesByDate);
+    
+
+    // Chart Data
     const chartData = createChartData(questionnaireResponsesForChart);
     console.log("Chart Data: ", chartData); 
+
+    // Data series for different charts
+    const chartDataSeriesByDomain: Record<string, Visualization.DataSeries[]> = {};
+    const globalScoresDataSeries: Visualization.DataSeries[] = extractGlobalScoresDataSeries(chartData.yData, questionnairesForChart);
+    const domainScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]> = {};
+    const dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]> = {};
+    const scoresAndItemsDataSeriesByDomainAndDimension: Record<string, Record<string, Visualization.DataSeries[]>> = {};
+    const selectedDimensionsByDomain: Record<string, string[]> = {};
+    
+    domainsForChart.forEach((domain) => {
+      chartDataSeriesByDomain[domain] = extractDomainDataSeries(chartData.yData, questionnairesForChart, domain);
+      // domain and dimension scores not necessarily disjoint!
+      domainScoresDataSeriesByDomain[domain] = extractDomainScoresDataSeries(chartDataSeriesByDomain[domain], questionnairesForChart);
+      dimensionScoresDataSeriesByDomain[domain] = extractDimensionScoresDataSeries(chartDataSeriesByDomain[domain], questionnairesForChart, domainScoresDataSeriesByDomain[domain]);
+      scoresAndItemsDataSeriesByDomainAndDimension[domain] = extractItemsDataSeries(chartDataSeriesByDomain[domain], domainScoresDataSeriesByDomain[domain], dimensionScoresDataSeriesByDomain[domain], questionnairesForChart);
+      selectedDimensionsByDomain[domain] = [];
+    });
+
+    const dimensionsByDomain: Record<string, string[]> = createDomainDimensionsRecord(questionnairesForChart, dimensionScoresDataSeriesByDomain);
+
+    // const domainScoresDataSeries = chartData.yData.filter(
+    //   (dataseries) =>
+    //     dataseries.isDomainScore === true,
+    // );
+    // const dimensionScoresDataSeries = chartData.yData.filter(
+    //   (dataseries) =>
+    //     dataseries.isDimensionScore === true,
+    // );
+    // console.log("Scores: ", globalScoresDataSeries);
+    // console.log("Dimension Scores: ", dimensionScoresDataSeries);
+
+    // const itemsDataSeries = chartData.yData.filter(
+    //   (dataseries) => dataseries.seriesType === ITEM_TYPES.item,
+    // );
+    // console.log("Items: ", itemsDataSeries);
+
+    // const allScoresDataSeries =
+    //   globalScoresDataSeries !== undefined
+    //     ? [...globalScoresDataSeries, ...dimensionScoresDataSeries]
+    //     : dimensionScoresDataSeries;
+    // console.log("All Scores: ", allScoresDataSeries);
+
+    // const chartDimensions = [
+    //   ...new Set([
+    //     ...itemDataSeries.map((item) => item.dimension),
+    //     ...scoreDataSeries.map((score) => score.dimension),
+    //   ]),
+    // ]; 
 
     // Questionnaire Card
     const questionnaireCardData = createQuestionnaireCardData(questionnairesForChart);
@@ -618,66 +736,42 @@ function App() {
     );
     const lengthOfLongestQuestionnaireName = longestQuestionnaireName.length;
 
-    // Line Chart
-    const globalScoresDataSeries =
-      globalHealthDimensions.length > 0
-        ? chartData.yData.filter(
-            (dataseries) =>
-              dataseries.seriesType === ITEM_TYPES.score &&
-              globalHealthDimensions.includes(dataseries.domain),
-          )
-        : undefined;
-    const dimensionScoresDataSeries = chartData.yData.filter(
-      (dataseries) =>
-        dataseries.seriesType === ITEM_TYPES.score &&
-        (globalHealthDimensions.length === 0 ||
-          !globalHealthDimensions.includes(dataseries.domain)),
-    );
-    console.log("Scores: ", globalScoresDataSeries);
-    console.log("Dimension Scores: ", dimensionScoresDataSeries);
-
-    const itemsDataSeries = chartData.yData.filter(
-      (dataseries) => dataseries.seriesType === ITEM_TYPES.item,
-    );
-    console.log("Items: ", itemsDataSeries);
-
-    const allScoresDataSeries =
-      globalScoresDataSeries !== undefined
-        ? [...globalScoresDataSeries, ...dimensionScoresDataSeries]
-        : dimensionScoresDataSeries;
-    console.log("All Scores: ", allScoresDataSeries);
-
-    // const chartDimensions = [
-    //   ...new Set([
-    //     ...itemDataSeries.map((item) => item.dimension),
-    //     ...scoreDataSeries.map((score) => score.dimension),
-    //   ]),
-    // ]; 
-
-    const lineChartData: Visualization.ChartData = {
+    // Global Scores Line Chart
+    const globalScoresLineChartData: Visualization.ChartData = {
       xData: chartData.xData,
-      yData: globalScoresDataSeries ?? [],
+      yData: globalScoresDataSeries,
     }
-    const scoreChartSubTitle = Array.from(
-      new Set(
-        Object.values(questionnaireResponses).map(
-          (questionnaireResponse) => {
-            return questionnaireResponse.questionnaire.name;
-          },
-        ),
-      ),
-    );
+    // const scoreChartSubTitle = Array.from(
+    //   new Set(
+    //     Object.values(questionnaireResponsesForChart).map(
+    //       (questionnaireResponse) => {
+    //         return questionnaireResponse.questionnaire.name;
+    //       },
+    //     ),
+    //   ),
+    // );
+
+    // Radar Chart
+    // const mostRecentDomainScoresRadarData = createRadarData({
+    //   xData: chartData.xData,
+    //   yData: domainScoresDataSeriesByDomain});
+    // console.log("Radar data: ", mostRecentDomainScoresRadarData)
+
+
+     // Domain Dimension Mapping Sankey
+    const domainsSankeyData = createDomainQuestionnaireNamesDimensionsRecord(
+       domainsForChart,
+       dimensionScoresDataSeriesByDomain,
+    )
     
     // Heatmap
-    const heatmapDataByDomain: Record<string, Visualization.ChartData> =
-      createHeatmapData(
-        domains,
-        questionnairesForChart,
-        allScoresDataSeries,
-        itemsDataSeries,
-        chartData.xData,
-      );
-    console.log("Chart Data by Dimension: ", heatmapDataByDomain);
+    // const heatmapDataByDomain: Record<string, Visualization.ChartData> =
+    //   createHeatmapData(
+    //     domainsForChart,
+    //     chartData.yData,
+    //     chartData.xData,
+    //   );
+    // console.log("Chart Data by Dimension: ", heatmapDataByDomain);
 
     // Table
     const tableDataByQuestionnaire: Record<string, Visualization.ChartData> =
@@ -686,15 +780,15 @@ function App() {
 
     // Header Cards
     const resourceIdsWithIssues = dataIssues
-      .map((issue) => issue.resourceId)
+      .map((issue) => issue.context.resourceId)
       .filter((id) => id !== undefined);
     console.log("IDs of resources with issues: ", resourceIdsWithIssues);
 
     const itemWarningsByQuestionnaireId = _.groupBy(
       dataIssues.filter(
-        (issue) => issue.level === "warning" && issue.linkId !== undefined,
+        (issue) => issue.level === "warning" && issue.context.field !== undefined,
       ),
-      (issue) => issue.resourceId,
+      (issue) => issue.context.resourceId,
     );
     console.log(
       "Item Warnings by Questionnaire ID: ",
@@ -707,24 +801,37 @@ function App() {
     // set variables
     // setDisplayedQuestionnaires(questionnairesForChart);
     // setDisplayedQuestionnaireResponses(questionnaireResponsesForChart);
+    setDomainsForChart(domainsForChart);
+    setDimensionsByDomain(dimensionsByDomain);
+    setChartXData(chartData.xData);
+    setGlobalScoresDataSeries(globalScoresDataSeries);
+    setDomainScoresDataSeriesByDomain(domainScoresDataSeriesByDomain);
+    setDimensionScoresDataSeriesByDomain(dimensionScoresDataSeriesByDomain);
+    setItemDataSeriesByDomainAndDimension(scoresAndItemsDataSeriesByDomainAndDimension);
     setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
-    setLineChartData(lineChartData);
-    setQuestionnairesByDate(questionnairesByDate);
+    setGlobalScoresLineChartData(globalScoresLineChartData);
+    setQuestionnaireNamesByDate(questionnaireNamesByDate);
     setHeatmapDataByDomain(heatmapDataByDomain);
     setTableDataByQuestionnaire(tableDataByQuestionnaire);
     setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
     setQuestionnaireCardData(questionnaireCardData);
+    setDomainsSankeyData(domainsSankeyData);
+    setSelectedDimensionsByDomain(selectedDimensionsByDomain);
+    // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
-    setScoreChartSubTitle(scoreChartSubTitle);
+    // setScoreChartSubTitle(scoreChartSubTitle);
     setIdsOfResourcesWithIssues(resourceIdsWithIssues);
+    setModalShown(true);
   }, [
     questionnaires,
     questionnaireResponses,
     dataIssues,
-    globalHealthDimensions,
+    // globalHealthDimensions,
     questionnairesReady,
     domains,
-    // selectedQuestionnaires,
+    selectedQuestionnaires,
+    dateRange,
+    selectedDates,
   ]);
 
   // Handlers
@@ -738,6 +845,28 @@ function App() {
     console.log("Toggled showErrors: ", showErrors);
   };
 
+  const selectAllDomains = (domains: string[]) => {
+    // if (selectAllDomains) {
+    //   setSelectedDomains([]);
+    //   setSelectedDimensionsByDomain({});
+    // } else {
+    //   setSelectedDomains(domains);
+    // }
+    // if (!allDomainsSelected) {
+      setSelectedDomains(domains);
+    // }
+    // setAllDomainsSelected((prev) => !prev);
+  }
+
+  const selectAllDimensionsForDomain = (domain: string, dimensions: string[]) => {
+    setSelectedDimensionsByDomain((prev) => {
+      return {
+        ...prev,
+        [domain]: dimensions,
+      };
+    });
+  }
+
   const handleQuestionnaireSelection = (questionnaireId: string) => {
     setSelectedQuestionnaires((prev) => {
       const index = prev.indexOf(questionnaireId);
@@ -747,10 +876,73 @@ function App() {
         return prev.filter((id) => id !== questionnaireId);
       }
     });
-    // TODO: filtern hier (Funktion in utils), state für filteredQuestionnaires, filteredQuestionnaireResponses
-    
     console.log("Selected Questionnaires: ", selectedQuestionnaires);
   }
+
+  const handleDateSelection = (date: string) => {
+    setSelectedDates((prev) => {
+      const index = prev.indexOf(date);
+      if (index === -1) {
+        return [...prev, date];
+      } else {
+        return prev.filter((d) => d !== date);
+      }
+    });
+    console.log("Selected Dates: ", selectedDates);
+  }
+
+  const handleDomainSelection = (domain: string) => {
+    setSelectedDomains((prev) => {
+      const index = prev.indexOf(domain);
+      if (index === -1) {
+        return [...prev, domain];
+      } else {
+        return prev.filter((d) => d !== domain);
+      }
+    });
+    console.log("Selected Domains: ", selectedDomains);
+  }
+
+  const handleDimensionSelection = (domain: string, dimension: string) => {
+    setSelectedDimensionsByDomain((prev) => {
+      const selectedDimensions = prev[domain] || [];
+      const index = selectedDimensions.indexOf(dimension);
+      if (index === -1) {
+        return {
+          ...prev,
+          [domain]: [...selectedDimensions, dimension],
+        };
+      } else {
+        return {
+          ...prev,
+          [domain]: selectedDimensions.filter((d) => d !== dimension),
+        };
+      }
+    });
+    console.log("Selected Dimensions by Domain: ", selectedDimensionsByDomain);
+  }
+
+  
+  
+    const handleRangeChange = (event: Event) => {
+      if (event.type === "clear") {
+        setDateRange({ start: "", end: "" });
+        setDateValue("");
+        return;
+      }
+      // Cast the target to access both value (start) and valueEnd (end)
+      const target = event.target as HTMLInputElement;
+      const cutPosition = target.value.indexOf("/");
+      const start = target.value.substring(0, cutPosition);
+      const end = target.value.substring(cutPosition + 1);
+      console.log("Selected range: ", { start, end });
+      setDateRange({
+        start: start,    // e.g., "2026-05-19"
+        end: end,   // e.g., "2026-05-26" (or empty string if not clicked yet)
+      });
+      setDateValue(target.value);
+    };
+
 
   // Loading Errors
   if (configError)
@@ -786,7 +978,7 @@ function App() {
                   <div>
                     <p>Questionnaires</p>
                   </div>
-                  <div>
+                  <div className="tw:flex tw:flex-wrap tw:gap-x-4 tw:gap-y-2 tw:justify-start">
                     {questionnaires.map((questionnaire) => (
                       <label key={questionnaire.id} className="tw:label tw:text-gray-900">
                         <input type="checkbox" checked={selectedQuestionnaires.includes(questionnaire.id)} onChange={() => handleQuestionnaireSelection(questionnaire.id)} className="tw:checkbox" />
@@ -795,8 +987,24 @@ function App() {
                     ))}
                   </div>
                   <div>
-                    <p>Time Range</p> 
-                      <DateRangePicker />
+                    <p>Dates</p>
+                  </div>
+                  <div>
+                    <p>
+                      Select single dates
+                    </p>
+                  </div>
+                    <div className="tw:flex tw:flex-wrap tw:gap-x-4 tw:gap-y-2 tw:justify-start">
+                      {allDatesOfQuestionnaireResponses.map((date) => (
+                        <label key={date} className="tw:label tw:text-gray-900">
+                          <input type="checkbox" checked={selectedDates.includes(date)} onChange={() => handleDateSelection(date)} className="tw:checkbox" />
+                          {date}
+                        </label>
+                      ))}
+                    </div>
+                  <div>
+                    <p>Or select a date range</p>
+                    <DateRangePicker rangeHandler={handleRangeChange} dateValue={dateValue} range={dateRange}/>
                   </div>
                 </div>
               </div>
@@ -806,8 +1014,8 @@ function App() {
                   {/* <p>Total number of questionnaires: {Object.keys(questionnaireResponses).length}</p>
                 <p>Number of different questionnaires: {questionnaires.length}</p>
                 <p>Period of observations: {calculatePeriodOfObservations(questionnaireResponses)}</p> */}
-                  <p>Date | Completed Questionnaires</p>
-                  {Object.entries(questionnairesByDate).map(
+                  <p>Completed questionnaires by date</p>
+                  {Object.entries(questionnaireNamesByDate).map(
                     ([date, questionnaires]) => (
                       <div key={date}>
                         {date}:
@@ -835,7 +1043,7 @@ function App() {
                 {/* tw:col-span-3 tw:sm:col-span-3 tw:lg:col-span-1*/}
                 <div className="tw:card-body">
                   <h3 className="tw:card-title">Error Info</h3>
-                  <p>
+                  {/*<p>
                     For FHIR resources with follwing ids there have been errors
                     detected:
                   </p>
@@ -848,7 +1056,8 @@ function App() {
                   ) : (
                     <p>No errors detected</p>
                   )}
-                  {dataIssues.length > 0 && (
+                    */}
+                  {/* {dataIssues.length > 0 && (
                     <div>
                       <button
                         className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
@@ -859,8 +1068,8 @@ function App() {
                           : "Show error details"}
                       </button>
                     </div>
-                  )}
-                  {showErrors && dataIssues.length > 0 && (
+                  )} */}
+                  {/* {showErrors && dataIssues.length > 0 && (
                     <div className="tw:overflow-y-auto tw:flex-1">
                       {dataIssues.some((issue) => issue.level === "error") && (
                         <p className="tw:mb-2 tw:mt-2">
@@ -891,34 +1100,62 @@ function App() {
                         )}
                       </ul>
                     </div>
-                  )}
+                  )} */}
+                  {dataIssues.length > 0 ? (
+                    <div className="tw:overflow-y-auto tw:flex-1">
+                      <ul className="tw:list-disc tw:pl-5">
+                        {dataIssues.map(
+                          (issue) =>
+                            <li key={issue.id}>{issue.userMessage}</li>
+                        )}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p>No errors or warnings detected</p>
+                   )}
                 </div>
               </div>
             </div>
             {/* <div className="tw:divider" /> */}
-             <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+            {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                      Dimension Domain Mapping
+                    </h2>
+            <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-left tw:items-start">
+               { questionnaires && domainsSankeyData && (
+                Object.entries(domainsSankeyData).
+                map(([domain, questionnaireDimensionRecord]) => (
+                <DomainCard key={domain} domain={domain} dimensionsByQuestionnaireName={questionnaireDimensionRecord} />
+                )))
+                }
+            </div> */}
+            <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
+              <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
+                Domains-to-Dimensions Mapping
+              </h2>
+              <div className="tw:w-8/10 tw:px-16 tw:pb-2">
+              <div className="tw:text tw:text-left">
+                <p>The configuration file defines {domains.length} domains (depicted on the left of the Sankey chart). 
+                  Scores of questionnaires, i.e. the dimensions (in the middle of the chart with the respective questionnaire on the right), are assigned to a domain based on the configuration file. 
+                  The width of the flows and items in the Sankey chart do not encode any information.</p>
+              </div>
+              </div>
+              {questionnaires && domainsSankeyData && (
+                <SankeyChart data={domainsSankeyData} />
+              )}
+            </div>
+            
+           
+             {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                       Dimension Coverage by Questionnaire
                     </h2>
             <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-left tw:items-start">
-            
-              {/* {chartData && questionnaireCardData && (
-                <div className="flex flex-col">
-                  {dimensions.map(dim => (
-                    <div key={dim} className="h-6 text-xs flex items-center">
-                      {dim}
-                    </div>
-                  ))}
-                </div>
-              )} */}
                { questionnaires && questionnaireCardData && (
-                Object.entries(questionnaireCardData).filter(([id, _]) => (
-                  selectedQuestionnaires.includes(id)
-                )).
+                Object.entries(questionnaireCardData).
                 map(([id, [name, questionnaireDimensions]]) => (
                 <QuestionnaireCard key={id} questionnaire={{name: name, dimensions: questionnaireDimensions}} dimensions={domains} lengthOfLongestQuestionnaireName={lengthOfLongestQuestionnaireName} />
                 )))
                 }
-            </div>
+            </div> */}
            
             {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4">
               <div className="tw:col-span-15 tw:lg:col-span-15 tw:2xl:col-span-15">
@@ -943,9 +1180,11 @@ function App() {
               </div>
             </div> */}
             {/* 16 6 5*/}
-            <div className="tw:grid tw:grid-cols-12 tw:item-center tw:py-4">
-              {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
-                <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+            {/* <div className="tw:grid tw:grid-cols-12 tw:item-center tw:py-4"> */}
+            <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4 tw:mb-4">
+              
+              {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5"> */}
+                {/* <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                   Dimension Covering
                 </p>
                 {chartData && questionnaireCardData && (
@@ -961,28 +1200,49 @@ function App() {
               
           
                   <div className="tw:flex-1 tw:item-center tw:py-4"> */}
-                 
-              <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3">
-                {lineChartData && lineChartData.yData.length > 0 && (
+              
+                {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
+                {radarChartData && (
                   <>
-                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-                      Global Health Scores (Normalized)
+                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-2">
+                      Health Indication
                     </h2>
 
-                    <LineChart
-                      subtitle={
-                        "Questionnaires: " + scoreChartSubTitle.join(", ")
-                      }
-                      data={lineChartData}
+                    <RadarChart
+                      data={radarChartData}
+                      dimensions={domains}
                     />
                   </>
                 )}
-                {lineChartData === undefined || lineChartData.yData.length === 0 && (
+              </div> */}
+              <div className="tw:col-span-15 tw:lg:col-span-9 tw:2xl:col-span-10">
+                {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
+                {globalScoresDataSeries.length > 0 && (
+                  <>
+                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-2">
+                      Global Health
+                    </h2>
+                    <div>
+                      <p>The following chart shows the progress over time of those scores which represent global or overall health of the patient.</p>
+                    </div>
+                    <LineChart
+                      // subtitle={
+                      //   "Questionnaires: " + scoreChartSubTitle.join(", ")
+                      // }
+                      data={{
+                        xData: chartXData,
+                        yData: globalScoresDataSeries,
+                      }}
+                      title={"Normalized Global Health Scores over Time"}
+                    />
+                  </>
+                )}
+                {globalScoresDataSeries.length === 0 && (
                   <p className="tw:text-lg tw:text-center tw:text-[#333]">
                     No global health scores available
                   </p>
                 )}
-              </div>
+              </div>       
             </div>
             {/* <div className="tw:divider" /> */}
             {/* <div className="tw:flex-1 tw:item-center tw:py-4">
@@ -1007,12 +1267,83 @@ function App() {
             
           </div>
           </div> */}
-            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+          <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
+            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
               Selected PROs by Domain
             </h2>
-            <div className="tw:grid tw:grid-cols-6 tw:py-8 tw:gap-8">
-              {/* <div className="tw:join tw:join-vertical tw:bg-base-100" style={{display: "flex", alignItems: "center"}}>    */}
-              {domains && heatmapDataByDomain && domains
+            <div>
+              <p>Please select one or more domains to view the scores belonging to them.</p>
+              </div>
+            {/* <div className="tw:grid tw:grid-cols-6 tw:gap-8"> */}
+            <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start">
+            {domainsForChart.map((domain) => (
+              dimensionScoresDataSeriesByDomain[domain].length > 0 && (
+              <label key={domain} className="tw:label tw:text-gray-900">
+                <input type="checkbox" checked={selectedDomains.includes(domain)} onChange={() => handleDomainSelection(domain)} className="tw:checkbox" />
+                {domain}
+              </label>
+              )
+            ))}
+            </div>
+            {domainsForChart.length > 1 && (
+              <div>
+                <button
+                  className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
+                  onClick={() => selectAllDomains(domainsForChart)}
+                > 
+                  Select all
+                </button>
+              </div>
+            )}
+            
+            {selectedDomains.map((domain) => (
+              <>
+                {dimensionScoresDataSeriesByDomain[domain].length > 0 && (
+                  <LineChart 
+                    key={domain} 
+                    data={{
+                      xData: chartXData,
+                      yData: dimensionScoresDataSeriesByDomain[domain]}} 
+                    title={domain} 
+                  />
+                )}
+                {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
+                  <> 
+                    <div>
+                      <p>Please select one or more dimensions to view the scores (also shown above) and items belonging to them.</p>
+                    </div>
+                    <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start">
+                      {dimensionsByDomain[domain].map((dimension) => (
+                        itemDataSeriesByDomainAndDimension[domain][dimension].length > 0 && (
+                          <label key={dimension} className="tw:label tw:text-gray-900">
+                            <input type="checkbox" checked={selectedDimensionsByDomain[domain].includes(dimension)} onChange={() => handleDimensionSelection(domain, dimension)} className="tw:checkbox" />
+                            {dimension}
+                          </label>
+                        )
+                      ))}
+                    </div>
+                    {dimensionsByDomain[domain].length > 1 && (
+                      <div>
+                        <button
+                          className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
+                          onClick={() => selectAllDimensionsForDomain(domain, dimensionsByDomain[domain])}
+                        > 
+                          Select all
+                        </button>
+                      </div>
+                    )}
+                    {selectedDimensionsByDomain[domain] !== undefined && selectedDimensionsByDomain[domain].length > 0 && selectedDimensionsByDomain[domain].map((dimension) => (
+                      <LineChart key={dimension} data={{
+                        xData: chartXData,
+                        yData: itemDataSeriesByDomainAndDimension[domain][dimension]}} title={`${domain} - ${dimension}`} />
+                    ))}
+                  </>
+                )}
+              </>
+            ))}
+            
+              
+              {/* {heatmapDataByDomain && Object.keys(heatmapDataByDomain)
                 .map((domain) => (
                   <div
                     key={domain}
@@ -1031,18 +1362,12 @@ function App() {
                     </div>
                   )}
                   </div>
-                ))}
-              {/* {unusedDimensions.map((dimension) => (
-                <React.Fragment key={dimension}>
-                  <p className="tw:text-lg tw:font-bold tw:text-[#333]">{dimension}</p>
-                  <Collapse title={dimension} children={"No data available"}/>
-                </React.Fragment>
-              ))
-              } */}
-              {/* </div> */}
-            </div>
-
-            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                ))} */}
+              
+            {/* </div> */}
+          </div>
+                 <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
+            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
               Complete PROs by PROM/Questionnaire
             </h2>
 
@@ -1073,14 +1398,12 @@ function App() {
             //   </div>
             // </div> */}
 
-            <div className="tw:flex-1 tw:py-8">
+            
               <div
                 className="tw:join tw:join-vertical tw:bg-base-100"
                 style={{ display: "flex", alignItems: "center" }}
               >
-                {questionnaires && tableDataByQuestionnaire && questionnaires.filter((questionnaire) => (
-                  selectedQuestionnaires.includes(questionnaire.id)
-                )).
+                {questionnaires && tableDataByQuestionnaire && questionnaires.
                 map((questionnaire) => (
                   <React.Fragment key={questionnaire.id}>
                     {tableDataByQuestionnaire[questionnaire.id] !== undefined && (
@@ -1090,12 +1413,12 @@ function App() {
                         <SimpleDataTable
                           data={tableDataByQuestionnaire[questionnaire.id]}
                           domains={domains}
-                          errors={
-                            itemWarningsByQuestionnaireId[questionnaire.id] !==
-                            undefined
-                              ? itemWarningsByQuestionnaireId[questionnaire.id]
-                              : undefined
-                          }
+                          // errors={
+                          //   itemWarningsByQuestionnaireId[questionnaire.id] !==
+                          //   undefined
+                          //     ? itemWarningsByQuestionnaireId[questionnaire.id]
+                          //     : undefined
+                          // }
                          
                         />
                       }
@@ -1104,6 +1427,7 @@ function App() {
                 ))}
               </div>
             </div>
+            
 
             {/* <div className="tw:flex-1 tw:item-center tw:py-4"> */}
             {/* <button onClick={toggleExpandAll} className="tw:btn">

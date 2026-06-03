@@ -10,6 +10,7 @@ import {
   BarChart,
   PieChart,
   RadarChart,
+  SankeyChart,
 } from "echarts/charts";
 import {
   LegendComponent,
@@ -38,6 +39,7 @@ use([
   ToolboxComponent,
   DataZoomComponent,
   CanvasRenderer,
+  SankeyChart,
 ]);
 
 export const ReactEChartsWrapper = forwardRef<
@@ -116,7 +118,7 @@ export const ReactEChartsWrapper = forwardRef<
       // chart?.setOption(option, settings);
       // const chartInstanceRef = useRef<ECharts | null>(null);
       chartRef.current?.setOption(option, {
-        notMerge: false,
+        notMerge: true,
         replaceMerge: undefined,
         lazyUpdate: false,
         ...settings,

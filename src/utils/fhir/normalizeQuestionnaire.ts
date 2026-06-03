@@ -1,13 +1,13 @@
 import type { NormalizedFHIR } from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { type Errors } from "@utils/errors";
 
 export const normalizeQuestionnaire = (
   resource: any,
-): GlobalTypes.Result<NormalizedFHIR.Questionnaire> => {
+): Errors.Result<NormalizedFHIR.Questionnaire> => {
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
-  const issues: GlobalTypes.DataIssue[] = [];
+  const issues: Errors.DataIssue[] = [];
 
   const extractAnswerOptions = (item: any): NormalizedFHIR.AnswerOption[] => {
     let answerOptions: any[] = [];
@@ -88,9 +88,12 @@ export const normalizeQuestionnaire = (
     return answerOptions; // can be empty
   };
 
-  const extractReferenceQuestionnaireItems = (item: any) => {
-    let referenceQuestionnaireItems: string[] = [];
-
+  const extractReferenceQuestionnaireItemsAndScoreExpression = (item: any): {
+    referenceQuestionnaireItems: string[] | undefined;
+    scoreExpression: string | undefined;
+  } => {
+    const referenceQuestionnaireItems: string[] = [];
+    let scoreExpression: string | undefined = undefined;
     let calculationFormula = item.extension?.find((ext: any) => {
       return ext.valueExpression?.expression !== undefined;
     })?.valueExpression.expression;
@@ -117,11 +120,15 @@ export const normalizeQuestionnaire = (
         referencedLinkIds.splice(referencedLinkIds.indexOf(item.linkId));
       }
       referenceQuestionnaireItems.push(...referencedLinkIds);
+      scoreExpression = calculationFormula;
     }
 
-    return referenceQuestionnaireItems.length > 0
+    return {
+      referenceQuestionnaireItems: referenceQuestionnaireItems.length > 0
       ? referenceQuestionnaireItems
-      : undefined;
+      : undefined, 
+      scoreExpression: scoreExpression
+    }
   };
 
   const extractRange = (item: any): [number, number] | undefined => {
@@ -172,17 +179,20 @@ export const normalizeQuestionnaire = (
         // type immer gegeben
         continue;
       }
-      const referenceQuestionnaires = extractReferenceQuestionnaireItems(item);
+      const {referenceQuestionnaireItems, scoreExpression} = extractReferenceQuestionnaireItemsAndScoreExpression(item);
       const itemValueRange = extractRange(item);
 
       items[item.linkId] = {
         linkId: item.linkId, // immer gegeben
         text: item.text, // optional
         answerOptions: extractAnswerOptions(item),
-        ...(referenceQuestionnaires !== undefined && {
-          referenceQuestionnaireItems: referenceQuestionnaires,
+        ...(referenceQuestionnaireItems !== undefined && {
+          referenceQuestionnaireItems: referenceQuestionnaireItems,
         }),
         ...(itemValueRange !== undefined && { range: itemValueRange }),
+        ...(scoreExpression !== undefined && {
+          scoreExpression: scoreExpression,
+        }),
       };
 
       if (item.item) {

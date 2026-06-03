@@ -13,6 +13,7 @@ import type {
   CustomSeriesOption,
   HeatmapSeriesOption,
   RadarSeriesOption,
+  SankeySeriesOption,
 } from "echarts/charts";
 import type {
   TitleComponentOption,
@@ -39,6 +40,7 @@ export namespace Visualization {
     | CustomSeriesOption
     | HeatmapSeriesOption
     | RadarSeriesOption
+    | SankeySeriesOption
   >;
 
   interface ReactEChartsWrapperProps {
@@ -61,10 +63,14 @@ export namespace Visualization {
     originalData: NumberOrNull[];
     dataLabels: string[];
     seriesType: ItemType;
-    domain: string;
-    questionnaire: string; // questionnaireId
+    // domain: string;
+    questionnaireId: string; // questionnaireId
     questionnaireName: string;
-    referencedItems?: string[]; // linkIds of items used for score calculation
+    // isDomainScore: boolean;
+    // isDimensionScore: boolean;
+    // isGlobalScore: boolean;
+    // referencedItems?: string[]; // linkIds of items used for score calculation
+    // dimension?: string;
   }
 
   interface ChartData {
@@ -72,9 +78,9 @@ export namespace Visualization {
     yData: DataSeries[];
   }
 
-  interface RadarData {
-    data: Record<string, string[]>;
-  }
+  // interface RadarData {
+  //   data: Record<string, string[]>;
+  // }
 
   interface ChartProps {
     title?: string;
@@ -101,7 +107,7 @@ export namespace Visualization {
   interface RadarProps {
     title?: string;
     subtitle?: string;
-    data: RadarData;
+    data: Record<string, string[]>;
     dimensions: string[];
   }
 
@@ -135,6 +141,27 @@ export namespace Visualization {
   interface DatePickerProps {
     isStart: boolean;
   }
+
+  interface DomainCardProps {
+    domain: string;
+    dimensionsByQuestionnaireName: Record<string, string[]>;
+    colors?: string[];
+  }
+
+  interface SankeyProps {
+    data: Record<string, Record<string, string[]>>;
+  }
+
+  interface RangeState {
+  start: string;
+  end: string;
+}
+
+interface DateRangePickerProps {
+  rangeHandler: (event: Event) => void;
+  dateValue: string;
+  range: RangeState;
+}
 
   /* interface MatrixItem {
     id: string;

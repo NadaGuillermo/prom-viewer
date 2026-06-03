@@ -5,7 +5,7 @@ import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   isScoreSeries,
   getLabelFromOriginalValueAndDataSeriesName,
-  getNameForDataSeriesFromShortName, type Visualization,
+  getDataSeriesNameFromShortName, type Visualization,
 } from "@utils/visualization";
 import * as _ from "lodash-es";
 

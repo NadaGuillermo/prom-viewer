@@ -1,5 +1,5 @@
 
-export const globalDimension = "Overall Health";
+// export const globalDimension = "Overall Health";
 // export const otherDimension = "Other";
 export const unspecifiedDimension = "Unspecified";
 

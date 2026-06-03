@@ -7,6 +7,14 @@ const ErrorModal = ({ data, open, onClose }: Visualization.ErrorModalProps) => {
     <div className="tw:fixed tw:inset-0 tw:flex tw:items-center tw:justify-center tw:z-50">
       <div className="tw:absolute tw:inset-0 tw:bg-gray-50 tw:opacity-75"></div>
       <div className="tw:relative tw:bg-base-100 tw:p-6 tw:rounded-xl tw:shadow-xl tw:z-10 tw:w-96 tw:max-h-[80vh] tw:flex tw:flex-col">
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="tw:absolute tw:right-3 tw:top-3 tw:h-9 tw:w-9 tw:rounded-full tw:border tw:border-transparent tw:bg-base-200 tw:text-sm tw:font-semibold tw:text-gray-600 tw:hover:cursor-pointer tw:hover:bg-base-300 tw:hover:text-gray-900 tw:focus:outline-none tw:focus:ring-2 tw:focus:ring-primary"
+        >
+          ×
+        </button>
         <div className="tw:p-4">
           <div className="tw:text-xl tw:font-semibold tw:mb-2">Data Issues</div>
           <div>Some issues have occured while processing the data.</div>
@@ -26,7 +34,7 @@ const ErrorModal = ({ data, open, onClose }: Visualization.ErrorModalProps) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-error tw:alert-outline tw:mb-2"
                 >
-                  <p>{issue.message}</p>
+                  <p>{issue.userMessage}</p>
                 </div>
               ),
           )}
@@ -44,7 +52,7 @@ const ErrorModal = ({ data, open, onClose }: Visualization.ErrorModalProps) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-warning tw:alert-outline tw:mb-2"
                 >
-                  <p>{issue.message}</p>
+                  <p>{issue.userMessage}</p>
                 </div>
               ),
           )}

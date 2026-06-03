@@ -1,20 +1,20 @@
 import type { NormalizedFHIR } from "@utils/fhir";
 import type { Mapping } from "./types";
 import { convertFhirDateTimeToDateFormat } from "./helpers";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { issueFactories, type Errors } from "@utils/errors";
 
 export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
   (
     questionnaireResponse: NormalizedFHIR.QuestionnaireResponse,
     questionnaires: Mapping.Questionnaire[],
-  ): GlobalTypes.Result<Mapping.QuestionnaireResponse> => {
+  ): Errors.Result<Mapping.QuestionnaireResponse> => {
     const responseId = questionnaireResponse.id;
     const questionnaireUrl = questionnaireResponse.questionnaire;
     const authored = convertFhirDateTimeToDateFormat(
       questionnaireResponse.authored,
     );
     const items: Record<string, Mapping.ResponseItem> = {};
-    const issues: GlobalTypes.DataIssue[] = [];
+    const issues: Errors.DataIssue[] = [];
 
     // Potential errors: no items in questionnaireResponse, answer not convertible to number,
     // questionnaire reference invalid
@@ -24,14 +24,7 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
       questionnaireResponse.items === undefined ||
       Object.keys(questionnaireResponse.items).length === 0
     ) {
-      issues.push({
-        id: `issue-questionnaireResponse-${Math.random().toString(36).substring(2, 9)}`,
-        level: "error",
-        message: `QuestionnaireResponse with id ${responseId} has no items and is therefore omitted.`,
-        resourceId: responseId,
-        resourceType: "QuestionnaireResponse",
-        linkId: undefined,
-      });
+      issues.push(issueFactories.questionnaireResponse.missingItems(questionnaireResponse));
     }
     Object.entries(questionnaireResponse.items).forEach(([linkId, item]) => {
       const answer = item.answer;
@@ -45,15 +38,7 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
           answer === null || Number.isNaN(answerNumber) ? null : Number(answer),
       };
       if (Number.isNaN(answerNumber)) {
-        issues.push({
-          id: `issue-questionnaireResponse-item-${Math.random().toString(36).substring(2, 9)}`,
-          level: "error",
-          message: `Answer for item with linkId ${linkId} in QuestionnaireResponse with Id ${responseId} 
-            could not be converted or mapped to a number and is therefore omitted. Answer was: ${answer}.`,
-          resourceId: responseId,
-          resourceType: "QuestionnaireResponse",
-          linkId: linkId,
-        });
+        issues.push(issueFactories.questionnaireResponse.invalidItemValueType(questionnaireResponse, linkId, answer));
       }
     });
 

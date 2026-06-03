@@ -1,11 +1,11 @@
 import type { NormalizedFHIR } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { issueFactories, type Errors } from "@utils/errors";
 import { getQuestionnaireResponseIdFromObservationReferenceAttribute } from "./utils";
 
 export const normalizeObservation = (
   resource: any,
-): GlobalTypes.Result<NormalizedFHIR.Observation> => {
-  const issues: GlobalTypes.DataIssue[] = [];
+): Errors.Result<NormalizedFHIR.Observation> => {
+  const issues: Errors.DataIssue[] = [];
 
   const questionnaireResponse =
     getQuestionnaireResponseIdFromObservationReferenceAttribute(resource);
@@ -17,21 +17,12 @@ export const normalizeObservation = (
     ? resource.valueQuantity.value
     : null;
 
-  if (
-    questionnaireResponse === undefined ||
-    observationDefinition === undefined
-  ) {
-    issues.push({
-      id: `issue-observation-${resource.id}-${Math.random().toString(36).substring(2, 9)}`,
-      level: "error",
-      message: `Observation with id ${resource.id} does not reference any ${questionnaireResponse === undefined ? "QuestionnaireResponse" : ""} 
-                ${questionnaireResponse === undefined && observationDefinition === undefined ? "and" : ""} 
-                ${observationDefinition === undefined ? "ObservationDefinition" : ""} and will therefore be omitted.`,
-      resourceId: resource.id,
-      resourceType: "Observation",
-      linkId: undefined,
-    });
-  }
+    if (questionnaireResponse === undefined) {
+      issues.push(issueFactories.observation.missingQuestionnaireResponse(resource));
+    }
+    if (observationDefinition === undefined) {
+      issues.push(issueFactories.observation.missingObservationDefinition(resource));
+    }
 
   return {
     data: {

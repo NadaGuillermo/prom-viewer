@@ -1,12 +1,12 @@
 import type { NormalizedFHIR } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { issueFactories, type Errors } from "@utils/errors";
 
 export const normalizeQuestionnaireResponse = (
   resource: any,
   normalizedQuestionnaires: NormalizedFHIR.Questionnaire[],
-): GlobalTypes.Result<NormalizedFHIR.QuestionnaireResponse> => {
+): Errors.Result<NormalizedFHIR.QuestionnaireResponse> => {
   const items: Record<string, NormalizedFHIR.ResponseItem> = {};
-  const issues: GlobalTypes.DataIssue[] = [];
+  const issues: Errors.DataIssue[] = [];
 
   const extractValue = (answer: any, linkId: string): NormalizedFHIR.Answer => {
     if (!answer) return null;
@@ -29,16 +29,7 @@ export const normalizeQuestionnaireResponse = (
       (q) => q.url === resource.questionnaire,
     );
     if (questionnaire === undefined) {
-      issues.push({
-        id: `issue-questionnaireResponse-${Math.random().toString(36).substring(2, 9)}`,
-        level: "warning",
-        message: `QuestionnaireResponse with id ${resource.id} references a 
-         url ${resource.questionnaire} that does not point to a questionnaire named in the configuration file or is corrupted. 
-         The Questionnaire Response is therefore omitted.`,
-        resourceId: resource.id,
-        resourceType: "QuestionnaireResponse",
-        linkId: undefined,
-      });
+      issues.push(issueFactories.questionnaireResponse.missingQuestionnaire(resource));
     }
     const item = questionnaire?.items[linkId];
     // lookup in answerOptions
@@ -59,14 +50,7 @@ export const normalizeQuestionnaireResponse = (
       if (item.answer && item.answer.length > 0) {
         // only use first answer! otherwise add warning
         if (item.answer.length > 1) {
-          issues.push({
-            id: `issue-questionnaireResponse-item-${Math.random().toString(36).substring(2, 9)}`,
-            level: "warning",
-            message: `Item with linkId ${item.linkId} has more than one answer. Only the first answer will be kept. Answers: ${JSON.stringify(item.answer)}`,
-            resourceId: resource.id,
-            resourceType: "QuestionnaireResponse",
-            linkId: item.linkId,
-          });
+          issues.push(issueFactories.questionnaireResponse.multipleItemValues(resource, item.linkId, item.answer));
         }
         //for (const ans of item.answer) {
         items[item.linkId] = {

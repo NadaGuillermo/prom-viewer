@@ -100,12 +100,14 @@ export const createChartData = (
           dataLabels.push("");
         }
       });
-      let seriesType: string;
+      
+      const questionnaire = questionnaireResponses[0].questionnaire;
       const questionnaireItem =
-        questionnaireResponses[0].questionnaire.items[linkId];
+        questionnaire.items[linkId];
       // // console.log("questionnaireItem: ", questionnaireItem)
       // // console.log(isQuestionnaireScoreItem(questionnaireItem))
       // // console.log(isDimensionScoreItem(questionnaireItem))
+      let seriesType: string;
       if (isQuestionnaireScoreItem(questionnaireItem)) {
         seriesType = ITEM_TYPES.score;
       } else {
@@ -121,23 +123,19 @@ export const createChartData = (
           referencedItems = questionnaireItem.referenceQuestionnaireItems;
         }
       }
+      const shortLinkId = linkId.slice(0, 25);
 
       dataSeriesOfQuestionnaire.push({
         id: linkId,
-        name:
-          questionnaireResponses[0].questionnaire.items[linkId].text ?? linkId,
+        name: questionnaire.items[linkId].text ?? linkId,
         shortName:
-          questionnaireResponses[0].questionnaire.items[linkId].shortText ??
-          linkId,
+          questionnaire.items[linkId].shortText ?? shortLinkId,
         data: data,
         originalData: originalData,
         dataLabels: dataLabels,
         seriesType: seriesType,
-        domain:
-          questionnaireResponses[0].questionnaire.items[linkId].domain,
-        questionnaire: questionnaireResponses[0].questionnaire.id,
-        questionnaireName: questionnaireResponses[0].questionnaire.name,
-        referencedItems: referencedItems,
+        questionnaireId: questionnaire.id,
+        questionnaireName: questionnaire.name,
       });
     });
 
@@ -191,8 +189,7 @@ export const createRadarChartData = (
       originalData: data,
       dataLabels: [],
       seriesType: ITEM_TYPES.score,
-      domain: dimension,
-      questionnaire: "",
+      questionnaireId: "",
       questionnaireName: "",
     });
   });

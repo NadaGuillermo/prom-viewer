@@ -11,11 +11,11 @@ const RadarChart = ({
   // const allDimensions = Object.values(data.data).flatMap((dimensions) => dimensions);
   // const uniqueDimensions = [...new Set(dimensions)].sort();
 
-  const chartData = Object.entries(data.data).map(([questionnaire, questionnaireDimensions]) => ({
+  const chartData = Object.entries(data).map(([questionnaire, questionnaireDimensions]) => ({
     name: questionnaire,
     value: dimensions.map((dimension) => {
       if (questionnaireDimensions.includes(dimension)) {
-        return 1;
+        return Math.min(Math.random() + Math.random(), 0.95);
       } else {
         return 0;
       }
@@ -78,7 +78,7 @@ const RadarChart = ({
       subtext: subtitle,
     },
     legend: {
-      // orient: 'vertical',
+      orient: 'vertical',
       //left: 'right',
       // top: 'middle',
       // right: "25%",
@@ -92,12 +92,12 @@ const RadarChart = ({
     radar: {
       indicator: radarIndicators,
       //shape: 'circle',
-      splitNumber: 0,
+      // splitNumber: 0,
       axisLine: {
-        show: false,
+        show: true, //false,
       },
       splitLine: {
-        show: false,
+        show: true, //false,
       },
     },
     series: [

@@ -31,97 +31,120 @@
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable",
       "domainItemMapping": [
         {
-          "domain": "Mobility",
+          "domain": "Physical Behavior",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q01-MO",
               "shortName": "Mobility",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension":"Mobility"
             }
           ]
         },
         {
-          "domain": "Self-Care",
+          "domain": "Social Role",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q02-SC",
               "shortName": "Self-Care",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Self-Care"
             }
           ]
         },
         {
-          "domain": "Usual Activities",
+          "domain": "Social Role",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q03-UA",
               "shortName": "Usual Activities",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Usual Activities"
             }
           ]
         },
         {
-          "domain": "Pain/Discomfort",
+          "domain": "Emotional Behavior",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q04-PD",
               "shortName": "Pain/Discomfort",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Pain/Discomfort"
             }
           ]
         },
         {
-          "domain": "Anxiety/Depression",
+          "domain": "Emotional Behavior",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q05-AD",
               "shortName": "Anxiety/Depression",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Anxiety/Depression"
             }
           ]
         },
         {
           "domain": "Global Health",
-          "isGlobalHealthDimension": true,
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-vas",
               "shortName": "EQ VAS",
-              "isDimensionScore": true
+              "isDimensionScore": false
             },
             {
                 "itemId": "euroqol-eq5d5l-score-index",
                 "shortName": "EQ Index",
-                "isDimensionScore": true
+                "isDimensionScore": false
             }
           ]
         }
-      ]
+      ],
+      "globalScores": ["euroqol-eq5d5l-score-index", "euroqol-eq5d5l-vas"]
     },
     {
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
       "domainItemMapping": [
         {
           "domain": "Global Health",
-          "isGlobalHealthDimension": true,
           "questions": [
             {
               "itemId": "qlq-c30-q29"
             }, 
             {
-                "itemId": "qlq-c30-q30"
+              "itemId": "qlq-c30-q30"
             },
             {
               "itemId": "score-ql",
               "shortName": "QoL",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-qlq-c30-ql",
               "scoreDefinitionId": "eortc-global-health",
-              "isDimensionScore": true
+              "isDimensionScore": false
             }
           ]
         },
         {
-          "domain": "Functional",
+          "domain": "Social Role",
+          "questions": [
+            {
+              "itemId": "qlq-c30-q06"
+            },
+            {
+              "itemId": "qlq-c30-q07"
+            },
+            {
+                "itemId": "score-rf",
+                "shortName": "Role Funcion",
+                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-rf",
+                "scoreDefinitionId": "eortc-functional",
+                "isDimensionScore": true,
+                "dimension": "Role Function"
+            }
+          ]
+        },
+        {
+          "domain": "Physical Behavior",
           "questions": [
             {
               "itemId": "qlq-c30-q01"
@@ -139,14 +162,18 @@
               "itemId": "qlq-c30-q05"
             },
             {
-              "itemId": "qlq-c30-q06"
-            },
-            {
-              "itemId": "qlq-c30-q07"
-            },
-             {
-              "itemId": "qlq-c30-q20"
-            },
+                "itemId": "score-pf",
+                "shortName": "Physical Function",
+                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pf",
+                "scoreDefinitionId": "eortc-functional",
+                "isDimensionScore": true,
+                "dimension": "Physical Function"
+            }
+          ]
+        },
+        {
+          "domain": "Emotional Behavior",
+          "questions": [
             {
               "itemId": "qlq-c30-q21"
             },
@@ -159,49 +186,51 @@
             {
               "itemId": "qlq-c30-q24"
             },
+            {
+              "itemId": "score-ef",
+              "shortName": "Emotional Function",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-ef",
+              "scoreDefinitionId": "eortc-functional",
+              "isDimensionScore": true,
+              "dimension": "Emotional Function"
+            }
+          ]
+        },
+        {
+          "domain": "Cognitive Function",
+          "questions": [
+             {
+              "itemId": "qlq-c30-q20"
+            },
               {
               "itemId": "qlq-c30-q25"
-            },
-            {
-              "itemId": "qlq-c30-q26"
-            },
-            {
-              "itemId": "qlq-c30-q27"
-            },
-            {
-                "itemId": "score-pf",
-                "shortName": "Physical Function",
-                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pf",
-                "scoreDefinitionId": "eortc-functional",
-                "isDimensionScore": true
-            },
-            {
-                "itemId": "score-rf",
-                "shortName": "Role Funcion",
-                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-rf",
-                "scoreDefinitionId": "eortc-functional",
-                "isDimensionScore": true
             },
             {
               "itemId": "score-cf",
               "shortName": "Cognitive Function",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-cf",
               "scoreDefinitionId": "eortc-functional",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Cognitive Function"
+            }
+          ]
+        },
+        {
+          "domain": "Social Role",
+          "questions": [
+            {
+              "itemId": "qlq-c30-q26"
             },
             {
-              "itemId": "score-ef",
-              "shortName": "Emotional Function",
-              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-ef",
-              "scoreDefinitionId": "eortc-functional",
-              "isDimensionScore": true
+              "itemId": "qlq-c30-q27"
             },
              {
               "itemId": "score-sf",
               "shortName": "Social Function",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-sf",
               "scoreDefinitionId": "eortc-functional",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Social Function"
             }
           ]
         },
@@ -213,14 +242,16 @@
               "shortName": "Pain",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pa",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Pain"
             },
             {
                 "itemId": "score-fa",
                 "shortName": "Fatigue",
                 "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fa",
                 "scoreDefinitionId": "eortc-symptom",
-                "isDimensionScore": true
+                "isDimensionScore": true,
+                "dimension": "Fatigue"
             },
             {
               "itemId": "score-nv",
@@ -234,35 +265,40 @@
               "shortName": "Dyspnea",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-dy",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Dyspnea"
             },
             {
               "itemId": "score-sl",
               "shortName": "Insomnia",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-sl",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Insomnia"
             },
             {
               "itemId": "score-ap",
               "shortName": "Loss of appetite",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-ap",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Loss of appetite"
             },
             {
               "itemId": "score-co",
               "shortName": "Constipation",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-co",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Constipation"
             },
             {
               "itemId": "score-di",
               "shortName": "Diarrhea",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-di",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Dierrhea"
             }
           ]
         },
@@ -308,11 +344,13 @@
                     "shortName": "Financial Difficulties",
                     "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fi",
                     "scoreDefinitionId": "eortc-symptom",
-                    "isDimensionScore": true
+                    "isDimensionScore": true,
+                    "dimension": "Financial Difficulties"
                 }
             ]
         }
-      ]
+      ],
+      "globalScores": ["score-ql"]
     }
   ]
 }

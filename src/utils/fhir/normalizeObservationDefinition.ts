@@ -1,10 +1,10 @@
 import type { NormalizedFHIR } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import { type Errors } from "@utils/errors";
 
 export const normalizeObservationDefinition = (
   resource: any,
-): GlobalTypes.Result<NormalizedFHIR.ObservationDefinition> => {
-  const issues: GlobalTypes.DataIssue[] = [];
+): Errors.Result<NormalizedFHIR.ObservationDefinition> => {
+  const issues: Errors.DataIssue[] = [];
 
   const range = resource.qualifiedInterval?.find((interval: any) => {
     return interval.range != undefined;
@@ -23,21 +23,6 @@ export const normalizeObservationDefinition = (
     .valueCodeableConcept?.coding?.find((cod: any) => {
       return cod.code != undefined;
     })?.code;
-
-  // error wenn lowerBound und upperBound definiert, aber keine Zahlen
-  if (
-    (lowerBoundary !== undefined && isNaN(lowerBoundNumber)) ||
-    (upperBoundary !== undefined && isNaN(upperBoundNumber))
-  ) {
-    issues.push({
-      id: `issue-observationDefinition-${Math.random().toString(36).substring(2, 9)}`,
-      level: "warning",
-      message: `Range in ObservationDefinition with id ${resource.id} cannot be converted to a number. Range is: [${lowerBoundary}, ${upperBoundary}].`,
-      resourceId: resource.id,
-      resourceType: "ObservationDefinition",
-      linkId: undefined,
-    });
-  }
 
   return {
     data: {
