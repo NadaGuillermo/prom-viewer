@@ -2,6 +2,7 @@ import type { NormalizedFHIR } from "@utils/fhir";
 import type { Mapping } from "./types";
 import { convertFhirDateTimeToDateFormat } from "./helpers";
 import { issueFactories, type Errors } from "@utils/errors";
+import { isQuestionnaireItem } from "./utils";
 
 export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
   (
@@ -26,25 +27,40 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
     ) {
       issues.push(issueFactories.questionnaireResponse.missingItems(questionnaireResponse));
     }
+    const correspondingQuestionnaire = questionnaires.find(
+      (q) => q.url === questionnaireUrl,
+    );
+
     Object.entries(questionnaireResponse.items).forEach(([linkId, item]) => {
       const answer = item.answer;
+      const answerNumber = Number(answer);
+      let answerShouldBeNull = false;
+
+      if(answer === null) {
+        answerShouldBeNull = true;
+      }
 
       // Error: answer is not a number
-      const answerNumber = Number(answer);
+      if (Number.isNaN(answerNumber)) {
+        issues.push(issueFactories.questionnaireResponse.invalidItemValueType(questionnaireResponse, linkId, answer));
+        answerShouldBeNull = true;
+      }
+
+      // Error: answer not in answerOptions
+      if (correspondingQuestionnaire && isQuestionnaireItem(correspondingQuestionnaire.items[linkId])) {
+        const answerOptionsValues = (correspondingQuestionnaire?.items[linkId] as Mapping.QuestionnaireItem).answerOptions.map((opt) => opt.value);
+        if (!answerOptionsValues.includes(answerNumber)) {
+          issues.push(issueFactories.questionnaireResponse.invalidItemValue(questionnaireResponse, linkId, answer));
+          answerShouldBeNull = true;
+        }
+      }
 
       items[linkId] = {
         linkId: linkId,
         answer:
-          answer === null || Number.isNaN(answerNumber) ? null : Number(answer),
+          answerShouldBeNull ? null : answerNumber,
       };
-      if (Number.isNaN(answerNumber)) {
-        issues.push(issueFactories.questionnaireResponse.invalidItemValueType(questionnaireResponse, linkId, answer));
-      }
     });
-
-    const correspondingQuestionnaire = questionnaires.find(
-      (q) => q.url === questionnaireUrl,
-    );
 
     // Error: invalid questionnaire reference
     // never the case since filtered after normalization

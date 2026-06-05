@@ -67,6 +67,23 @@ export const issueFactories = {
           value: values,
         }
       }),
+    invalidItemValue: (resource: NormalizedFHIR.QuestionnaireResponse, linkId: string, value: any): Errors.DataIssue => 
+      createIssue({
+        code: DataIssueCode.INVALID_VALUE,
+        level: "warning",
+
+        message: `Invalid value for item ${linkId} in QuestionnaireResponse.`,
+
+        resourceType: "QuestionnaireResponse",
+
+        showUser: false,
+
+        context: {
+          resourceId: resource.id,
+          field: linkId,
+          value: value,
+        } 
+      }),
     missingItems: (resource: NormalizedFHIR.QuestionnaireResponse): Errors.DataIssue => 
       createIssue({
         code: DataIssueCode.QR_EMPTY,
@@ -125,7 +142,7 @@ export const issueFactories = {
     invalidItemAnswerOption: (resource: any, linkId: string, value: any): Errors.DataIssue => 
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
-        level: "error",
+        level: "warning",
 
         message: `Invalid type for at least one answerOption of item ${linkId} in Questionnaire. Expected type: convertible to number`,
         

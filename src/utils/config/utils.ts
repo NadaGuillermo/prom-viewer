@@ -1,4 +1,4 @@
-import { type Mapping, SCORE_HEALTH_CORRELATIONS } from "@utils/mapping";
+import { type Mapping, SCORE_HEALTH_CORRELATIONS, isScoreItem } from "@utils/mapping";
 
 import { issueFactories, type Errors } from "@utils/errors";
 
@@ -27,12 +27,6 @@ export const getEmptyAnswerOptions = (
 ): string[] => {
   const questionnaireItems = questionnaire.items;
   const answerOptionsNotDefined: string[] = [];
-
-  const isScoreItem = (
-    item: Mapping.Item,
-  ): item is Mapping.QuestionnaireScoreItem => {
-    return (item as Mapping.QuestionnaireScoreItem).range !== undefined;
-  };
 
   Object.entries(questionnaireItems).forEach(([linkId, item]) => {
     if (!isScoreItem(item)) {

@@ -73,7 +73,7 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       linkId: linkId,
       domain: unspecifiedDimension,
       answerOptions: filteredAnswerOptions,
-      ...(item.text !== undefined && { text: item.text}),
+      ...(item.text !== undefined && {text: item.text}),
       ...(range !== undefined && { range: range }),
       ...(scoreHealthCorrelation !== undefined && {
         scoreHealthCorrelation: scoreHealthCorrelation,

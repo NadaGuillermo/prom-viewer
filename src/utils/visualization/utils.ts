@@ -94,11 +94,11 @@ export const getDataSeriesNameFromShortName = (
 };
 
 // ok
-export const isQuestionnaireScoreItem = (
-  item: Mapping.Item,
-): item is Mapping.QuestionnaireScoreItem => {
-  return (item as Mapping.QuestionnaireScoreItem).range !== undefined;
-};
+// export const isQuestionnaireScoreItem = (
+//   item: Mapping.Item,
+// ): item is Mapping.QuestionnaireScoreItem => {
+//   return (item as Mapping.QuestionnaireScoreItem).range !== undefined;
+// };
 
 export const groupItemsByDomain = (items: Visualization.DataSeries[]) => {
   const itemsByDomain = _.groupBy(items, (item) => item.domain);
@@ -596,10 +596,9 @@ export const createTableData = (
 };
 
 export const createDomainQuestionnaireNamesDimensionsRecord = (
-  domains: string[],
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
 ): Record<string, Record<string, string[]>> => {
-
+  const domains = Object.keys(dimensionScoresDataSeriesByDomain);
   const dimensionsByQuestionnaireAndDomain: Record<string, Record<string, string[]>> = {};
   domains.forEach((domain) => {
     if(!dimensionsByQuestionnaireAndDomain[domain]) {
@@ -620,6 +619,37 @@ export const createDomainQuestionnaireNamesDimensionsRecord = (
   });
 
   return dimensionsByQuestionnaireAndDomain;
+}
+
+export const createDomainDimensionQuestionnaireTupleArray = (
+  dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
+): [string, string, string][] => {
+  const domainDimensionQuestionnaireTuples: [string, string, string][] = [];
+  Object.entries(dimensionScoresDataSeriesByDomain).forEach(([domain, dimensionScoresDataSeries]) => {
+    dimensionScoresDataSeries.forEach((series) => {
+      const dimension = series.shortName;
+      const questionnaireName = series.questionnaireName;
+      domainDimensionQuestionnaireTuples.push([domain, dimension, questionnaireName]);
+    });
+  });
+  return domainDimensionQuestionnaireTuples;
+}
+
+export const createDimensionWithQuestionnaireByDomainRecord = (
+  dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
+): Record<string, [string, string][]> => {
+   const domainDimensionQuestionnaireRecord: Record<string, [string, string][]> = {};
+  Object.entries(dimensionScoresDataSeriesByDomain).forEach(([domain, dimensionScoresDataSeries]) => {
+    dimensionScoresDataSeries.forEach((series) => {
+      const dimension = series.shortName;
+      const questionnaireName = series.questionnaireName;
+      if(!domainDimensionQuestionnaireRecord[domain]) {
+        domainDimensionQuestionnaireRecord[domain] = [];
+      }
+      domainDimensionQuestionnaireRecord[domain].push([dimension, questionnaireName]);
+    });
+  });
+  return domainDimensionQuestionnaireRecord;
 }
 
 // export const extractDimensionScoresDataSeriesBelongingToDomain = (

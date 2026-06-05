@@ -9,11 +9,20 @@ export const normalizeQuestionnaire = (
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractAnswerOptions = (item: any): NormalizedFHIR.AnswerOption[] => {
-    let answerOptions: any[] = [];
+  const extractAnswerOptions = (item: any): NormalizedFHIR.AnswerOption[] | undefined => {
+    let answerOptions: any[] | undefined = undefined;
 
     if (item.answerOption) {
       answerOptions = item.answerOption.map((opt: any) => {
+        // omit preselected answer option
+        const initialSelected = opt.initialSelected;
+        if (initialSelected) {
+          return {
+            value: undefined,
+            label: undefined,
+            code: undefined, 
+          };
+        }
         const display = opt.valueCoding?.display;
         let value: any;
         // search for extension with value
@@ -181,11 +190,12 @@ export const normalizeQuestionnaire = (
       }
       const {referenceQuestionnaireItems, scoreExpression} = extractReferenceQuestionnaireItemsAndScoreExpression(item);
       const itemValueRange = extractRange(item);
+      const itemAnswerOptions = extractAnswerOptions(item);
 
       items[item.linkId] = {
         linkId: item.linkId, // immer gegeben
         text: item.text, // optional
-        answerOptions: extractAnswerOptions(item),
+        ...(itemAnswerOptions !== undefined && {answerOptions: itemAnswerOptions}),
         ...(referenceQuestionnaireItems !== undefined && {
           referenceQuestionnaireItems: referenceQuestionnaireItems,
         }),

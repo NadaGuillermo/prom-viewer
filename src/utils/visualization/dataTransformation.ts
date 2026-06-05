@@ -2,12 +2,11 @@
 import type { Mapping } from "@utils/mapping";
 import type { Visualization } from "./types";
 import type { GlobalTypes } from "@customTypes/globalTypes";
-import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS } from "@utils/mapping";
+import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS, isScoreItem } from "@utils/mapping";
 import {
   addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate,
   createCommonTimeAxis,
   groupQuestionnaireResponsesByQuestionnaireId,
-  isQuestionnaireScoreItem,
   getMinAndMaxAnswerOptionValueForItem,
   calculateRadarChartValue,
 } from "./utils";
@@ -58,7 +57,7 @@ export const createChartData = (
           const questionnaireItem =
             questionnaireResponse.questionnaire.items[linkId];
           // scores
-          if (isQuestionnaireScoreItem(questionnaireItem)) {
+          if (isScoreItem(questionnaireItem)) {
             const [min, max] = questionnaireItem.range;
             // check if decreasing score health correlation
             if (
@@ -108,14 +107,14 @@ export const createChartData = (
       // // console.log(isQuestionnaireScoreItem(questionnaireItem))
       // // console.log(isDimensionScoreItem(questionnaireItem))
       let seriesType: string;
-      if (isQuestionnaireScoreItem(questionnaireItem)) {
+      if (isScoreItem(questionnaireItem)) {
         seriesType = ITEM_TYPES.score;
       } else {
         seriesType = ITEM_TYPES.item;
       }
 
       let referencedItems: string[] | undefined = undefined;
-      if (isQuestionnaireScoreItem(questionnaireItem)) {
+      if (isScoreItem(questionnaireItem)) {
         if (
           questionnaireItem.referenceQuestionnaireItems &&
           questionnaireItem.referenceQuestionnaireItems.length > 0
