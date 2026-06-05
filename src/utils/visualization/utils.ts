@@ -923,3 +923,21 @@ export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Rec
   const uniqueDates = _.uniq(dates);
   return uniqueDates;
 }
+
+export const createPseudoDataSeries = (length: number): Visualization.DataSeries => {
+  const arrayLength = length > 0 ? length : 0;
+  const pseudoDataPoints = Array(arrayLength).fill(null);
+  const dataSeries: Visualization.DataSeries = {
+    id: "psuedo",
+    name: "",
+    shortName: "",
+    data: pseudoDataPoints,
+    originalData: pseudoDataPoints,
+    dataLabels: [],
+    seriesType: ITEM_TYPES.item,
+    questionnaireId: "",
+    questionnaireName: "",
+  };
+  
+  return dataSeries;
+}

@@ -1,19 +1,60 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-// import type { Visualization } from "@utils/visualization";
-import { Tooltip, Title } from "@styles/chartLayout";
+import type { Charts } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
-  getDataSeriesNameFromShortName, type Visualization,
+  getDataSeriesNameFromShortName,
+  type Visualization,
 } from "@utils/visualization";
 
 import "@styles/echartStyles.css";
 
-const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
+import type {
+  TitleComponentOption,
+  GridComponentOption,
+  LegendComponentOption,
+  XAXisComponentOption,
+  YAXisComponentOption,
+  TooltipComponentOption,
+} from "echarts";
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  height?: number;
+  data: Visualization.ChartData;
+  titleOptions?: TitleComponentOption;
+  legendOptions?: LegendComponentOption;
+  gridOptions?: GridComponentOption;
+  xAxisOptions?: XAXisComponentOption;
+  yAxisOptions?: YAXisComponentOption;
+  tooltipOptions?: TooltipComponentOption;
+  minMaxYLabels?: [string, string];
+  minMaxYValues?: [number, number];
+  minMaxYValuesPosition?: [number, number];
+  showLegendTooltip?: boolean;
+}
+
+const LineChart = ({
+  title,
+  subtitle,
+  height = 400,
+  data,
+  titleOptions,
+  legendOptions,
+  gridOptions,
+  xAxisOptions,
+  yAxisOptions,
+  tooltipOptions,
+  minMaxYLabels,
+  minMaxYValues = [0, 1],
+  minMaxYValuesPosition,
+  showLegendTooltip = true,
+}: Props) => {
   const { xData, yData } = data;
 
   console.log("Line Chart xData: ", xData);
-  console.log("Line Chart yData: ", yData)
+  console.log("Line Chart yData: ", yData);
 
   const generateSeriesList = () => {
     const seriesList: any[] = [];
@@ -40,14 +81,12 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     return seriesList;
   };
 
-  // const SPLIT_NUMBER = 5;
-
   const yAxisFormatter = (value: number, _index: number) => {
-    if (value === 0) {
-      return `{health|Worst Health}`;
+    if (value === Math.max(0, minMaxYValues[0])) {
+      return minMaxYLabels ? `{health|${minMaxYLabels[0]}}` : value.toString();
     }
-    if (value === 1) {
-      return `{health|Best Health}`;
+    if (value === Math.min(1, minMaxYValues[1])) {
+      return minMaxYLabels ? `{health|${minMaxYLabels[1]}}` : value.toString();
     }
     return value.toString();
   };
@@ -58,7 +97,7 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     console.log("Legend Name: ", name);
     const longName = getDataSeriesNameFromShortName(yData, name);
     const questionnaireName = yData.find(
-      (series) => series.shortName === name
+      (series) => series.shortName === name,
     )?.questionnaireName;
     const questionnaireLabel = questionnaireName ? `${questionnaireName}` : "";
     return `
@@ -99,40 +138,43 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
     `;
   };
 
-  const options: Visualization.EChartsOption = {
-    title: Title({
-      text: title,
-      subtext: subtitle,
-    }),
+  const options: Charts.EChartsOption = {
+    title: {
+      ...titleOptions,
+      ...(title && { text: title }),
+      ...(subtitle && { subtext: subtitle }),
+    },
     legend: {
+      ...legendOptions,
       tooltip: {
-        show: true,
+        ...tooltipOptions,
+        show: showLegendTooltip,
         renderMode: "html",
         className: "echarts-tooltip",
         confine: true,
         formatter: (params: any) => legendTooltipFormatter(params),
-      }
+      },
     },
     tooltip: {
-      show: true,
+      ...tooltipOptions,
       renderMode: "html",
       className: "echarts-tooltip",
       confine: true,
       formatter: (params: any) => tooltipFormatter(params),
     },
     xAxis: {
+      ...xAxisOptions,
       type: "category",
       data: xData,
     },
     yAxis: {
+      ...yAxisOptions,
       type: "value",
-      // splitNumber: SPLIT_NUMBER,
-      min: 0,
-      max: 1,
-      axisLine: {
-        show: true,
-      },
+      min: minMaxYValues[0],
+      max: minMaxYValues[1],
       axisLabel: {
+        ...yAxisOptions?.axisLabel,
+        customValues: minMaxYValuesPosition,
         formatter: (value: number, index: number) =>
           yAxisFormatter(value, index),
         rich: {
@@ -142,11 +184,15 @@ const LineChart = ({ title, subtitle, data }: Visualization.LineChartProps) => {
         },
       },
     },
+    grid: {
+      ...gridOptions,
+    },
     series: generateSeriesList(),
   };
+
   return (
     <>
-      <ReactEChartsWrapper option={options} chartHeight={400} />
+      <ReactEChartsWrapper option={options} chartHeight={height} />
     </>
   );
 };

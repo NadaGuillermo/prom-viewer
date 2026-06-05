@@ -24,6 +24,15 @@ import type { Errors } from "@utils/errors";
 import type { Visualization } from "@utils/visualization";
 import { ITEM_TYPES, type Mapping } from "@utils/mapping";
 
+// Chart options
+import { 
+  singleLineChartOptions,
+  justYAxisLineChartOptions,
+  groupedLineChartOptions,
+  emptyLineChartOptions,
+  justXAxisLineChartOptions,
+ } from "@utils/charts";
+
 // Services
 import { loadConfig } from "@services/loadConfig";
 import {
@@ -76,6 +85,7 @@ import {
   filterQuestionnaireResponsesThatAreOnSingleDates,
   filterQuestionnaireResponsesByQuestionnaireIds,
   extractDatesOfQuestionnaireResponses,
+  createPseudoDataSeries,
 } from "@utils/visualization";
 
 // Config
@@ -1204,7 +1214,7 @@ function App() {
                 {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
                 {radarChartData && (
                   <>
-                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-2">
+                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
                       Health Indication
                     </h2>
 
@@ -1219,22 +1229,29 @@ function App() {
                 {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
                 {globalScoresDataSeries.length > 0 && (
                   <>
-                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-2">
+                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
                       Global Health
                     </h2>
                     <div>
                       <p>The following chart shows the progress over time of those scores which represent global or overall health of the patient.</p>
                     </div>
-                    <LineChart
-                      // subtitle={
-                      //   "Questionnaires: " + scoreChartSubTitle.join(", ")
-                      // }
-                      data={{
-                        xData: chartXData,
-                        yData: globalScoresDataSeries,
-                      }}
-                      title={"Normalized Global Health Scores over Time"}
-                    />
+                    <div className="tw:m-4">
+                      <LineChart
+                        height={400}
+                        data={{
+                          xData: chartXData,
+                          yData: globalScoresDataSeries,
+                        }}
+                        title={"Normalized Global Health Scores over Time"}
+                        minMaxYLabels={["Worst Health", "Best Health"]}
+                        titleOptions={singleLineChartOptions.title}
+                        legendOptions={singleLineChartOptions.legend}
+                        gridOptions={singleLineChartOptions.grid}
+                        xAxisOptions={singleLineChartOptions.xAxis}
+                        yAxisOptions={singleLineChartOptions.yAxis}
+                        tooltipOptions={singleLineChartOptions.tooltip}
+                      />
+                    </div>
                   </>
                 )}
                 {globalScoresDataSeries.length === 0 && (
@@ -1275,15 +1292,15 @@ function App() {
               <p>Please select one or more domains to view the scores belonging to them.</p>
               </div>
             {/* <div className="tw:grid tw:grid-cols-6 tw:gap-8"> */}
-            <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start">
-            {domainsForChart.map((domain) => (
-              dimensionScoresDataSeriesByDomain[domain].length > 0 && (
-              <label key={domain} className="tw:label tw:text-gray-900">
-                <input type="checkbox" checked={selectedDomains.includes(domain)} onChange={() => handleDomainSelection(domain)} className="tw:checkbox" />
-                {domain}
-              </label>
-              )
-            ))}
+            <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
+              {domainsForChart.map((domain) => (
+                dimensionScoresDataSeriesByDomain[domain].length > 0 && (
+                <label key={domain} className="tw:label tw:text-gray-900">
+                  <input type="checkbox" checked={selectedDomains.includes(domain)} onChange={() => handleDomainSelection(domain)} className="tw:checkbox" />
+                  {domain}
+                </label>
+                )
+              ))}
             </div>
             {domainsForChart.length > 1 && (
               <div>
@@ -1297,17 +1314,123 @@ function App() {
             )}
             
             {selectedDomains.map((domain) => (
-              <>
-                {dimensionScoresDataSeriesByDomain[domain].length > 0 && (
-                  <LineChart 
-                    key={domain} 
-                    data={{
-                      xData: chartXData,
-                      yData: dimensionScoresDataSeriesByDomain[domain]}} 
-                    title={domain} 
-                  />
-                )}
-                {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
+              dimensionScoresDataSeriesByDomain[domain].length > 0 && (
+                <>
+                  <h4 className="tw:text-lg tw:font-semibold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-2">{domain}</h4>
+                  <div className="tw:grid tw:grid-cols-22 tw:gap-0 tw:mt-2 tw:mb-8">
+                      {dimensionScoresDataSeriesByDomain[domain].map((dataSeries, index) => (
+                        <>
+                          {/* cell with y axis */}
+                          {/* {index % 2 === 0 && ( */}
+                            <div className={`tw:col-span-4 tw:md:col-span-3 tw:lg:col-span-2 
+                              ${index % 2 === 1 ? "tw:lg:hidden" : ""}`}>
+                              <LineChart
+                                data={{
+                                  xData: [""],
+                                  yData: [createPseudoDataSeries(0)]
+                                }}
+                                height={100}
+                                minMaxYLabels={["Worst Health", "Best Health"]}
+                                minMaxYValues={[-0.15, 1.55]}
+                                minMaxYValuesPosition={[0,1]}
+                                titleOptions={justYAxisLineChartOptions.title}
+                                legendOptions={justYAxisLineChartOptions.legend}
+                                gridOptions={justYAxisLineChartOptions.grid}
+                                xAxisOptions={justYAxisLineChartOptions.xAxis}
+                                yAxisOptions={justYAxisLineChartOptions.yAxis}
+                                tooltipOptions={justYAxisLineChartOptions.tooltip}
+                              />
+                            </div>
+                          {/* )} */}
+                          <div className={`tw:col-span-18 
+                            ${index % 2 === 0 ? "tw:col-start-5 tw:md:col-span-4 tw:lg:col-span-3" : ""} 
+                            tw:border-gray-200 tw:border-b tw:border-l tw:border-r
+                            
+                            ${index % 2 === 0 && dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:lg:border-r-0" : ""}
+                            ${(index < 1) ? "tw:border-t" : ""} 
+                            ${(index === 1) ? "tw:lg:border-t" : ""} 
+                            tw:md:col-span-19 tw:lg:col-span-10`}>
+                            {/* cell with dimension score */}
+                            <LineChart 
+                              key={domain + "-" + dataSeries.id} 
+                              data={{
+                                xData: chartXData,
+                                yData: [dataSeries]}}
+                              // title={domain}
+                              height={100}
+                              minMaxYValues={[-0.15, 1.55]}
+                              titleOptions={groupedLineChartOptions.title}
+                              legendOptions={groupedLineChartOptions.legend}
+                              gridOptions={groupedLineChartOptions.grid}
+                              xAxisOptions={groupedLineChartOptions.xAxis}
+                              yAxisOptions={groupedLineChartOptions.yAxis}
+                              tooltipOptions={groupedLineChartOptions.tooltip}
+                            />
+                          </div>
+                        </>
+                      ))}
+                      {(dimensionScoresDataSeriesByDomain[domain].length > 0 && 
+                        dimensionScoresDataSeriesByDomain[domain].length % 2 === 1) && (
+                        <div className={`tw:col-span-18 
+                          ${dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:border-b tw:border-l tw:border-gray-200 tw:border-r" : ""} 
+                          tw:hidden tw:md:col-span-19 tw:lg:col-span-10 tw:lg:block`}>
+                          {/* empty data cell if number of dimensions is odd */}
+                          <LineChart
+                            data={{
+                              xData: chartXData,
+                              yData: [createPseudoDataSeries(chartXData.length)]
+                            }}
+                            height={100}
+                            titleOptions={emptyLineChartOptions.title}
+                            legendOptions={emptyLineChartOptions.legend}
+                            gridOptions={emptyLineChartOptions.grid}
+                            xAxisOptions={emptyLineChartOptions.xAxis}
+                            yAxisOptions={emptyLineChartOptions.yAxis}
+                            tooltipOptions={emptyLineChartOptions.tooltip}     
+                          />
+                        </div>
+                      )}
+                      <div className="tw:col-span-18 tw:col-start-5 tw:md:col-span-19 
+                        tw:md:col-start-4 tw:lg:col-span-10 tw:lg:col-start-3">
+                        {/* left cell with x axis*/}
+                        <LineChart
+                          data={{
+                            xData: chartXData,
+                            yData: [createPseudoDataSeries(chartXData.length)]
+                          }}
+                          height={30}
+                          titleOptions={justXAxisLineChartOptions.title}
+                          legendOptions={justXAxisLineChartOptions.legend}
+                          gridOptions={justXAxisLineChartOptions.grid}
+                          xAxisOptions={justXAxisLineChartOptions.xAxis}
+                          yAxisOptions={justXAxisLineChartOptions.yAxis}
+                          tooltipOptions={justXAxisLineChartOptions.tooltip}  
+                        />
+                      </div>
+                      {dimensionScoresDataSeriesByDomain[domain].length > 1 && (
+                        <div className={`tw:col-span-18 tw:hidden tw:md:col-span-19 
+                          tw:lg:col-span-10 tw:lg:block`}>
+                          {/* right cell with x axis */}
+                          <LineChart
+                            data={{
+                              xData: chartXData,
+                              yData: [createPseudoDataSeries(chartXData.length)]
+                            }}
+                            height={30}
+                            titleOptions={justXAxisLineChartOptions.title}
+                            legendOptions={justXAxisLineChartOptions.legend}
+                            gridOptions={justXAxisLineChartOptions.grid}
+                            xAxisOptions={justXAxisLineChartOptions.xAxis}
+                            yAxisOptions={justXAxisLineChartOptions.yAxis}
+                            tooltipOptions={justXAxisLineChartOptions.tooltip}
+                          />
+                        </div>
+                      )}
+                  </div>
+                </>
+            )))}
+                 
+                {/* {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
                   <> 
                     <div>
                       <p>Please select one or more dimensions to view the scores (also shown above) and items belonging to them.</p>
@@ -1338,9 +1461,8 @@ function App() {
                         yData: itemDataSeriesByDomainAndDimension[domain][dimension]}} title={`${domain} - ${dimension}`} />
                     ))}
                   </>
-                )}
-              </>
-            ))}
+                )} */}
+            
             
               
               {/* {heatmapDataByDomain && Object.keys(heatmapDataByDomain)
@@ -1365,7 +1487,9 @@ function App() {
                 ))} */}
               
             {/* </div> */}
+          
           </div>
+          
                  <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
             <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
               Complete PROs by PROM/Questionnaire

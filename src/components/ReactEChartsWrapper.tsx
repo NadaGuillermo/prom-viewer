@@ -1,5 +1,5 @@
-import { useRef, useEffect, forwardRef } from "react";
-import type { Visualization } from "@utils/visualization";
+import { useRef, useEffect, forwardRef, type CSSProperties } from "react";
+import type { Charts } from "@utils/charts";
 import type { ECharts } from "echarts/core";
 import { init, use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
@@ -23,6 +23,9 @@ import {
   MatrixComponent,
 } from "echarts/components";
 
+
+import type { SetOptionOpts } from "echarts/core";
+
 use([
   LegendComponent,
   ScatterChart,
@@ -42,9 +45,21 @@ use([
   SankeyChart,
 ]);
 
+
+
+  interface Props {
+    option: Charts.EChartsOption;
+    style?: CSSProperties;
+    settings?: SetOptionOpts;
+    loading?: boolean;
+    theme?: "light" | "dark";
+    chartHeight?: number;
+    useMinHeight?: boolean;
+  }
+
 export const ReactEChartsWrapper = forwardRef<
   ECharts | null,
-  Visualization.ReactEChartsWrapperProps
+  Props
 >(
   (
     {

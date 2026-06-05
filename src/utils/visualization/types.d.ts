@@ -1,25 +1,24 @@
-import type { CSSProperties } from "react";
+// import type { CSSProperties } from "react";
 import type { Mapping } from "@utils/mapping";
 import React from "react";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import { ITEM_TYPES } from "@utils/mapping";
 
 
-import type { ComposeOption, SetOptionOpts } from "echarts/core";
-import type {
-  BarSeriesOption,
-  LineSeriesOption,
-  ScatterSeriesOption,
-  CustomSeriesOption,
-  HeatmapSeriesOption,
-  RadarSeriesOption,
-  SankeySeriesOption,
-} from "echarts/charts";
-import type {
-  TitleComponentOption,
-  GridComponentOption,
-} from "echarts/components";
-import type Radar from "echarts/types/src/coord/radar/Radar.js";
+// import type { ComposeOption, SetOptionOpts } from "echarts/core";
+// import type {
+//   BarSeriesOption,
+//   LineSeriesOption,
+//   ScatterSeriesOption,
+//   CustomSeriesOption,
+//   HeatmapSeriesOption,
+//   RadarSeriesOption,
+//   SankeySeriesOption,
+// } from "echarts/charts";
+// import type {
+//   TitleComponentOption,
+//   GridComponentOption,
+// } from "echarts/components";
 
 export namespace Visualization {
 
@@ -31,27 +30,27 @@ export namespace Visualization {
     type ItemType = ITEM_TYPES.item | ITEM_TYPES.score;
 
   // Combine an Option type with only required components and charts via ComposeOption
-  type EChartsOption = ComposeOption<
-    | BarSeriesOption
-    | LineSeriesOption
-    | TitleComponentOption
-    | GridComponentOption
-    | ScatterSeriesOption
-    | CustomSeriesOption
-    | HeatmapSeriesOption
-    | RadarSeriesOption
-    | SankeySeriesOption
-  >;
+  // type EChartsOption = ComposeOption<
+  //   | BarSeriesOption
+  //   | LineSeriesOption
+  //   // | TitleComponentOption
+  //   // | GridComponentOption
+  //   | ScatterSeriesOption
+  //   | CustomSeriesOption
+  //   | HeatmapSeriesOption
+  //   | RadarSeriesOption
+  //   | SankeySeriesOption
+  // >;
 
-  interface ReactEChartsWrapperProps {
-    option: EChartsOption;
-    style?: CSSProperties;
-    settings?: SetOptionOpts;
-    loading?: boolean;
-    theme?: "light" | "dark";
-    chartHeight?: number;
-    useMinHeight?: boolean;
-  }
+  // interface ReactEChartsWrapperProps {
+  //   option: EChartsOption;
+  //   style?: CSSProperties;
+  //   settings?: SetOptionOpts;
+  //   loading?: boolean;
+  //   theme?: "light" | "dark";
+  //   chartHeight?: number;
+  //   useMinHeight?: boolean;
+  // }
 
   /** Charts generell */
 
@@ -85,14 +84,11 @@ export namespace Visualization {
   interface ChartProps {
     title?: string;
     subtitle?: string;
+    height?: number;
     data: ChartData;
   }
 
   /** Line Chart */
-
-  interface LineChartProps extends ChartProps {
-    // scoreRecord?: Record<string, OriginalAndNormalizedScore>;
-  }
 
   interface HeatmapProps extends ChartProps {
     // yScoreData?: DataSeries[];

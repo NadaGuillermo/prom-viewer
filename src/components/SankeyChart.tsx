@@ -1,5 +1,6 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 // import type { Visualization } from "@utils/visualization";
+import type { Charts } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
@@ -117,7 +118,7 @@ const SankeyChart = ({
 
   // colors: one per domain (left flow) and one per questionnaire (right flow)
 
-  const options: Visualization.EChartsOption = {
+  const options: Charts.EChartsOption = {
     series: [
       {
         type: 'sankey',
