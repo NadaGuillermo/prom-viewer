@@ -16,6 +16,7 @@ import type {
   XAXisComponentOption,
   YAXisComponentOption,
   TooltipComponentOption,
+  LineSeriesOption,
 } from "echarts";
 
 interface Props {
@@ -33,6 +34,7 @@ interface Props {
   minMaxYValues?: [number, number];
   minMaxYValuesPosition?: [number, number];
   showLegendTooltip?: boolean;
+  lineOption?: LineSeriesOption;
 }
 
 const LineChart = ({
@@ -50,6 +52,7 @@ const LineChart = ({
   minMaxYValues = [0, 1],
   minMaxYValuesPosition,
   showLegendTooltip = true,
+  lineOption,
 }: Props) => {
   const { xData, yData } = data;
 
@@ -63,15 +66,21 @@ const LineChart = ({
         name: dataseries.shortName,
         type: "line",
         data: dataseries.data,
-        connectNulls: true,
-        emphasis: {
-          focus: "series",
-        },
-        endLabel: {
-          show: false,
-          formatter: "{a}",
-          distance: 20,
-        },
+        ...lineOption,
+        // connectNulls: true,
+        // symbol: "circle",
+        // symbolSize: 7,
+        // emphasis: {
+        //   focus: "series",
+        // },
+        // endLabel: {
+        //   show: false,
+        //   formatter: "{a}",
+        //   distance: 20,
+        // },
+        // lineStyle: {
+        //   width: 3,
+        // }
         // select: {
         //   selectedMode: "series",
         // }

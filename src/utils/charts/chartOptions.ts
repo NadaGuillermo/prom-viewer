@@ -4,6 +4,7 @@ import type {
   LegendComponentOption,
   XAXisComponentOption, 
   YAXisComponentOption,
+  LineSeriesOption,
 } from "echarts";
 
 const singleLineChartTitleOption: TitleComponentOption = {
@@ -246,4 +247,24 @@ export const justXAxisLineChartOptions = {
   xAxis: justXAxisLineChartXAxisOption,
   yAxis: justXAxisLineChartYAxisOption,
   tooltip: justXAxisLineChartTooltipOption,
+}
+
+export const lineChartSeriesOption: LineSeriesOption = {
+  connectNulls: true,
+  symbol: "circle",
+  symbolSize: 7,
+  emphasis: {
+    focus: "series",
+    scale: true,
+    lineStyle: {
+      width: 3,
+      opacity: 1,
+    },
+    itemStyle: {
+      opacity: 1,
+    }
+  },
+  lineStyle: {
+    width: 3,
+  },
 }

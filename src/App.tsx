@@ -31,6 +31,7 @@ import {
   groupedLineChartOptions,
   emptyLineChartOptions,
   justXAxisLineChartOptions,
+  lineChartSeriesOption,
  } from "@utils/charts";
 
 // Services
@@ -705,6 +706,8 @@ function App() {
       selectedDimensionsByDomain[domain] = [];
     });
 
+    console.log("Dimension scores by domain: ", dimensionScoresDataSeriesByDomain);
+
     const dimensionsByDomain: Record<string, string[]> = createDomainDimensionsRecord(questionnairesForChart, dimensionScoresDataSeriesByDomain);
 
     // const domainScoresDataSeries = chartData.yData.filter(
@@ -1250,6 +1253,7 @@ function App() {
                         xAxisOptions={singleLineChartOptions.xAxis}
                         yAxisOptions={singleLineChartOptions.yAxis}
                         tooltipOptions={singleLineChartOptions.tooltip}
+                        lineOption={lineChartSeriesOption}
                       />
                     </div>
                   </>
@@ -1339,6 +1343,7 @@ function App() {
                                 xAxisOptions={justYAxisLineChartOptions.xAxis}
                                 yAxisOptions={justYAxisLineChartOptions.yAxis}
                                 tooltipOptions={justYAxisLineChartOptions.tooltip}
+                                lineOption={lineChartSeriesOption}
                               />
                             </div>
                           {/* )} */}
@@ -1365,6 +1370,7 @@ function App() {
                               xAxisOptions={groupedLineChartOptions.xAxis}
                               yAxisOptions={groupedLineChartOptions.yAxis}
                               tooltipOptions={groupedLineChartOptions.tooltip}
+                              lineOption={lineChartSeriesOption}
                             />
                           </div>
                         </>
@@ -1386,7 +1392,8 @@ function App() {
                             gridOptions={emptyLineChartOptions.grid}
                             xAxisOptions={emptyLineChartOptions.xAxis}
                             yAxisOptions={emptyLineChartOptions.yAxis}
-                            tooltipOptions={emptyLineChartOptions.tooltip}     
+                            tooltipOptions={emptyLineChartOptions.tooltip}    
+                            lineOption={lineChartSeriesOption} 
                           />
                         </div>
                       )}
@@ -1405,6 +1412,7 @@ function App() {
                           xAxisOptions={justXAxisLineChartOptions.xAxis}
                           yAxisOptions={justXAxisLineChartOptions.yAxis}
                           tooltipOptions={justXAxisLineChartOptions.tooltip}  
+                          lineOption={lineChartSeriesOption}
                         />
                       </div>
                       {dimensionScoresDataSeriesByDomain[domain].length > 1 && (
@@ -1423,6 +1431,7 @@ function App() {
                             xAxisOptions={justXAxisLineChartOptions.xAxis}
                             yAxisOptions={justXAxisLineChartOptions.yAxis}
                             tooltipOptions={justXAxisLineChartOptions.tooltip}
+                            lineOption={lineChartSeriesOption}
                           />
                         </div>
                       )}
