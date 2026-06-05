@@ -11,6 +11,9 @@ const QUESTIONNAIRE_NAMES: string[] = [
 
 const RESPONSE_NAMES: string[] = [
   "mii-exa-pro-euroqol-eq5d5l-response",
+  "mii-exa-pro-euroqol-eq5d5l-response copy",
+  "mii-exa-pro-euroqol-eq5d5l-response copy 2",
+  "mii-exa-pro-euroqol-eq5d5l-response copy 3",
   "mii-exa-pro-promis-29-response",
 ];
 
