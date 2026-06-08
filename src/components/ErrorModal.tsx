@@ -34,7 +34,7 @@ const ErrorModal = ({ data, open, onClose }: Visualization.ErrorModalProps) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-error tw:alert-outline tw:mb-2"
                 >
-                  <p>{issue.userMessage}</p>
+                  <p>{issue.message}</p>
                 </div>
               ),
           )}
@@ -52,7 +52,7 @@ const ErrorModal = ({ data, open, onClose }: Visualization.ErrorModalProps) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-warning tw:alert-outline tw:mb-2"
                 >
-                  <p>{issue.userMessage}</p>
+                  <p>{issue.message}</p>
                 </div>
               ),
           )}

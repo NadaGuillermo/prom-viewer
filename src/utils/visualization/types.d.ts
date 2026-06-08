@@ -1,7 +1,7 @@
 // import type { CSSProperties } from "react";
 import type { Mapping } from "@utils/mapping";
 import React from "react";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import type { Errors } from "@utils/errors";
 import { ITEM_TYPES } from "@utils/mapping";
 
 
@@ -97,7 +97,7 @@ export namespace Visualization {
 
   interface TableProps extends ChartProps {
     dimensions: string[];
-    errors?: GlobalTypes.DataIssue[];
+    errors?: Errors.DataIssue[];
   }
 
   interface RadarProps {
@@ -120,7 +120,7 @@ export namespace Visualization {
   }
 
   interface ErrorModalProps {
-    data: GlobalTypes.DataIssue[];
+    data: Errors.DataIssue[];
     open: boolean;
     onClose: () => void;
   }

@@ -19,9 +19,10 @@ import ErrorModal from "@components/ErrorModal";
 import Mapper from "@components/Mapper";
 import RadarChart from "@components/RadarChart";
 import MappingTable from "@components/MappingTable";
+import ErrorCard from "@components/ErrorCard";
 
 // Types
-import type { Errors } from "@utils/errors";
+import { type Errors, forwardErrorsToUser } from "@utils/errors";
 import type { Visualization } from "@utils/visualization";
 import { ITEM_TYPES, type Mapping } from "@utils/mapping";
 
@@ -131,6 +132,7 @@ function App() {
     Record<string, Mapping.QuestionnaireResponse>
   >({}); 
   const [dataIssues, setDataIssues] = useState<Errors.DataIssue[]>([]);
+  const [dataIssuesForUser, setDataIssuesForUser] = useState<Errors.DataIssue[]>([]);
   const [globalHealthDimensions, setGlobalHealthDimensions] = useState<
     string[]
   >([]);
@@ -604,6 +606,7 @@ function App() {
     );
 
     /* Errors and Warnings */
+    const uniqueErrors = _.uniqBy(errors, (error) => error.id);
     const errorsForDisplay = errors.filter((error) => error.showUser);
     const uniqueErrorsForDisplay: Errors.DataIssue[] = _.uniqBy(errorsForDisplay, (error) => error.userMessage);
     console.log("Unique Errors for Display: ", uniqueErrorsForDisplay);
@@ -620,7 +623,8 @@ function App() {
     // Set variables
     setQuestionnaires(questionnaires);
     setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
-    setDataIssues(uniqueErrorsForDisplay);
+    setDataIssuesForUser(uniqueErrorsForDisplay);
+    setDataIssues(uniqueErrors);
     // setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
     setDomains(domains);
     setQuestionnairesReady(true);
@@ -643,9 +647,9 @@ function App() {
     if (!questionnairesReady) {
       return;
     }
-    if (dataIssues.length > 0 && !modalShown) {
-      setIsModalOpen(true);
-    }
+    // if (dataIssues.length > 0 && !modalShown) {
+    //   setIsModalOpen(true);
+    // }
    
     // Questionnaires, Questionnaire Responses and domains for chart
     const questionnairesForChart = questionnaires.filter((questionnaire) => selectedQuestionnaires.includes(questionnaire.id));
@@ -813,21 +817,23 @@ function App() {
     console.log("Table Data by Questionnaire: ", tableDataByQuestionnaire);
 
     // Header Cards
-    const resourceIdsWithIssues = dataIssues
-      .map((issue) => issue.context.resourceId)
-      .filter((id) => id !== undefined);
-    console.log("IDs of resources with issues: ", resourceIdsWithIssues);
+    // const resourceIdsWithIssues = dataIssues
+    //   .map((issue) => issue.context.resourceId)
+    //   .filter((id) => id !== undefined);
+    // console.log("IDs of resources with issues: ", resourceIdsWithIssues);
 
-    const itemWarningsByQuestionnaireId = _.groupBy(
-      dataIssues.filter(
-        (issue) => issue.level === "warning" && issue.context.field !== undefined,
-      ),
-      (issue) => issue.context.resourceId,
-    );
-    console.log(
-      "Item Warnings by Questionnaire ID: ",
-      itemWarningsByQuestionnaireId,
-    );
+    // const itemWarningsByQuestionnaireId = _.groupBy(
+    //   dataIssues.filter(
+    //     (issue) => issue.level === "warning" && issue.context.field !== undefined,
+    //   ),
+    //   (issue) => issue.context.resourceId,
+    // );
+    // console.log(
+    //   "Item Warnings by Questionnaire ID: ",
+    //   itemWarningsByQuestionnaireId,
+    // );
+    forwardErrorsToUser(dataIssues);
+    
     // const periodOfObservations = calculatePeriodOfObservations(
     //   questionnaireResponses,
     // );
@@ -857,7 +863,7 @@ function App() {
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
-    setIdsOfResourcesWithIssues(resourceIdsWithIssues);
+    // setIdsOfResourcesWithIssues(resourceIdsWithIssues);
     setModalShown(true);
   }, [
     questionnaires,
@@ -1076,82 +1082,10 @@ function App() {
                   </p> */}
                 </div>
               </div>
-              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md tw:overflow-y-auto tw:max-h-[60vh]">
-                {/* tw:col-span-3 tw:sm:col-span-3 tw:lg:col-span-1*/}
-                <div className="tw:card-body">
-                  <h3 className="tw:card-title">Error Info</h3>
-                  {/*<p>
-                    For FHIR resources with follwing ids there have been errors
-                    detected:
-                  </p>
-                  {idsOfResourcesWithIssues.length > 0 ? (
-                    <ul className="tw:list-disc tw:pl-5">
-                      {[...new Set(idsOfResourcesWithIssues)].map((id) => (
-                        <li key={id}>{id}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No errors detected</p>
-                  )}
-                    */}
-                  {/* {dataIssues.length > 0 && (
-                    <div>
-                      <button
-                        className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
-                        onClick={toggleErrorDetails}
-                      >
-                        {showErrors
-                          ? "Hide error details"
-                          : "Show error details"}
-                      </button>
-                    </div>
-                  )} */}
-                  {/* {showErrors && dataIssues.length > 0 && (
-                    <div className="tw:overflow-y-auto tw:flex-1">
-                      {dataIssues.some((issue) => issue.level === "error") && (
-                        <p className="tw:mb-2 tw:mt-2">
-                          <span className="tw:font-semibold">Errors</span>
-                        </p>
-                      )}
-                      <ul className="tw:list-disc tw:pl-5">
-                        {dataIssues.map(
-                          (issue) =>
-                            issue.level === "error" && (
-                              <li key={issue.id}>{issue.message}</li>
-                            ),
-                        )}
-                      </ul>
-                      {dataIssues.some(
-                        (issue) => issue.level === "warning",
-                      ) && (
-                        <p className="tw:mt-2 tw:mb-2">
-                          <span className="tw:font-semibold">Warnings</span>
-                        </p>
-                      )}
-                      <ul className="tw:list-disc tw:pl-5">
-                        {dataIssues.map(
-                          (issue) =>
-                            issue.level === "warning" && (
-                              <li key={issue.id}>{issue.message}</li>
-                            ),
-                        )}
-                      </ul>
-                    </div>
-                  )} */}
-                  {dataIssues.length > 0 ? (
-                    <div className="tw:overflow-y-auto tw:flex-1">
-                      <ul className="tw:list-disc tw:pl-5">
-                        {dataIssues.map(
-                          (issue) =>
-                            <li key={issue.id}>{issue.userMessage}</li>
-                        )}
-                      </ul>
-                    </div>
-                  ) : (
-                    <p>No errors or warnings detected</p>
-                   )}
-                </div>
-              </div>
+              {dataIssuesForUser.length > 0 && (
+                 <ErrorCard data={dataIssuesForUser} />
+              )}
+             
             </div>
             {/* <div className="tw:divider" /> */}
             {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
@@ -1171,18 +1105,20 @@ function App() {
               </h2>
               {dimensionsWithQuestionnaireByDomain && (
                 <>
-                  <div className="tw:lg:w-9/10 tw:xl:w-8/10 tw:2xl:w-7/10 tw:pb-4">
-                    <div className="tw:text tw:text-left">
-                      <p>About this Diagram</p>
-                      <p>This grid shows how {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
+                <div className="tw:pb-4">
+                  <Collapse 
+                    title={"About this Diagram"} 
+                    children={<p>This grid shows how {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
                         are mapped to their corresponding questionnaire dimensions (right).
                         <ul className="tw:list-disc tw:list-inside">
                           <li>Greek letters next to a dimension suffix indicate its source questionnaire.</li>
                           <li>The legend at the bottom defines which questionnaire matches each letter.</li>
                         </ul>
-                        </p>
-                    </div>
+                        </p>} 
+                      constrainWidth={true}
+                        />
                   </div>
+                 
                   {/* {questionnaires && domainsSankeyData && (
                     <SankeyChart data={domainsSankeyData} />
                   )} */}
@@ -1358,11 +1294,11 @@ function App() {
             
             {selectedDomains.map((domain) => (
               dimensionScoresDataSeriesByDomain[domain].length > 0 && (
-                <>
+                <React.Fragment key={domain}>
                   <h4 className="tw:text-lg tw:font-semibold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-2">{domain}</h4>
                   <div className="tw:grid tw:grid-cols-22 tw:gap-0 tw:mt-2 tw:mb-8">
                       {dimensionScoresDataSeriesByDomain[domain].map((dataSeries, index) => (
-                        <>
+                        <React.Fragment key={dataSeries.id}>
                           {/* cell with y axis */}
                           {/* {index % 2 === 0 && ( */}
                             <div className={`tw:col-span-4 tw:md:col-span-3 tw:lg:col-span-2 
@@ -1411,7 +1347,7 @@ function App() {
                               lineOption={groupedLineChartSeriesOption}
                             />
                           </div>
-                        </>
+                        </React.Fragment>
                       ))}
                       {(dimensionScoresDataSeriesByDomain[domain].length > 0 && 
                         dimensionScoresDataSeriesByDomain[domain].length % 2 === 1) && (
@@ -1471,7 +1407,7 @@ function App() {
                         </div>
                       )}
                   </div>
-                </>
+                </React.Fragment>
             )))}
                  
                 {/* {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
@@ -1611,13 +1547,13 @@ function App() {
           {/* <Footer /> */}
         </div>
       </div>
-      {dataIssues.length > 0 && (
+      {/* {dataIssues.length > 0 && (
         <ErrorModal
           data={[...new Set(dataIssues)]}
           open={isModalOpen}
           onClose={handleContinue}
         />
-      )}
+      )} */}
     </div>
   );
 }

@@ -137,7 +137,7 @@ const MappingTable = ({ data }: Props) => {
         ([domain, dimensionsWithQuestionnaire]) =>
           dimensionsWithQuestionnaire.length > 0 && (
             <>
-              <div key={domain} 
+              <div key={`${domain}: ${dimensionsWithQuestionnaire[0]}: ${dimensionsWithQuestionnaire[1]}`} 
                 className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 tw:gap-4">
                 <div className="tw:col-span-1">
                  {pill(domain, undefined, undefined, 2, 4, 2, false, undefined, true)}
