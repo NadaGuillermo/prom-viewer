@@ -16,8 +16,9 @@ import DomainCard from "@components/DomainCard";
 import SimpleDataTable from "@components/SimpleDataTable";
 import Collapse from "@components/Collapse";
 import ErrorModal from "@components/ErrorModal";
-
+import Mapper from "@components/Mapper";
 import RadarChart from "@components/RadarChart";
+import MappingTable from "@components/MappingTable";
 
 // Types
 import type { Errors } from "@utils/errors";
@@ -32,6 +33,7 @@ import {
   emptyLineChartOptions,
   justXAxisLineChartOptions,
   lineChartSeriesOption,
+  groupedLineChartSeriesOption,
  } from "@utils/charts";
 
 // Services
@@ -87,6 +89,8 @@ import {
   filterQuestionnaireResponsesByQuestionnaireIds,
   extractDatesOfQuestionnaireResponses,
   createPseudoDataSeries,
+  createDomainDimensionQuestionnaireTupleArray,
+  createDimensionWithQuestionnaireByDomainRecord,
 } from "@utils/visualization";
 
 // Config
@@ -172,6 +176,7 @@ function App() {
   const [itemDataSeriesByDomainAndDimension, setItemDataSeriesByDomainAndDimension] = useState<
     Record<string, Record<string, Visualization.DataSeries[]>>
   >({});
+  const [dimensionsWithQuestionnaireByDomain, setDimensionsWithQuestionnaireByDomain] = useState<Record<string, [string, string][]>>();
   const [domainsForChart, setDomainsForChart] = useState<string[]>([]);
   const [dimensionsByDomain, setDimensionsByDomain] = useState<Record<string, string[]>>({});
   const [domainsSankeyData, setDomainsSankeyData] = useState<Record<string, Record<string, string[]>>>();
@@ -183,6 +188,8 @@ function App() {
   const [idsOfResourcesWithIssues, setIdsOfResourcesWithIssues] = useState<
     string[]
   >([]);
+  const [domainQuestionnaireDimensionRecord, setDomainQuestionnaireDimensionRecord] = useState<Record<string, Record<string, string[]>>>();
+  const [domainDimensionQuestionnaireTuples, setDomainDimensionQuestionnaireTuples] = useState<[string, string, string][]>([]);
   const [allDatesOfQuestionnaireResponses, setAllDatesOfQuestionnaireResponses] = useState<string[]>([]);
   const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>(
     [],
@@ -773,10 +780,24 @@ function App() {
 
      // Domain Dimension Mapping Sankey
     const domainsSankeyData = createDomainQuestionnaireNamesDimensionsRecord(
-       domainsForChart,
        dimensionScoresDataSeriesByDomain,
     )
+
+    const domainQuestionnaireDimensionRecord = createDomainQuestionnaireNamesDimensionsRecord(
+       dimensionScoresDataSeriesByDomain,
+    )
+
+    const domainDimensionQuestionnaireTuples = createDomainDimensionQuestionnaireTupleArray(
+      dimensionScoresDataSeriesByDomain
+    );
+
+    console.log("Domain Questionnaire Dimension Record: ", domainQuestionnaireDimensionRecord);
+    console.log("Domain Dimension Questionnaire Tuples: ", domainDimensionQuestionnaireTuples)
     
+    const domainDimensionWithQuestionnaireRecord = createDimensionWithQuestionnaireByDomainRecord(dimensionScoresDataSeriesByDomain);
+    console.log("Domain Dimension With Questionnaire Record: ", domainDimensionWithQuestionnaireRecord);
+
+
     // Heatmap
     // const heatmapDataByDomain: Record<string, Visualization.ChartData> =
     //   createHeatmapData(
@@ -830,6 +851,9 @@ function App() {
     setQuestionnaireCardData(questionnaireCardData);
     setDomainsSankeyData(domainsSankeyData);
     setSelectedDimensionsByDomain(selectedDimensionsByDomain);
+    setDomainDimensionQuestionnaireTuples(domainDimensionQuestionnaireTuples);
+    setDomainQuestionnaireDimensionRecord(domainQuestionnaireDimensionRecord);
+    setDimensionsWithQuestionnaireByDomain(domainDimensionWithQuestionnaireRecord);
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
@@ -1145,15 +1169,30 @@ function App() {
               <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
                 Domains-to-Dimensions Mapping
               </h2>
-              <div className="tw:w-8/10 tw:px-16 tw:pb-2">
-              <div className="tw:text tw:text-left">
-                <p>The configuration file defines {domains.length} domains (depicted on the left of the Sankey chart). 
-                  Scores of questionnaires, i.e. the dimensions (in the middle of the chart with the respective questionnaire on the right), are assigned to a domain based on the configuration file. 
-                  The width of the flows and items in the Sankey chart do not encode any information.</p>
-              </div>
-              </div>
-              {questionnaires && domainsSankeyData && (
-                <SankeyChart data={domainsSankeyData} />
+              {dimensionsWithQuestionnaireByDomain && (
+                <>
+                  <div className="tw:lg:w-9/10 tw:xl:w-8/10 tw:2xl:w-7/10 tw:pb-4">
+                    <div className="tw:text tw:text-left">
+                      <p>About this Diagram</p>
+                      <p>This grid shows how {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
+                        are mapped to their corresponding questionnaire dimensions (right).
+                        <ul className="tw:list-disc tw:list-inside">
+                          <li>Greek letters next to a dimension suffix indicate its source questionnaire.</li>
+                          <li>The legend at the bottom defines which questionnaire matches each letter.</li>
+                        </ul>
+                        </p>
+                    </div>
+                  </div>
+                  {/* {questionnaires && domainsSankeyData && (
+                    <SankeyChart data={domainsSankeyData} />
+                  )} */}
+                  {/* {questionnaires && domainDimensionQuestionnaireTuples && (
+                    <Mapper data={domainDimensionQuestionnaireTuples} />
+                  )} */}
+                  <div className="tw:py-4">
+                      <MappingTable data={dimensionsWithQuestionnaireByDomain} />
+                  </div>
+                </>
               )}
             </div>
             
@@ -1343,7 +1382,6 @@ function App() {
                                 xAxisOptions={justYAxisLineChartOptions.xAxis}
                                 yAxisOptions={justYAxisLineChartOptions.yAxis}
                                 tooltipOptions={justYAxisLineChartOptions.tooltip}
-                                lineOption={lineChartSeriesOption}
                               />
                             </div>
                           {/* )} */}
@@ -1370,7 +1408,7 @@ function App() {
                               xAxisOptions={groupedLineChartOptions.xAxis}
                               yAxisOptions={groupedLineChartOptions.yAxis}
                               tooltipOptions={groupedLineChartOptions.tooltip}
-                              lineOption={lineChartSeriesOption}
+                              lineOption={groupedLineChartSeriesOption}
                             />
                           </div>
                         </>
@@ -1392,8 +1430,7 @@ function App() {
                             gridOptions={emptyLineChartOptions.grid}
                             xAxisOptions={emptyLineChartOptions.xAxis}
                             yAxisOptions={emptyLineChartOptions.yAxis}
-                            tooltipOptions={emptyLineChartOptions.tooltip}    
-                            lineOption={lineChartSeriesOption} 
+                            tooltipOptions={emptyLineChartOptions.tooltip}
                           />
                         </div>
                       )}
@@ -1412,7 +1449,6 @@ function App() {
                           xAxisOptions={justXAxisLineChartOptions.xAxis}
                           yAxisOptions={justXAxisLineChartOptions.yAxis}
                           tooltipOptions={justXAxisLineChartOptions.tooltip}  
-                          lineOption={lineChartSeriesOption}
                         />
                       </div>
                       {dimensionScoresDataSeriesByDomain[domain].length > 1 && (
@@ -1431,7 +1467,6 @@ function App() {
                             xAxisOptions={justXAxisLineChartOptions.xAxis}
                             yAxisOptions={justXAxisLineChartOptions.yAxis}
                             tooltipOptions={justXAxisLineChartOptions.tooltip}
-                            lineOption={lineChartSeriesOption}
                           />
                         </div>
                       )}

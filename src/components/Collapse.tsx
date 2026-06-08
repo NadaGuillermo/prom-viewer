@@ -1,11 +1,14 @@
-import "@styles/style.css";
-import type { Visualization } from "@utils/visualization/types";
+interface Props {
+  title: string;
+  children: React.ReactNode;
+  constrainWidth?: boolean;
+}
 
-const Collapse = ({ title, children }: Visualization.CollapseProps) => {
+const Collapse = ({ title, children, constrainWidth }: Props) => {
   return (
-    <div className="tw:w-10/10 tw:lg:w-8/10">
+    <div className={`tw:w-full ${constrainWidth ? "tw:md:w-9/10 tw:lg:w-8/10 tw:2xl:w-7/10" : ""}`}>
       <details
-        className="tw:collapse tw:collapse-plus tw:join-item tw:bg-base-100 tw:border-base-300 tw:border"
+        className={`tw:collapse tw:collapse-plus tw:bg-base-100 tw:border-base-300 tw:border`}
         name={title}
       >
         <summary className="tw:collapse-title tw:font-semibold">

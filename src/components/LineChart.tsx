@@ -158,6 +158,7 @@ const LineChart = ({
       tooltip: {
         ...tooltipOptions,
         show: showLegendTooltip,
+        // @ts-ignore
         renderMode: "html",
         className: "echarts-tooltip",
         confine: true,
@@ -171,6 +172,7 @@ const LineChart = ({
       confine: true,
       formatter: (params: any) => tooltipFormatter(params),
     },
+    // @ts-ignore
     xAxis: {
       ...xAxisOptions,
       type: "category",
@@ -178,6 +180,7 @@ const LineChart = ({
     },
     yAxis: {
       ...yAxisOptions,
+      // @ts-ignore
       type: "value",
       min: minMaxYValues[0],
       max: minMaxYValues[1],

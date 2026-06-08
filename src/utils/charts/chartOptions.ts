@@ -268,3 +268,15 @@ export const lineChartSeriesOption: LineSeriesOption = {
     width: 3,
   },
 }
+
+export const groupedLineChartSeriesOption: LineSeriesOption = {
+  connectNulls: true,
+  symbol: "circle",
+  symbolSize: 7,
+  emphasis: {
+    disabled: true,
+  },
+  lineStyle: {
+    width: 3,
+  },
+}
