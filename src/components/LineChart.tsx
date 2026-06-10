@@ -195,6 +195,10 @@ const LineChart = ({
           },
         },
       },
+      axisTick:{
+        ...yAxisOptions?.axisTick,
+        customValues: minMaxYValuesPosition,
+      }
     },
     grid: {
       ...gridOptions,

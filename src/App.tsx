@@ -1,6 +1,12 @@
 // Styles
 import "@styles/style.css";
 
+// Icons
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+library.add(fas);
+
 // React packages
 import React, { useState, useEffect } from "react";
 import * as _ from "lodash-es";
@@ -20,6 +26,8 @@ import Mapper from "@components/Mapper";
 import RadarChart from "@components/RadarChart";
 import MappingTable from "@components/MappingTable";
 import ErrorCard from "@components/ErrorCard";
+import GridTable from "@components/GridTable";
+import FilterOptionsDisplay from "@components/FilterOptionsDisplay";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -27,7 +35,7 @@ import type { Visualization } from "@utils/visualization";
 import { ITEM_TYPES, type Mapping } from "@utils/mapping";
 
 // Chart options
-import { 
+import {
   singleLineChartOptions,
   justYAxisLineChartOptions,
   groupedLineChartOptions,
@@ -35,7 +43,7 @@ import {
   justXAxisLineChartOptions,
   lineChartSeriesOption,
   groupedLineChartSeriesOption,
- } from "@utils/charts";
+} from "@utils/charts";
 
 // Services
 import { loadConfig } from "@services/loadConfig";
@@ -130,14 +138,16 @@ function App() {
   );
   const [questionnaireResponses, setQuestionnaireResponses] = useState<
     Record<string, Mapping.QuestionnaireResponse>
-  >({}); 
+  >({});
   const [dataIssues, setDataIssues] = useState<Errors.DataIssue[]>([]);
-  const [dataIssuesForUser, setDataIssuesForUser] = useState<Errors.DataIssue[]>([]);
+  const [dataIssuesForUser, setDataIssuesForUser] = useState<
+    Errors.DataIssue[]
+  >([]);
   const [globalHealthDimensions, setGlobalHealthDimensions] = useState<
     string[]
   >([]);
   const [domains, setDomains] = useState<string[]>([]);
-  
+
   // Data transformation
   const [questionnaireNamesByDate, setQuestionnaireNamesByDate] = useState<
     Record<string, string[]>
@@ -146,7 +156,7 @@ function App() {
   // const [periodOfObservations, setPeriodOfObservations] = useState<string[]>(
   //   [],
   // );
-   
+
   // const [questionnaireResponsesForChart, setQuestionnaireResponsesForChart] =
   //   useState<Record<string, Mapping.QuestionnaireResponse>>({});
   // const [questionnairesForChart, setQuestionnairesForChart] = useState<
@@ -165,50 +175,80 @@ function App() {
     Record<string, Visualization.ChartData>
   >({});
   const [questionnaireCardData, setQuestionnaireCardData] = useState<
-    Record<string, [string, string[]]>>({});
+    Record<string, [string, string[]]>
+  >({});
   const [chartXData, setChartXData] = useState<string[]>([]);
   const [globalScoresDataSeries, setGlobalScoresDataSeries] = useState<
     Visualization.DataSeries[]
   >([]);
-  const [domainScoresDataSeriesByDomain, setDomainScoresDataSeriesByDomain] = useState<
-    Record<string, Visualization.DataSeries[]>
-  >({});
-  const [dimensionScoresDataSeriesByDomain, setDimensionScoresDataSeriesByDomain] =
+  const [domainScoresDataSeriesByDomain, setDomainScoresDataSeriesByDomain] =
     useState<Record<string, Visualization.DataSeries[]>>({});
-  const [itemDataSeriesByDomainAndDimension, setItemDataSeriesByDomainAndDimension] = useState<
-    Record<string, Record<string, Visualization.DataSeries[]>>
-  >({});
-  const [dimensionsWithQuestionnaireByDomain, setDimensionsWithQuestionnaireByDomain] = useState<Record<string, [string, string][]>>();
+  const [
+    dimensionScoresDataSeriesByDomain,
+    setDimensionScoresDataSeriesByDomain,
+  ] = useState<Record<string, Visualization.DataSeries[]>>({});
+  const [
+    itemDataSeriesByDomainAndDimension,
+    setItemDataSeriesByDomainAndDimension,
+  ] = useState<Record<string, Record<string, Visualization.DataSeries[]>>>({});
+  const [
+    dimensionsWithQuestionnaireByDomain,
+    setDimensionsWithQuestionnaireByDomain,
+  ] = useState<Record<string, [string, string][]>>();
   const [domainsForChart, setDomainsForChart] = useState<string[]>([]);
-  const [dimensionsByDomain, setDimensionsByDomain] = useState<Record<string, string[]>>({});
-  const [domainsSankeyData, setDomainsSankeyData] = useState<Record<string, Record<string, string[]>>>();
-  const [globalScoresLineChartData, setGlobalScoresLineChartData] = useState<Visualization.ChartData>();
-  const [radarChartData, setRadarChartData] = useState<Record<string, string[]>>();
-  const [lengthOfLongestQuestionnaireName, setLengthOfLongestQuestionnaireName] = useState<number>(0);
+  const [dimensionsByDomain, setDimensionsByDomain] = useState<
+    Record<string, string[]>
+  >({});
+  const [domainsSankeyData, setDomainsSankeyData] =
+    useState<Record<string, Record<string, string[]>>>();
+  const [globalScoresLineChartData, setGlobalScoresLineChartData] =
+    useState<Visualization.ChartData>();
+  const [radarChartData, setRadarChartData] =
+    useState<Record<string, string[]>>();
+  const [
+    lengthOfLongestQuestionnaireName,
+    setLengthOfLongestQuestionnaireName,
+  ] = useState<number>(0);
   const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
     useState<Record<string, Errors.DataIssue[]>>({});
   const [idsOfResourcesWithIssues, setIdsOfResourcesWithIssues] = useState<
     string[]
   >([]);
-  const [domainQuestionnaireDimensionRecord, setDomainQuestionnaireDimensionRecord] = useState<Record<string, Record<string, string[]>>>();
-  const [domainDimensionQuestionnaireTuples, setDomainDimensionQuestionnaireTuples] = useState<[string, string, string][]>([]);
-  const [allDatesOfQuestionnaireResponses, setAllDatesOfQuestionnaireResponses] = useState<string[]>([]);
-  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<string[]>(
-    [],
-  );
+  const [
+    domainQuestionnaireDimensionRecord,
+    setDomainQuestionnaireDimensionRecord,
+  ] = useState<Record<string, Record<string, string[]>>>();
+  const [
+    domainDimensionQuestionnaireTuples,
+    setDomainDimensionQuestionnaireTuples,
+  ] = useState<[string, string, string][]>([]);
+  const [
+    allDatesOfQuestionnaireResponses,
+    setAllDatesOfQuestionnaireResponses,
+  ] = useState<string[]>([]);
+  const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<
+    string[]
+  >([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [selectedQuestionnaireResponses, setSelectedQuestionnaireResponses] = useState<string[]>([]);
+  const [selectedQuestionnaireResponses, setSelectedQuestionnaireResponses] =
+    useState<string[]>([]);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
-  const [selectedDimensionsByDomain, setSelectedDimensionsByDomain] = useState<Record<string, string[]>>({});
+  const [selectedDimensionsByDomain, setSelectedDimensionsByDomain] = useState<
+    Record<string, string[]>
+  >({});
   // const [displayedQuestionnaires, setDisplayedQuestionnaires] = useState<Mapping.Questionnaire[]>([]);
   // const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [modalShown, setModalShown] = useState(false);
   const [allDomainsSelected, setAllDomainsSelected] = useState(false);
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
 
   const [dateValue, setDateValue] = useState<string>("");
-  const [dateRange, setDateRange] = useState<Visualization.RangeState>({ start: "", end: "" });
+  const [dateRange, setDateRange] = useState<Visualization.RangeState>({
+    start: "",
+    end: "",
+  });
 
   // Load data
   useEffect(() => {
@@ -282,19 +322,18 @@ function App() {
       return;
     }
     const errors: Errors.DataIssue[] = [];
-    
+
     // only questionnaires and responses that are defined in config file
     const questionnairesInConfig = extractQuestionnairesFromConfig(config);
-    
+
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Questionnaires */
     const normalizedFhirQuestionnairesResult = fhirQuestionnaires
       .map((questionnaire) => normalizeQuestionnaire(questionnaire))
       .filter((result) => questionnairesInConfig.includes(result.data.url));
-    const normalizedFhirQuestionnaires =
-      normalizedFhirQuestionnairesResult.map(
-        (questionnaire) => questionnaire.data,
-      );
+    const normalizedFhirQuestionnaires = normalizedFhirQuestionnairesResult.map(
+      (questionnaire) => questionnaire.data,
+    );
     const normalizedFhirQuestionnaireIssues =
       normalizedFhirQuestionnairesResult.flatMap(
         (questionnaire) => questionnaire.issues,
@@ -306,23 +345,31 @@ function App() {
     );
 
     /* Questionnaire Responses */
-    const allNormalizedFhirQuestionnaireResponsesResult = 
+    const allNormalizedFhirQuestionnaireResponsesResult =
       fhirQuestionnaireResponses.map((response) =>
         normalizeQuestionnaireResponse(response, normalizedFhirQuestionnaires),
       );
     const allNormalizedFhirQuestionnaireResponses =
-      allNormalizedFhirQuestionnaireResponsesResult
-        .map((response) => response.data);
+      allNormalizedFhirQuestionnaireResponsesResult.map(
+        (response) => response.data,
+      );
     const normalizedFhirQuestionnaireResponsesResult =
       allNormalizedFhirQuestionnaireResponsesResult.filter(
-          (result) =>
-            result.data !== undefined && result.data.questionnaire !== undefined &&
-            questionnairesInConfig.includes(result.data.questionnaire),);
+        (result) =>
+          result.data !== undefined &&
+          result.data.questionnaire !== undefined &&
+          questionnairesInConfig.includes(result.data.questionnaire),
+      );
     const normalizedFhirQuestionnaireResponses =
-      normalizedFhirQuestionnaireResponsesResult
-        .map((response) => response.data); 
-    
-    const questionnairesNotInConfigResult = findQuestionnairesNotListedInConfig(questionnairesInConfig, allNormalizedFhirQuestionnaireResponses, normalizedFhirQuestionnaires);
+      normalizedFhirQuestionnaireResponsesResult.map(
+        (response) => response.data,
+      );
+
+    const questionnairesNotInConfigResult = findQuestionnairesNotListedInConfig(
+      questionnairesInConfig,
+      allNormalizedFhirQuestionnaireResponses,
+      normalizedFhirQuestionnaires,
+    );
     if (questionnairesNotInConfigResult.issues.length > 0) {
       errors.push(...questionnairesNotInConfigResult.issues);
     }
@@ -335,15 +382,14 @@ function App() {
       "Normalized FHIR Questionnaire Responses: ",
       normalizedFhirQuestionnaireResponses,
     );
-  
+
     /* Observations */
     const normalizedFhirObservationsResult = fhirObservations.map(
       (observation) => normalizeObservation(observation),
     );
-    const normalizedFhirObservations =
-      normalizedFhirObservationsResult.map(
-        (observation) => observation.data,
-      );
+    const normalizedFhirObservations = normalizedFhirObservationsResult.map(
+      (observation) => observation.data,
+    );
     const normalizedFhirObservationIssues =
       normalizedFhirObservationsResult.flatMap(
         (observation) => observation.issues,
@@ -372,17 +418,16 @@ function App() {
 
     /* ----------------------- Mapping ------------------------ */
     /* Questionnaires */
-    const promDataQuestionnairesResult =
-      normalizedFhirQuestionnaires.map((questionnaire) =>
+    const promDataQuestionnairesResult = normalizedFhirQuestionnaires.map(
+      (questionnaire) =>
         mapNormalizedQuestionnaireToPromDataQuestionnaire(questionnaire),
-      );
+    );
     const promDataQuestionnaires = promDataQuestionnairesResult.map(
       (questionnaire) => questionnaire.data,
     );
-    const promDataQuestionnaireIssues =
-      promDataQuestionnairesResult.flatMap(
-        (questionnaire) => questionnaire.issues,
-      );
+    const promDataQuestionnaireIssues = promDataQuestionnairesResult.flatMap(
+      (questionnaire) => questionnaire.issues,
+    );
     errors.push(...promDataQuestionnaireIssues);
     console.log("Mapping Questionnaires: ", promDataQuestionnaires); // ok
 
@@ -394,10 +439,9 @@ function App() {
           promDataQuestionnaires,
         ),
       );
-    const promDataQuestionnaireResponses =
-      questionnaireResponsesResult.map(
-        (questionnaireResponse) => questionnaireResponse.data,
-      );
+    const promDataQuestionnaireResponses = questionnaireResponsesResult.map(
+      (questionnaireResponse) => questionnaireResponse.data,
+    );
     console.log(
       "Mapping Questionnaire Responses: ",
       promDataQuestionnaireResponses,
@@ -425,10 +469,9 @@ function App() {
     const promDataObservations = promDataObservationsResult.map(
       (observation) => observation.data,
     );
-    const promDataObservationIssues =
-      promDataObservationsResult.flatMap(
-        (observation) => observation.issues,
-      );
+    const promDataObservationIssues = promDataObservationsResult.flatMap(
+      (observation) => observation.issues,
+    );
     console.log("Mapping Observation Issues: ", promDataObservationIssues);
     errors.push(...promDataObservationIssues);
     console.log("Mapping Observations: ", promDataObservations); // ok
@@ -536,9 +579,16 @@ function App() {
     // const globalHealthDimensionsFromConfig =
     //   extractGlobalHealthDimensionsFromConfig(config);
     const domainsFromConfig = extractDomainsFromConfig(config);
-    const globalHealthDomainsFromConfig = extractGlobalHealthDomainsFromConfig(config);
-    console.log("Global Health Domains from Config: ", globalHealthDomainsFromConfig);
-    const domains = sortDomains(domainsFromConfig, globalHealthDomainsFromConfig);
+    const globalHealthDomainsFromConfig =
+      extractGlobalHealthDomainsFromConfig(config);
+    console.log(
+      "Global Health Domains from Config: ",
+      globalHealthDomainsFromConfig,
+    );
+    const domains = sortDomains(
+      domainsFromConfig,
+      globalHealthDomainsFromConfig,
+    );
     // const domainsWithUnspecifiedDomain = addUnspecifiedDimensionToDomains(domains);
 
     /* ----------------------- Clean data ------------------------ */
@@ -552,7 +602,9 @@ function App() {
       )
       .map((error) => error.context.resourceId);
     const linkIdsWithErrors = errors
-      .filter((error) => error.level === "error" && error.context.field !== undefined)
+      .filter(
+        (error) => error.level === "error" && error.context.field !== undefined,
+      )
       .map((error) => error.context.field);
     const promDataQuestionnaireResponsesWithoutErrors =
       promDataQuestionnaireResponses.filter(
@@ -574,7 +626,7 @@ function App() {
           items: items,
         };
       });
-    
+
     // Tranform Questionnaire Responses to Record
     // const questionnaireResponsesRecord: Record<
     //   string,
@@ -608,7 +660,10 @@ function App() {
     /* Errors and Warnings */
     const uniqueErrors = _.uniqBy(errors, (error) => error.id);
     const errorsForDisplay = errors.filter((error) => error.showUser);
-    const uniqueErrorsForDisplay: Errors.DataIssue[] = _.uniqBy(errorsForDisplay, (error) => error.userMessage);
+    const uniqueErrorsForDisplay: Errors.DataIssue[] = _.uniqBy(
+      errorsForDisplay,
+      (error) => error.userMessage,
+    );
     console.log("Unique Errors for Display: ", uniqueErrorsForDisplay);
 
     /* Questionnaires */
@@ -618,17 +673,21 @@ function App() {
     );
     console.log("Questionnaires: ", questionnaires);
 
-    const allResponseDates = extractDatesOfQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
+    const allResponseDates = extractDatesOfQuestionnaireResponses(
+      questionnaireResponsesWithFilteredItems,
+    );
 
     // Set variables
     setQuestionnaires(questionnaires);
     setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
-    setDataIssuesForUser(uniqueErrorsForDisplay);
+    setDataIssuesForUser(uniqueErrors); // ForDisplay
     setDataIssues(uniqueErrors);
     // setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
     setDomains(domains);
     setQuestionnairesReady(true);
-    setSelectedQuestionnaires(questionnaires.map((questionnaire) => questionnaire.id));
+    setSelectedQuestionnaires(
+      questionnaires.map((questionnaire) => questionnaire.id),
+    );
     setAllDatesOfQuestionnaireResponses(allResponseDates);
     setSelectedDates(allResponseDates);
     // setDisplayedQuestionnaires(questionnaires);
@@ -641,7 +700,7 @@ function App() {
     dataLoaded,
   ]);
 
- // Data visualization
+  // Data visualization
 
   useEffect(() => {
     if (!questionnairesReady) {
@@ -650,26 +709,59 @@ function App() {
     // if (dataIssues.length > 0 && !modalShown) {
     //   setIsModalOpen(true);
     // }
-   
+
     // Questionnaires, Questionnaire Responses and domains for chart
-    const questionnairesForChart = questionnaires.filter((questionnaire) => selectedQuestionnaires.includes(questionnaire.id));
+    const questionnairesForChart = questionnaires.filter((questionnaire) =>
+      selectedQuestionnaires.includes(questionnaire.id),
+    );
     console.log("Questionnaires for Chart: ", questionnairesForChart);
     //const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = questionnaireResponses;
-    const questionnaireResponsesFilteredBySelectedQuestionnaires: Record<string, Mapping.QuestionnaireResponse> = filterQuestionnaireResponsesByQuestionnaireIds(questionnaireResponses, selectedQuestionnaires);
-    const questionnaireResponsesFilteredBySelectedDates: Record<string, Mapping.QuestionnaireResponse> = filterQuestionnaireResponsesThatAreOnSingleDates(questionnaireResponses, selectedDates);
-    const questionnaireResponsesFilteredBySelectedRange: Record<string, Mapping.QuestionnaireResponse> = filterQuestionnaireResponsesThatAreWithinDates(questionnaireResponses, dateRange.start, dateRange.end);
-    
-    console.log("Questionnaire Responses Filtered by Selected Questionnaires: ", questionnaireResponsesFilteredBySelectedQuestionnaires);
-    console.log("Questionnaire Responses Filtered by Selected Dates: ", questionnaireResponsesFilteredBySelectedDates);
-    console.log("Questionnaire Responses Filtered by Selected Range: ", questionnaireResponsesFilteredBySelectedRange);
-
-    const questionnaireResponseIdsForChart = _.intersection(
-      Object.keys(questionnaireResponsesFilteredBySelectedQuestionnaires), 
-      Object.keys(questionnaireResponsesFilteredBySelectedDates), 
-      Object.keys(questionnaireResponsesFilteredBySelectedRange)
+    const questionnaireResponsesFilteredBySelectedQuestionnaires: Record<
+      string,
+      Mapping.QuestionnaireResponse
+    > = filterQuestionnaireResponsesByQuestionnaireIds(
+      questionnaireResponses,
+      selectedQuestionnaires,
+    );
+    const questionnaireResponsesFilteredBySelectedDates: Record<
+      string,
+      Mapping.QuestionnaireResponse
+    > = filterQuestionnaireResponsesThatAreOnSingleDates(
+      questionnaireResponses,
+      selectedDates,
+    );
+    const questionnaireResponsesFilteredBySelectedRange: Record<
+      string,
+      Mapping.QuestionnaireResponse
+    > = filterQuestionnaireResponsesThatAreWithinDates(
+      questionnaireResponses,
+      dateRange.start,
+      dateRange.end,
     );
 
-    const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = {};
+    console.log(
+      "Questionnaire Responses Filtered by Selected Questionnaires: ",
+      questionnaireResponsesFilteredBySelectedQuestionnaires,
+    );
+    console.log(
+      "Questionnaire Responses Filtered by Selected Dates: ",
+      questionnaireResponsesFilteredBySelectedDates,
+    );
+    console.log(
+      "Questionnaire Responses Filtered by Selected Range: ",
+      questionnaireResponsesFilteredBySelectedRange,
+    );
+
+    const questionnaireResponseIdsForChart = _.intersection(
+      Object.keys(questionnaireResponsesFilteredBySelectedQuestionnaires),
+      Object.keys(questionnaireResponsesFilteredBySelectedDates),
+      Object.keys(questionnaireResponsesFilteredBySelectedRange),
+    );
+
+    const questionnaireResponsesForChart: Record<
+      string,
+      Mapping.QuestionnaireResponse
+    > = {};
     questionnaireResponseIdsForChart.forEach((id) => {
       questionnaireResponsesForChart[id] = questionnaireResponses[id];
     });
@@ -686,40 +778,84 @@ function App() {
     //     questionnaireResponsesForChart[id] = questionnaireResponsesFilteredBySelectedRange[id];
     //   }
     // });
-    console.log("Questionnaire Responses for Chart: ", questionnaireResponsesForChart);
-    
-    const domainsForChart = domains.filter((domain) => questionnairesForChart.some((questionnaire) => Object.values(questionnaire.items).some((item) => item.domain === domain)))
-    console.log("Domains for Chart: ", domainsForChart);
-    const questionnaireNamesByDate: Record<string, string[]> = createDateQuestionnaireNamesRecord(
-      questionnaireResponses,
+    console.log(
+      "Questionnaire Responses for Chart: ",
+      questionnaireResponsesForChart,
     );
-    const questionnaireMostRecentResponseDateRecord: Record<string, string> = createQuestionnaireMostRecentResponseDateRecord(questionnaireNamesByDate);
-    
+
+    const domainsForChart = domains.filter((domain) =>
+      questionnairesForChart.some((questionnaire) =>
+        Object.values(questionnaire.items).some(
+          (item) => item.domain === domain,
+        ),
+      ),
+    );
+    console.log("Domains for Chart: ", domainsForChart);
+    const questionnaireNamesByDate: Record<string, string[]> =
+      createDateQuestionnaireNamesRecord(questionnaireResponses);
+    const questionnaireMostRecentResponseDateRecord: Record<string, string> =
+      createQuestionnaireMostRecentResponseDateRecord(questionnaireNamesByDate);
 
     // Chart Data
     const chartData = createChartData(questionnaireResponsesForChart);
-    console.log("Chart Data: ", chartData); 
+    console.log("Chart Data: ", chartData);
 
     // Data series for different charts
-    const chartDataSeriesByDomain: Record<string, Visualization.DataSeries[]> = {};
-    const globalScoresDataSeries: Visualization.DataSeries[] = extractGlobalScoresDataSeries(chartData.yData, questionnairesForChart);
-    const domainScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]> = {};
-    const dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]> = {};
-    const scoresAndItemsDataSeriesByDomainAndDimension: Record<string, Record<string, Visualization.DataSeries[]>> = {};
+    const chartDataSeriesByDomain: Record<string, Visualization.DataSeries[]> =
+      {};
+    const globalScoresDataSeries: Visualization.DataSeries[] =
+      extractGlobalScoresDataSeries(chartData.yData, questionnairesForChart);
+    const domainScoresDataSeriesByDomain: Record<
+      string,
+      Visualization.DataSeries[]
+    > = {};
+    const dimensionScoresDataSeriesByDomain: Record<
+      string,
+      Visualization.DataSeries[]
+    > = {};
+    const scoresAndItemsDataSeriesByDomainAndDimension: Record<
+      string,
+      Record<string, Visualization.DataSeries[]>
+    > = {};
     const selectedDimensionsByDomain: Record<string, string[]> = {};
-    
+
     domainsForChart.forEach((domain) => {
-      chartDataSeriesByDomain[domain] = extractDomainDataSeries(chartData.yData, questionnairesForChart, domain);
+      chartDataSeriesByDomain[domain] = extractDomainDataSeries(
+        chartData.yData,
+        questionnairesForChart,
+        domain,
+      );
       // domain and dimension scores not necessarily disjoint!
-      domainScoresDataSeriesByDomain[domain] = extractDomainScoresDataSeries(chartDataSeriesByDomain[domain], questionnairesForChart);
-      dimensionScoresDataSeriesByDomain[domain] = extractDimensionScoresDataSeries(chartDataSeriesByDomain[domain], questionnairesForChart, domainScoresDataSeriesByDomain[domain]);
-      scoresAndItemsDataSeriesByDomainAndDimension[domain] = extractItemsDataSeries(chartDataSeriesByDomain[domain], domainScoresDataSeriesByDomain[domain], dimensionScoresDataSeriesByDomain[domain], questionnairesForChart);
+      domainScoresDataSeriesByDomain[domain] = extractDomainScoresDataSeries(
+        chartDataSeriesByDomain[domain],
+        questionnairesForChart,
+      );
+      dimensionScoresDataSeriesByDomain[domain] =
+        extractDimensionScoresDataSeries(
+          chartDataSeriesByDomain[domain],
+          questionnairesForChart,
+          domainScoresDataSeriesByDomain[domain],
+        );
+      scoresAndItemsDataSeriesByDomainAndDimension[domain] =
+        extractItemsDataSeries(
+          chartDataSeriesByDomain[domain],
+          domainScoresDataSeriesByDomain[domain],
+          dimensionScoresDataSeriesByDomain[domain],
+          questionnairesForChart,
+        );
       selectedDimensionsByDomain[domain] = [];
     });
 
-    console.log("Dimension scores by domain: ", dimensionScoresDataSeriesByDomain);
+    console.log(
+      "Dimension scores by domain: ",
+      dimensionScoresDataSeriesByDomain,
+    );
 
-    const dimensionsByDomain: Record<string, string[]> = createDomainDimensionsRecord(questionnairesForChart, dimensionScoresDataSeriesByDomain);
+    const dimensionsByDomain: Record<string, string[]> =
+      createDomainDimensionsRecord(
+        questionnairesForChart,
+        dimensionScoresDataSeriesByDomain,
+      );
 
     // const domainScoresDataSeries = chartData.yData.filter(
     //   (dataseries) =>
@@ -748,14 +884,17 @@ function App() {
     //     ...itemDataSeries.map((item) => item.dimension),
     //     ...scoreDataSeries.map((score) => score.dimension),
     //   ]),
-    // ]; 
+    // ];
 
     // Questionnaire Card
-    const questionnaireCardData = createQuestionnaireCardData(questionnairesForChart);
-    console.log("Questionnaire Card Data: ", questionnaireCardData)
+    const questionnaireCardData = createQuestionnaireCardData(
+      questionnairesForChart,
+    );
+    console.log("Questionnaire Card Data: ", questionnaireCardData);
     const questionnaireNames = Object.keys(questionnaireCardData);
     const longestQuestionnaireName = questionnaireNames.reduce(
-      (longest, current) => (current.length > longest.length ? current : longest),
+      (longest, current) =>
+        current.length > longest.length ? current : longest,
       "",
     );
     const lengthOfLongestQuestionnaireName = longestQuestionnaireName.length;
@@ -764,7 +903,7 @@ function App() {
     const globalScoresLineChartData: Visualization.ChartData = {
       xData: chartData.xData,
       yData: globalScoresDataSeries,
-    }
+    };
     // const scoreChartSubTitle = Array.from(
     //   new Set(
     //     Object.values(questionnaireResponsesForChart).map(
@@ -781,26 +920,38 @@ function App() {
     //   yData: domainScoresDataSeriesByDomain});
     // console.log("Radar data: ", mostRecentDomainScoresRadarData)
 
-
-     // Domain Dimension Mapping Sankey
+    // Domain Dimension Mapping Sankey
     const domainsSankeyData = createDomainQuestionnaireNamesDimensionsRecord(
-       dimensionScoresDataSeriesByDomain,
-    )
-
-    const domainQuestionnaireDimensionRecord = createDomainQuestionnaireNamesDimensionsRecord(
-       dimensionScoresDataSeriesByDomain,
-    )
-
-    const domainDimensionQuestionnaireTuples = createDomainDimensionQuestionnaireTupleArray(
-      dimensionScoresDataSeriesByDomain
+      dimensionScoresDataSeriesByDomain,
     );
 
-    console.log("Domain Questionnaire Dimension Record: ", domainQuestionnaireDimensionRecord);
-    console.log("Domain Dimension Questionnaire Tuples: ", domainDimensionQuestionnaireTuples)
-    
-    const domainDimensionWithQuestionnaireRecord = createDimensionWithQuestionnaireByDomainRecord(dimensionScoresDataSeriesByDomain);
-    console.log("Domain Dimension With Questionnaire Record: ", domainDimensionWithQuestionnaireRecord);
+    const domainQuestionnaireDimensionRecord =
+      createDomainQuestionnaireNamesDimensionsRecord(
+        dimensionScoresDataSeriesByDomain,
+      );
 
+    const domainDimensionQuestionnaireTuples =
+      createDomainDimensionQuestionnaireTupleArray(
+        dimensionScoresDataSeriesByDomain,
+      );
+
+    console.log(
+      "Domain Questionnaire Dimension Record: ",
+      domainQuestionnaireDimensionRecord,
+    );
+    console.log(
+      "Domain Dimension Questionnaire Tuples: ",
+      domainDimensionQuestionnaireTuples,
+    );
+
+    const domainDimensionWithQuestionnaireRecord =
+      createDimensionWithQuestionnaireByDomainRecord(
+        dimensionScoresDataSeriesByDomain,
+      );
+    console.log(
+      "Domain Dimension With Questionnaire Record: ",
+      domainDimensionWithQuestionnaireRecord,
+    );
 
     // Heatmap
     // const heatmapDataByDomain: Record<string, Visualization.ChartData> =
@@ -833,7 +984,7 @@ function App() {
     //   itemWarningsByQuestionnaireId,
     // );
     forwardErrorsToUser(dataIssues);
-    
+
     // const periodOfObservations = calculatePeriodOfObservations(
     //   questionnaireResponses,
     // );
@@ -847,7 +998,9 @@ function App() {
     setGlobalScoresDataSeries(globalScoresDataSeries);
     setDomainScoresDataSeriesByDomain(domainScoresDataSeriesByDomain);
     setDimensionScoresDataSeriesByDomain(dimensionScoresDataSeriesByDomain);
-    setItemDataSeriesByDomainAndDimension(scoresAndItemsDataSeriesByDomainAndDimension);
+    setItemDataSeriesByDomainAndDimension(
+      scoresAndItemsDataSeriesByDomainAndDimension,
+    );
     setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
     setGlobalScoresLineChartData(globalScoresLineChartData);
     setQuestionnaireNamesByDate(questionnaireNamesByDate);
@@ -859,7 +1012,9 @@ function App() {
     setSelectedDimensionsByDomain(selectedDimensionsByDomain);
     setDomainDimensionQuestionnaireTuples(domainDimensionQuestionnaireTuples);
     setDomainQuestionnaireDimensionRecord(domainQuestionnaireDimensionRecord);
-    setDimensionsWithQuestionnaireByDomain(domainDimensionWithQuestionnaireRecord);
+    setDimensionsWithQuestionnaireByDomain(
+      domainDimensionWithQuestionnaireRecord,
+    );
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
@@ -896,19 +1051,22 @@ function App() {
     //   setSelectedDomains(domains);
     // }
     // if (!allDomainsSelected) {
-      setSelectedDomains(domains);
+    setSelectedDomains(domains);
     // }
     // setAllDomainsSelected((prev) => !prev);
-  }
+  };
 
-  const selectAllDimensionsForDomain = (domain: string, dimensions: string[]) => {
+  const selectAllDimensionsForDomain = (
+    domain: string,
+    dimensions: string[],
+  ) => {
     setSelectedDimensionsByDomain((prev) => {
       return {
         ...prev,
         [domain]: dimensions,
       };
     });
-  }
+  };
 
   const handleQuestionnaireSelection = (questionnaireId: string) => {
     setSelectedQuestionnaires((prev) => {
@@ -920,7 +1078,7 @@ function App() {
       }
     });
     console.log("Selected Questionnaires: ", selectedQuestionnaires);
-  }
+  };
 
   const handleDateSelection = (date: string) => {
     setSelectedDates((prev) => {
@@ -932,7 +1090,7 @@ function App() {
       }
     });
     console.log("Selected Dates: ", selectedDates);
-  }
+  };
 
   const handleDomainSelection = (domain: string) => {
     setSelectedDomains((prev) => {
@@ -944,7 +1102,7 @@ function App() {
       }
     });
     console.log("Selected Domains: ", selectedDomains);
-  }
+  };
 
   const handleDimensionSelection = (domain: string, dimension: string) => {
     setSelectedDimensionsByDomain((prev) => {
@@ -963,29 +1121,34 @@ function App() {
       }
     });
     console.log("Selected Dimensions by Domain: ", selectedDimensionsByDomain);
-  }
+  };
 
-  
-  
-    const handleRangeChange = (event: Event) => {
-      if (event.type === "clear") {
-        setDateRange({ start: "", end: "" });
-        setDateValue("");
-        return;
-      }
-      // Cast the target to access both value (start) and valueEnd (end)
-      const target = event.target as HTMLInputElement;
-      const cutPosition = target.value.indexOf("/");
-      const start = target.value.substring(0, cutPosition);
-      const end = target.value.substring(cutPosition + 1);
-      console.log("Selected range: ", { start, end });
-      setDateRange({
-        start: start,    // e.g., "2026-05-19"
-        end: end,   // e.g., "2026-05-26" (or empty string if not clicked yet)
-      });
-      setDateValue(target.value);
-    };
+  const toggleShowFilterOptions = () => {
+    setShowFilterOptions((prev) => !prev);
+  };
 
+  const toggleShowErrors = () => {
+    setShowErrors((prev) => !prev);
+  };
+
+  const handleRangeChange = (event: Event) => {
+    if (event.type === "clear") {
+      setDateRange({ start: "", end: "" });
+      setDateValue("");
+      return;
+    }
+    // Cast the target to access both value (start) and valueEnd (end)
+    const target = event.target as HTMLInputElement;
+    const cutPosition = target.value.indexOf("/");
+    const start = target.value.substring(0, cutPosition);
+    const end = target.value.substring(cutPosition + 1);
+    console.log("Selected range: ", { start, end });
+    setDateRange({
+      start: start, // e.g., "2026-05-19"
+      end: end, // e.g., "2026-05-26" (or empty string if not clicked yet)
+    });
+    setDateValue(target.value);
+  };
 
   // Loading Errors
   if (configError)
@@ -1005,17 +1168,26 @@ function App() {
   if (!dataLoaded.config || !dataLoaded.fhirData) return <div>Loading...</div>;
   if (!questionnairesReady) return <div>Processing data...</div>;
 
-
   return (
     <div className="tw:@container">
       <div className="tw:min-h-screen">
-        <div
+        {/* <div
           className={`${isModalOpen ? "pointer-events-none select-none" : ""}`}
-        >
-          {/* <Header /> */}
-          <main className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6">
-            <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-center tw:items-start">
-              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md">
+        > */}
+        {/* <Header /> */}
+        <main>
+          <div className="tw:drawer tw:lg:drawer-open tw:drawer-end">
+            <input
+              id="filter-drawer"
+              type="checkbox"
+              className="tw:drawer-toggle"
+            />
+            <div className="tw:drawer-content">
+              <div className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6">
+                {/* <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-center tw:items-start">
+                 */}
+
+                {/* <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md">
                 <div className="tw:card-body">
                   <h3 className="tw:card-title">Filter Options</h3>
                   <div>
@@ -1050,45 +1222,11 @@ function App() {
                     <DateRangePicker rangeHandler={handleRangeChange} dateValue={dateValue} range={dateRange}/>
                   </div>
                 </div>
-              </div>
-              <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md tw:overflow-y-auto tw:max-h-[60vh]">
-                <div className="tw:card-body">
-                  <h3 className="tw:card-title">Data Info</h3>
-                  {/* <p>Total number of questionnaires: {Object.keys(questionnaireResponses).length}</p>
-                <p>Number of different questionnaires: {questionnaires.length}</p>
-                <p>Period of observations: {calculatePeriodOfObservations(questionnaireResponses)}</p> */}
-                  <p>Completed questionnaires by date</p>
-                  {Object.entries(questionnaireNamesByDate).map(
-                    ([date, questionnaires]) => (
-                      <div key={date}>
-                        {date}:
-                        <ul className="tw:list-disc tw:pl-5">
-                          {questionnaires.map((questionnaire) => (
-                            <li key={questionnaire}>{questionnaire}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ),
-                  )}
-                  {/* <p>
-                    A total of{" "}
-                    {Object.keys(questionnaireResponsesForChart).length}{" "}
-                    questionnaires were completed
-                    {periodOfObservations.length > 1 &&
-                      ` between ${periodOfObservations[0]} and ${periodOfObservations[1]}`}
-                    {periodOfObservations.length === 1 &&
-                      ` in ${periodOfObservations[0]}`}
-                    .
-                  </p> */}
-                </div>
-              </div>
-              {dataIssuesForUser.length > 0 && (
-                 <ErrorCard data={dataIssuesForUser} />
-              )}
-             
-            </div>
-            {/* <div className="tw:divider" /> */}
-            {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+              </div> */}
+                {/* </div> */}
+
+                {/* <div className="tw:divider" /> */}
+                {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                       Dimension Domain Mapping
                     </h2>
             <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-left tw:items-start">
@@ -1099,8 +1237,8 @@ function App() {
                 )))
                 }
             </div> */}
-            <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
-              <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
+                {/* <div className="tw:pt-4 tw:pb-8">
+              <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
                 Domains-to-Dimensions Mapping
               </h2>
               {dimensionsWithQuestionnaireByDomain && (
@@ -1118,22 +1256,205 @@ function App() {
                       constrainWidth={true}
                         />
                   </div>
-                 
-                  {/* {questionnaires && domainsSankeyData && (
-                    <SankeyChart data={domainsSankeyData} />
-                  )} */}
-                  {/* {questionnaires && domainDimensionQuestionnaireTuples && (
-                    <Mapper data={domainDimensionQuestionnaireTuples} />
-                  )} */}
                   <div className="tw:py-4">
                       <MappingTable data={dimensionsWithQuestionnaireByDomain} />
                   </div>
                 </>
               )}
-            </div>
-            
-           
-             {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+            </div> */}
+                <div className="tw:pt-4 tw:pb-8">
+                  <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                    Overview
+                  </h2>
+                  <div className="tw:flex tw:justify-start">
+                    {questionnaireNamesByDate && (
+                      <GridTable
+                        data={questionnaireNamesByDate}
+                        constrainWidth={true}
+                      />
+                    )}
+                  </div>
+
+                  {dataIssuesForUser.length > 0 && (
+                    <>
+                      <div className="tw:flex tw:flex-wrap tw:gap-4 tw:items-center tw:mx-4 tw:pt-4 tw:pb-2">
+                        <div
+                          role="alert"
+                          className="tw:alert tw:alert-warning tw:alert-soft tw:border tw:border-amber-300 tw:rounded-md tw:max-w-md tw:py-1"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="tw:h-6 tw:w-6 tw:shrink-0 tw:stroke-current"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                          </svg>
+                          <span>
+                            Some Questionnaires could not be processed.
+                        </span>
+                        </div>
+
+                        <button
+                          className="tw:btn tw:btn-sm tw:rounded-md tw:py-4"
+                          onClick={toggleShowErrors}
+                        >
+                          {showErrors ? "Hide Details" : "Show Details"}
+                        </button>
+                      </div>
+                      {showErrors && (
+                        <div className="tw:px-4">
+                          {/* <div className="tw:card tw:card-border tw:border tw:border-gray-200 tw:bg-base-100 tw:max-w-2xl tw:md:w-2xl">
+                         <div className="tw:card-body"> */}
+
+                          <ErrorCard data={dataIssuesForUser} />
+
+                          {/* </div>
+                         </div> */}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className="tw:pt-4 tw:pb-8">
+                  <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                    Charts
+                  </h2>
+                  {dimensionsWithQuestionnaireByDomain && (
+                    <Collapse
+                      title="Domain-to-Dimension Mapping Info"
+                      children={
+                        <>
+                          
+                            <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
+                              <div
+                                className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
+                                data-tip={`This grid shows how 
+                                  ${Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
+                                  map to their corresponding questionnaire dimensions (right). 
+                                  Greek letters indicate the source questionnaire for each dimension (see legend at the bottom).`}
+                                      >
+                                <button className="tw:btn tw:btn-sm">
+                                  About this Diagram
+                                </button>
+                              </div>
+                            </div>
+                            {/* <Collapse 
+                          title={"About this Diagram"} 
+                          children={
+                            <p>This grid shows how {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
+                              are mapped to their corresponding questionnaire dimensions (right).
+                              <ul className="tw:list-disc tw:list-inside">
+                                <li>Greek letters next to a dimension suffix indicate its source questionnaire.</li>
+                                <li>The legend at the bottom defines which questionnaire matches each letter.</li>
+                              </ul>
+                              </p>
+                            } 
+                            constrainWidth={true}
+                          /> */}
+                          
+                          <div className="tw:py-4">
+                            <MappingTable
+                              data={dimensionsWithQuestionnaireByDomain}
+                            />
+                          </div>
+                        </>
+                      }
+                      constrainWidth={true}
+                    />
+                  )}
+                  {/* <div>
+              <button className="tw:btn tw:btn-sm tw:mt-2 tw:mb-4" onClick={toggleShowFilterOptions}>{showFilterOptions ? "Hide Filter Options" : "Show Filter Options"}</button>
+              </div> */}
+
+                  {/* {showFilterOptions && (
+                <div className="tw:card tw:card-border tw:border tw:border-gray-200 tw:bg-base-100 tw:max-w-2xl tw:md:w-2xl">
+                  <div className="tw:card-body">
+                <FilterOptionsDisplay 
+                    questionnaires={questionnaires} 
+                    selectedQuestionnaires={selectedQuestionnaires}
+                    questionnaireSelectionHandler={handleQuestionnaireSelection}
+                    dates={allDatesOfQuestionnaireResponses}
+                    selectedDates={selectedDates}
+                    dateSelectionHandler={handleDateSelection}
+                    datePickerValue={dateValue}
+                    datePickerRange={dateRange}
+                    rangeSelectionHandler={handleRangeChange}
+                  />
+                  </div>
+                  </div>
+              )} */}
+                  <label
+                  htmlFor="filter-drawer"
+                  className="tw:btn tw:btn-sm tw:drawer-button tw:mt-2 tw:lg:hidden"
+                >
+                  <span>Filters</span>
+                  <FontAwesomeIcon icon="fa-solid fa-filter" />
+                </label>
+                  {/* <div className="tw:drawer tw:drawer-open tw:drawer-end">
+                  <input id="filter-drawer" type="checkbox" className="tw:drawer-toggle" />
+                  <div className="tw:drawer-content"> */}
+                  {/* <label
+                    htmlFor="filter-drawer"
+                    className="tw:btn tw:btn-sm tw:drawer-button tw:mt-2"
+                  >
+                    <span>Filters</span>
+                    <FontAwesomeIcon icon="fa-solid fa-filter" />
+                  </label> */}
+                  {/* </div> */}
+                  {/* <div className="tw:drawer-side">
+                    <label
+                      htmlFor="filter-drawer"
+                      aria-label="close sidebar"
+                      className="tw:drawer-overlay"
+                    ></label>
+                    <ul className="tw:menu tw:bg-base-200 tw:min-h-full tw:w-80 tw:p-4">
+                      <div className="tw:text tw:font-semibold tw:text-lg tw:pt-4 tw:pb-4">
+                        Filter Questionnaires
+                      </div>
+
+                      <FilterOptionsDisplay
+                        questionnaires={questionnaires}
+                        selectedQuestionnaires={selectedQuestionnaires}
+                        questionnaireSelectionHandler={
+                          handleQuestionnaireSelection
+                        }
+                        dates={allDatesOfQuestionnaireResponses}
+                        selectedDates={selectedDates}
+                        dateSelectionHandler={handleDateSelection}
+                        datePickerValue={dateValue}
+                        datePickerRange={dateRange}
+                        rangeSelectionHandler={handleRangeChange}
+                      />
+                    </ul>
+                  </div> */}
+                  {/* </div> */}
+
+                  {/* <Collapse
+                title="Filter Options"
+                children={
+                  <FilterOptionsDisplay 
+                    questionnaires={questionnaires} 
+                    selectedQuestionnaires={selectedQuestionnaires}
+                    questionnaireSelectionHandler={handleQuestionnaireSelection}
+                    dates={allDatesOfQuestionnaireResponses}
+                    selectedDates={selectedDates}
+                    dateSelectionHandler={handleDateSelection}
+                    datePickerValue={dateValue}
+                    datePickerRange={dateRange}
+                    rangeSelectionHandler={handleRangeChange}
+                  />
+                }
+                constrainWidth={true}
+              /> */}
+                </div>
+
+                {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                       Dimension Coverage by Questionnaire
                     </h2>
             <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-left tw:items-start">
@@ -1144,8 +1465,8 @@ function App() {
                 )))
                 }
             </div> */}
-           
-            {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4">
+
+                {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4">
               <div className="tw:col-span-15 tw:lg:col-span-15 tw:2xl:col-span-15">
                 <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                   Dimension Covering
@@ -1167,12 +1488,11 @@ function App() {
                 )}
               </div>
             </div> */}
-            {/* 16 6 5*/}
-            {/* <div className="tw:grid tw:grid-cols-12 tw:item-center tw:py-4"> */}
-            <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4 tw:mb-4">
-              
-              {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5"> */}
-                {/* <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
+                {/* 16 6 5*/}
+                {/* <div className="tw:grid tw:grid-cols-12 tw:item-center tw:py-4"> */}
+                {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:pt-4 tw:pb-8"> */}
+                  {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5"> */}
+                  {/* <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
                   Dimension Covering
                 </p>
                 {chartData && questionnaireCardData && (
@@ -1184,71 +1504,80 @@ function App() {
                 )}
               </div> */}
 
-              {/* </div>
+                  {/* </div>
               
           
                   <div className="tw:flex-1 tw:item-center tw:py-4"> */}
-              
-                {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
-                {radarChartData && (
-                  <>
-                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
-                      Health Indication
-                    </h2>
 
-                    <RadarChart
-                      data={radarChartData}
-                      dimensions={domains}
-                    />
-                  </>
-                )}
-              </div> */}
-              <div className="tw:col-span-15 tw:lg:col-span-9 tw:2xl:col-span-10">
-                {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
-                {globalScoresDataSeries.length > 0 && (
-                  <>
-                    <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
-                      Global Health
-                    </h2>
-                    <div>
-                      <p>The following chart shows the progress over time of those scores which represent global or overall health of the patient.</p>
-                    </div>
-                    <div className="tw:m-4">
-                      <LineChart
-                        height={400}
-                        data={{
-                          xData: chartXData,
-                          yData: globalScoresDataSeries,
-                        }}
-                        title={"Normalized Global Health Scores over Time"}
-                        minMaxYLabels={["Worst Health", "Best Health"]}
-                        titleOptions={singleLineChartOptions.title}
-                        legendOptions={singleLineChartOptions.legend}
-                        gridOptions={singleLineChartOptions.grid}
-                        xAxisOptions={singleLineChartOptions.xAxis}
-                        yAxisOptions={singleLineChartOptions.yAxis}
-                        tooltipOptions={singleLineChartOptions.tooltip}
-                        lineOption={lineChartSeriesOption}
-                      />
-                    </div>
-                  </>
-                )}
-                {globalScoresDataSeries.length === 0 && (
-                  <p className="tw:text-lg tw:text-center tw:text-[#333]">
-                    No global health scores available
-                  </p>
-                )}
-              </div>       
-            </div>
-            {/* <div className="tw:divider" /> */}
-            {/* <div className="tw:flex-1 tw:item-center tw:py-4">
+                      {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
+                    {radarChartData && (
+                      <>
+                        <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
+                          Health Indication
+                        </h2>
+
+                        <RadarChart
+                          data={radarChartData}
+                          dimensions={domains}
+                        />
+                      </>
+                    )}
+                  </div> */}
+                  <div className="tw:pt-4 tw:pb-8">
+                    {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
+                    {globalScoresDataSeries.length > 0 && (
+                      <>
+                        <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                          Global Health
+                        </h2>
+                        <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
+                              <div
+                                className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
+                                data-tip={`This chart shows the progress over time of
+                            those scores which represent global or overall
+                            health of the patient.`}
+                                      >
+                                <button className="tw:btn tw:btn-sm">
+                                  About this Diagram
+                                </button>
+                              </div>
+                            </div>
+                        <div className="tw:flex tw:justify-start">
+                          <LineChart
+                            height={400}
+                            data={{
+                              xData: chartXData,
+                              yData: globalScoresDataSeries,
+                            }}
+                            title={"Normalized Global Health Scores over Time"}
+                            minMaxYLabels={["Worst Health", "Best Health"]}
+                            titleOptions={singleLineChartOptions.title}
+                            legendOptions={singleLineChartOptions.legend}
+                            gridOptions={singleLineChartOptions.grid}
+                            xAxisOptions={singleLineChartOptions.xAxis}
+                            yAxisOptions={singleLineChartOptions.yAxis}
+                            tooltipOptions={singleLineChartOptions.tooltip}
+                            lineOption={lineChartSeriesOption}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {globalScoresDataSeries.length === 0 && (
+                      <p className="tw:text-lg tw:text-center tw:text-[#333]">
+                        No global health scores available
+                      </p>
+                    )}
+                  </div>
+                {/* </div> */}
+                {/* <div className="tw:divider" /> */}
+                {/* <div className="tw:flex-1 tw:item-center tw:py-4">
             <BarChart timeXAxis={true} />
           </div>
           <div className="tw:flex-1 tw:item-center tw:py-4">
             <BarChart timeXAxis={false} />
           </div> */}
-            {/* <div className="tw:divider"/> */}
-            {/* <div className="tw:flex-1 tw:item-center tw:py-4">
+                {/* <div className="tw:divider"/> */}
+                {/* <div className="tw:flex-1 tw:item-center tw:py-4">
             
             <button onClick={toggleItemsDetails} className="tw:btn">
               {showItemDetails ? "Show Dimensions Only" : "Show Item Details"}
@@ -1257,160 +1586,234 @@ function App() {
             <Heatmap showItemDetails={showItemDetails} />
           </div> */}
 
-            {/* <div className="tw:flex-1 tw:py-8">
+                {/* <div className="tw:flex-1 tw:py-8">
             <div className="tw:join tw:join-vertical tw:bg-base-100" style={{display: "flex", alignItems: "center"}}>   
             <Heatmap data={chartData} />
             
           </div>
           </div> */}
-          <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
-            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
-              Selected PROs by Domain
-            </h2>
-            <div>
-              <p>Please select one or more domains to view the scores belonging to them.</p>
-              </div>
-            {/* <div className="tw:grid tw:grid-cols-6 tw:gap-8"> */}
-            <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
-              {domainsForChart.map((domain) => (
-                dimensionScoresDataSeriesByDomain[domain].length > 0 && (
-                <label key={domain} className="tw:label tw:text-gray-900">
-                  <input type="checkbox" checked={selectedDomains.includes(domain)} onChange={() => handleDomainSelection(domain)} className="tw:checkbox" />
-                  {domain}
-                </label>
-                )
-              ))}
-            </div>
-            {domainsForChart.length > 1 && (
-              <div>
-                <button
-                  className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
-                  onClick={() => selectAllDomains(domainsForChart)}
-                > 
-                  Select all
-                </button>
-              </div>
-            )}
-            
-            {selectedDomains.map((domain) => (
-              dimensionScoresDataSeriesByDomain[domain].length > 0 && (
-                <React.Fragment key={domain}>
-                  <h4 className="tw:text-lg tw:font-semibold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-2">{domain}</h4>
-                  <div className="tw:grid tw:grid-cols-22 tw:gap-0 tw:mt-2 tw:mb-8">
-                      {dimensionScoresDataSeriesByDomain[domain].map((dataSeries, index) => (
-                        <React.Fragment key={dataSeries.id}>
-                          {/* cell with y axis */}
-                          {/* {index % 2 === 0 && ( */}
-                            <div className={`tw:col-span-4 tw:md:col-span-3 tw:lg:col-span-2 
-                              ${index % 2 === 1 ? "tw:lg:hidden" : ""}`}>
+                <div className="tw:pt-4 tw:pb-8">
+                  <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                    Selected PROs by Domain
+                  </h2>
+                  <div>
+                    <p>
+                      Please select one or more domains to view the scores
+                      belonging to them.
+                    </p>
+                  </div>
+                  {/* <div className="tw:grid tw:grid-cols-6 tw:gap-8"> */}
+                  <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
+                    {domainsForChart.map(
+                      (domain) =>
+                        dimensionScoresDataSeriesByDomain[domain].length >
+                          0 && (
+                          <label
+                            key={domain}
+                            className="tw:label tw:text-gray-900"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedDomains.includes(domain)}
+                              onChange={() => handleDomainSelection(domain)}
+                              className="tw:checkbox"
+                            />
+                            {domain}
+                          </label>
+                        ),
+                    )}
+                  </div>
+                  {domainsForChart.length > 1 && (
+                    <div>
+                      <button
+                        className="tw:btn tw:btn-sm tw:mt-2"
+                        onClick={() => selectAllDomains(domainsForChart)}
+                      >
+                        Select all
+                      </button>
+                    </div>
+                  )}
+
+                  {selectedDomains.map(
+                    (domain) =>
+                      dimensionScoresDataSeriesByDomain[domain].length > 0 && (
+                        <React.Fragment key={domain}>
+                          <h4 className="tw:text-lg tw:font-semibold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-2">
+                            {domain}
+                          </h4>
+                          <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8">
+                            {dimensionScoresDataSeriesByDomain[domain].map(
+                              (dataSeries, index) => (
+                                <React.Fragment key={dataSeries.id}>
+                                  {/* cell with y axis */}
+                                  
+                                  <div
+                                    className={`tw:col-span-1 
+                              ${index % 2 === 1 ? "tw:md:hidden" : ""}`}
+                                  >
+                                    <LineChart
+                                      data={{
+                                        xData: [""],
+                                        yData: [createPseudoDataSeries(0)],
+                                      }}
+                                      height={100}
+                                      minMaxYLabels={[
+                                        "Worst",
+                                        "Best",
+                                      ]}
+                                      minMaxYValues={[-0.15, 1.55]}
+                                      minMaxYValuesPosition={[0, 1]}
+                                      titleOptions={
+                                        justYAxisLineChartOptions.title
+                                      }
+                                      legendOptions={
+                                        justYAxisLineChartOptions.legend
+                                      }
+                                      gridOptions={
+                                        justYAxisLineChartOptions.grid
+                                      }
+                                      xAxisOptions={
+                                        justYAxisLineChartOptions.xAxis
+                                      }
+                                      yAxisOptions={
+                                        justYAxisLineChartOptions.yAxis
+                                      }
+                                      tooltipOptions={
+                                        justYAxisLineChartOptions.tooltip
+                                      }
+                                    />
+                                  </div>
+                                  
+                                  <div
+                                    className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
+                                      ${index % 2 === 0 ? "tw:col-start-2 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2" : ""} 
+                                      tw:border-gray-200 tw:border-b tw:border-l tw:border-r
+                                      ${index % 2 === 0 && dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:md:border-r-0" : ""}
+                                      ${index < 1 ? "tw:border-t" : ""} 
+                                      ${index === 1 ? "tw:md:border-t" : ""} 
+                                    `}
+                                  >
+                                    {/* cell with dimension score */}
+                                    <LineChart
+                                      key={domain + "-" + dataSeries.id}
+                                      data={{
+                                        xData: chartXData,
+                                        yData: [dataSeries],
+                                      }}
+                                      // title={domain}
+                                      height={100}
+                                      minMaxYValues={[-0.15, 1.55]}
+                                      minMaxYValuesPosition={[0, 1]}
+                                      titleOptions={
+                                        groupedLineChartOptions.title
+                                      }
+                                      legendOptions={
+                                        groupedLineChartOptions.legend
+                                      }
+                                      gridOptions={groupedLineChartOptions.grid}
+                                      xAxisOptions={
+                                        groupedLineChartOptions.xAxis
+                                      }
+                                      yAxisOptions={
+                                        groupedLineChartOptions.yAxis
+                                      }
+                                      tooltipOptions={
+                                        groupedLineChartOptions.tooltip
+                                      }
+                                      lineOption={groupedLineChartSeriesOption}
+                                    />
+                                  </div>
+                                </React.Fragment>
+                              ),
+                            )}
+                            {dimensionScoresDataSeriesByDomain[domain].length >
+                              0 &&
+                              dimensionScoresDataSeriesByDomain[domain].length %
+                                2 ===
+                                1 && (
+                                <div
+                                  className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
+                                    ${dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:border-b tw:border-l tw:border-gray-200 tw:border-r" : ""} 
+                                    tw:hidden tw:md:block`}
+                                >
+                                  {/* empty data cell if number of dimensions is odd */}
+                                  <LineChart
+                                    data={{
+                                      xData: chartXData,
+                                      yData: [
+                                        createPseudoDataSeries(
+                                          chartXData.length,
+                                        ),
+                                      ],
+                                    }}
+                                    height={100}
+                                    titleOptions={emptyLineChartOptions.title}
+                                    legendOptions={emptyLineChartOptions.legend}
+                                    gridOptions={emptyLineChartOptions.grid}
+                                    xAxisOptions={emptyLineChartOptions.xAxis}
+                                    yAxisOptions={emptyLineChartOptions.yAxis}
+                                    tooltipOptions={
+                                      emptyLineChartOptions.tooltip
+                                    }
+                                  />
+                                </div>
+                              )}
+                            <div
+                              className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2"
+                            >
+                              {/* left cell with x axis*/}
                               <LineChart
                                 data={{
-                                  xData: [""],
-                                  yData: [createPseudoDataSeries(0)]
+                                  xData: chartXData,
+                                  yData: [
+                                    createPseudoDataSeries(chartXData.length),
+                                  ],
                                 }}
-                                height={100}
-                                minMaxYLabels={["Worst Health", "Best Health"]}
-                                minMaxYValues={[-0.15, 1.55]}
-                                minMaxYValuesPosition={[0,1]}
-                                titleOptions={justYAxisLineChartOptions.title}
-                                legendOptions={justYAxisLineChartOptions.legend}
-                                gridOptions={justYAxisLineChartOptions.grid}
-                                xAxisOptions={justYAxisLineChartOptions.xAxis}
-                                yAxisOptions={justYAxisLineChartOptions.yAxis}
-                                tooltipOptions={justYAxisLineChartOptions.tooltip}
+                                height={30}
+                                titleOptions={justXAxisLineChartOptions.title}
+                                legendOptions={justXAxisLineChartOptions.legend}
+                                gridOptions={justXAxisLineChartOptions.grid}
+                                xAxisOptions={justXAxisLineChartOptions.xAxis}
+                                yAxisOptions={justXAxisLineChartOptions.yAxis}
+                                tooltipOptions={
+                                  justXAxisLineChartOptions.tooltip
+                                }
                               />
                             </div>
-                          {/* )} */}
-                          <div className={`tw:col-span-18 
-                            ${index % 2 === 0 ? "tw:col-start-5 tw:md:col-span-4 tw:lg:col-span-3" : ""} 
-                            tw:border-gray-200 tw:border-b tw:border-l tw:border-r
-                            
-                            ${index % 2 === 0 && dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:lg:border-r-0" : ""}
-                            ${(index < 1) ? "tw:border-t" : ""} 
-                            ${(index === 1) ? "tw:lg:border-t" : ""} 
-                            tw:md:col-span-19 tw:lg:col-span-10`}>
-                            {/* cell with dimension score */}
-                            <LineChart 
-                              key={domain + "-" + dataSeries.id} 
-                              data={{
-                                xData: chartXData,
-                                yData: [dataSeries]}}
-                              // title={domain}
-                              height={100}
-                              minMaxYValues={[-0.15, 1.55]}
-                              titleOptions={groupedLineChartOptions.title}
-                              legendOptions={groupedLineChartOptions.legend}
-                              gridOptions={groupedLineChartOptions.grid}
-                              xAxisOptions={groupedLineChartOptions.xAxis}
-                              yAxisOptions={groupedLineChartOptions.yAxis}
-                              tooltipOptions={groupedLineChartOptions.tooltip}
-                              lineOption={groupedLineChartSeriesOption}
-                            />
+                            {dimensionScoresDataSeriesByDomain[domain].length >
+                              1 && (
+                              <div
+                                className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:hidden tw:md:block`}
+                              >
+                                {/* right cell with x axis */}
+                                <LineChart
+                                  data={{
+                                    xData: chartXData,
+                                    yData: [
+                                      createPseudoDataSeries(chartXData.length),
+                                    ],
+                                  }}
+                                  height={30}
+                                  titleOptions={justXAxisLineChartOptions.title}
+                                  legendOptions={
+                                    justXAxisLineChartOptions.legend
+                                  }
+                                  gridOptions={justXAxisLineChartOptions.grid}
+                                  xAxisOptions={justXAxisLineChartOptions.xAxis}
+                                  yAxisOptions={justXAxisLineChartOptions.yAxis}
+                                  tooltipOptions={
+                                    justXAxisLineChartOptions.tooltip
+                                  }
+                                />
+                              </div>
+                            )}
                           </div>
+                          
                         </React.Fragment>
-                      ))}
-                      {(dimensionScoresDataSeriesByDomain[domain].length > 0 && 
-                        dimensionScoresDataSeriesByDomain[domain].length % 2 === 1) && (
-                        <div className={`tw:col-span-18 
-                          ${dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:border-b tw:border-l tw:border-gray-200 tw:border-r" : ""} 
-                          tw:hidden tw:md:col-span-19 tw:lg:col-span-10 tw:lg:block`}>
-                          {/* empty data cell if number of dimensions is odd */}
-                          <LineChart
-                            data={{
-                              xData: chartXData,
-                              yData: [createPseudoDataSeries(chartXData.length)]
-                            }}
-                            height={100}
-                            titleOptions={emptyLineChartOptions.title}
-                            legendOptions={emptyLineChartOptions.legend}
-                            gridOptions={emptyLineChartOptions.grid}
-                            xAxisOptions={emptyLineChartOptions.xAxis}
-                            yAxisOptions={emptyLineChartOptions.yAxis}
-                            tooltipOptions={emptyLineChartOptions.tooltip}
-                          />
-                        </div>
-                      )}
-                      <div className="tw:col-span-18 tw:col-start-5 tw:md:col-span-19 
-                        tw:md:col-start-4 tw:lg:col-span-10 tw:lg:col-start-3">
-                        {/* left cell with x axis*/}
-                        <LineChart
-                          data={{
-                            xData: chartXData,
-                            yData: [createPseudoDataSeries(chartXData.length)]
-                          }}
-                          height={30}
-                          titleOptions={justXAxisLineChartOptions.title}
-                          legendOptions={justXAxisLineChartOptions.legend}
-                          gridOptions={justXAxisLineChartOptions.grid}
-                          xAxisOptions={justXAxisLineChartOptions.xAxis}
-                          yAxisOptions={justXAxisLineChartOptions.yAxis}
-                          tooltipOptions={justXAxisLineChartOptions.tooltip}  
-                        />
-                      </div>
-                      {dimensionScoresDataSeriesByDomain[domain].length > 1 && (
-                        <div className={`tw:col-span-18 tw:hidden tw:md:col-span-19 
-                          tw:lg:col-span-10 tw:lg:block`}>
-                          {/* right cell with x axis */}
-                          <LineChart
-                            data={{
-                              xData: chartXData,
-                              yData: [createPseudoDataSeries(chartXData.length)]
-                            }}
-                            height={30}
-                            titleOptions={justXAxisLineChartOptions.title}
-                            legendOptions={justXAxisLineChartOptions.legend}
-                            gridOptions={justXAxisLineChartOptions.grid}
-                            xAxisOptions={justXAxisLineChartOptions.xAxis}
-                            yAxisOptions={justXAxisLineChartOptions.yAxis}
-                            tooltipOptions={justXAxisLineChartOptions.tooltip}
-                          />
-                        </div>
-                      )}
-                  </div>
-                </React.Fragment>
-            )))}
-                 
-                {/* {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
+                      ),
+                  )}
+
+                  {/* {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
                   <> 
                     <div>
                       <p>Please select one or more dimensions to view the scores (also shown above) and items belonging to them.</p>
@@ -1442,10 +1845,8 @@ function App() {
                     ))}
                   </>
                 )} */}
-            
-            
-              
-              {/* {heatmapDataByDomain && Object.keys(heatmapDataByDomain)
+
+                  {/* {heatmapDataByDomain && Object.keys(heatmapDataByDomain)
                 .map((domain) => (
                   <div
                     key={domain}
@@ -1465,20 +1866,19 @@ function App() {
                   )}
                   </div>
                 ))} */}
-              
-            {/* </div> */}
-          
-          </div>
-          
-                 <div className="tw:flex-1 tw:item-center tw:py-4 tw:mb-4">
-            <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
-              Complete PROs by PROM/Questionnaire
-            </h2>
 
-            {/* <div className="tw:flex-1 tw:py-8">
+                  {/* </div> */}
+                </div>
+
+                <div className="tw:pt-4 tw:pb-8">
+                  <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                    Complete PROs by PROM/Questionnaire
+                  </h2>
+
+                  {/* <div className="tw:flex-1 tw:py-8">
               <div
                 className="tw:join tw:join-vertical tw:bg-base-100" */}
-            {/* //     style={{ display: "flex", alignItems: "center" }}
+                  {/* //     style={{ display: "flex", alignItems: "center" }}
             //   >
             //     {questionnairesForChart.map((questionnaire) => (
             //       <React.Fragment key={questionnaire.id}>
@@ -1502,50 +1902,77 @@ function App() {
             //   </div>
             // </div> */}
 
-            
-              <div
-                className="tw:join tw:join-vertical tw:bg-base-100"
-                style={{ display: "flex", alignItems: "center" }}
-              >
-                {questionnaires && tableDataByQuestionnaire && questionnaires.
-                map((questionnaire) => (
-                  <React.Fragment key={questionnaire.id}>
-                    {tableDataByQuestionnaire[questionnaire.id] !== undefined && (
-                     <Collapse
-                      title={questionnaire.name}
-                      children={
-                        <SimpleDataTable
-                          data={tableDataByQuestionnaire[questionnaire.id]}
-                          domains={domains}
-                          // errors={
-                          //   itemWarningsByQuestionnaireId[questionnaire.id] !==
-                          //   undefined
-                          //     ? itemWarningsByQuestionnaireId[questionnaire.id]
-                          //     : undefined
-                          // }
-                         
-                        />
-                      }
-                    />)}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-            
+                  <div className="tw:join tw:join-vertical tw:bg-base-100 tw:flex tw:justify-center">
+                    {questionnaires &&
+                      tableDataByQuestionnaire &&
+                      questionnaires.map((questionnaire) => (
+                        <React.Fragment key={questionnaire.id}>
+                          {tableDataByQuestionnaire[questionnaire.id] !==
+                            undefined && (
+                            <Collapse
+                              title={questionnaire.name}
+                              children={
+                                <SimpleDataTable
+                                  data={
+                                    tableDataByQuestionnaire[questionnaire.id]
+                                  }
+                                  // domains={domains}
+                                  // errors={
+                                  //   itemWarningsByQuestionnaireId[questionnaire.id] !==
+                                  //   undefined
+                                  //     ? itemWarningsByQuestionnaireId[questionnaire.id]
+                                  //     : undefined
+                                  // }
+                                />
+                              }
+                            />
+                          )}
+                        </React.Fragment>
+                      ))}
+                  </div>
+                </div>
 
-            {/* <div className="tw:flex-1 tw:item-center tw:py-4"> */}
-            {/* <button onClick={toggleExpandAll} className="tw:btn">
+                {/* <div className="tw:flex-1 tw:item-center tw:py-4"> */}
+                {/* <button onClick={toggleExpandAll} className="tw:btn">
               {expandAll ? "Collapse All" : "Expand All"}
             </button> */}
-            {/* <CollapsibleHeatmap
+                {/* <CollapsibleHeatmap
               columns={chartXData}
               dimensions={heatmapDimensions}
               allRowsExpanded={expandAll}
             />
           </div> */}
-          </main>
-          {/* <Footer /> */}
-        </div>
+                
+              </div>
+            </div>
+            <div className="tw:drawer-side">
+              <label
+                htmlFor="filter-drawer"
+                aria-label="close sidebar"
+                className="tw:drawer-overlay"
+              ></label>
+              <ul className="tw:menu tw:bg-base-200 tw:min-h-full tw:w-80 tw:p-4">
+                <div className="tw:text tw:font-semibold tw:text-lg tw:pt-4 tw:pb-4">
+                  Filter Questionnaires
+                </div>
+
+                <FilterOptionsDisplay
+                  questionnaires={questionnaires}
+                  selectedQuestionnaires={selectedQuestionnaires}
+                  questionnaireSelectionHandler={handleQuestionnaireSelection}
+                  dates={allDatesOfQuestionnaireResponses}
+                  selectedDates={selectedDates}
+                  dateSelectionHandler={handleDateSelection}
+                  datePickerValue={dateValue}
+                  datePickerRange={dateRange}
+                  rangeSelectionHandler={handleRangeChange}
+                />
+              </ul>
+            </div>
+          </div>
+        </main>
+        {/* <Footer /> */}
+        {/* </div> */}
       </div>
       {/* {dataIssues.length > 0 && (
         <ErrorModal

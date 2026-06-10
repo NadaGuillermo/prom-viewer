@@ -1,25 +1,20 @@
 import "cally";
 import type { Visualization } from "@utils/visualization";
 
-import { useState } from "react";
-
-interface RangeState {
-  start: string;
-  end: string;
-}
-
 const DateRangePicker = (
   { rangeHandler, dateValue, range }: Visualization.DateRangePickerProps
 ) => {
 
     return (
-      <>
-      <button popoverTarget="rdp-popover" className="tw:input tw:input-border tw:my-2" style={{ anchorName: "--rdp" } as React.CSSProperties}>
+      <div className="tw:mt-2">
+      <button popoverTarget="rdp-popover" className="tw:input tw:input-border tw:mb-0 tw:mr-2" style={{ anchorName: "--rdp" } as React.CSSProperties}>
         {range.start && range.end ? `${range.start} \u2013 ${range.end}` : `Pick start and end date`}
       </button>
-      <button className="tw:btn tw:btn-outline tw:btn-secondary tw:btn-sm tw:mt-2 tw:ml-2" onClick={() => rangeHandler(new Event("clear"))}>
+      {/* <div className="tw:flex tw:justify-end tw:self-end"> */}
+      <button className="tw:btn tw:btn-sm tw:mt-2" onClick={() => rangeHandler(new Event("clear"))}>
         Clear
       </button>
+      {/* </div> */}
       <div popover="auto" id="rdp-popover" className="tw:dropdown" style={{ positionAnchor: "--rdp" } as React.CSSProperties}>
        
         <calendar-range value={dateValue} onchange={rangeHandler} className="tw:cally tw:bg-base-100 tw:border tw:border-base-300 tw:shadow-lg tw:rounded-box">
@@ -34,7 +29,7 @@ const DateRangePicker = (
         <p><strong>Start Date:</strong> {range.start || "Not selected"}</p>
         <p><strong>End Date:</strong> {range.end || "Not selected"}</p>
       </div> */}
-     </> 
+     </div> 
   );
 }
 

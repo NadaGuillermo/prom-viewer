@@ -1,17 +1,15 @@
 import React from "react";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
-
-/* import all the icons in Free Solid, Free Regular, and Brands styles */
-import { fas } from "@fortawesome/free-solid-svg-icons";
-
-library.add(fas);
+// import { library } from "@fortawesome/fontawesome-svg-core";
+// import { fas } from "@fortawesome/free-solid-svg-icons";
+// library.add(fas);
 
 import {
   type Visualization,
 } from "@utils/visualization";
 // import { globalDimension } from "@utils/mapping";
+
+import type { Errors } from "@utils/errors";
 
 import type { GlobalTypes } from "@customTypes/globalTypes";
 
@@ -30,14 +28,10 @@ interface CellWarning {
 // Table Props
 interface Props {
   data: Visualization.ChartData;
-  domains: string[];
   /** Map of rowId -> columnIndex -> warning info */
-  errors?: GlobalTypes.DataIssue[];
+  errors?: Errors.DataIssue[];
   /** Optional row tooltip override (defaults to full name) */
   // rowTooltips?: Record<string, string>;
-  /** Table title / caption */
-  title?: string;
-  // className?: string;
   /** Height constraint for vertical scroll */
   maxHeight?: string;
   minWidth?: string;
@@ -47,9 +41,7 @@ interface Props {
 
 const SimpleDataTable = ({
   data,
-  domains,
   errors,
-  title,
   maxHeight = "600px",
 }: Props) => {
   const xData = data.xData;
@@ -60,16 +52,16 @@ const SimpleDataTable = ({
   const cellWarnings: Record<string, string[]> = {};
 
   const errorLinkIds = _.intersection(
-    errors?.map((error) => error.linkId),
+    errors?.map((error) => error.context.field),
     yData.map((row) => row.id),
   );
 
   errors?.forEach((error) => {
-    if (error.linkId !== undefined && errorLinkIds.includes(error.linkId)) {
-      if (!cellWarnings[error.linkId]) {
-        cellWarnings[error.linkId] = [];
+    if (error.context.field !== undefined && errorLinkIds.includes(error.context.field)) {
+      if (!cellWarnings[error.context.field]) {
+        cellWarnings[error.context.field] = [];
       }
-      cellWarnings[error.linkId].push(error.message);
+      cellWarnings[error.context.field].push(error.message);
     }
   });
 

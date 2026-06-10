@@ -411,6 +411,7 @@ export const calculatePeriodOfObservations = (
 
 export const createDateQuestionnaireNamesRecord = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
+  order : "ascending" | "descending" = "ascending",
 ) => {
   const questionnairesByDate: Record<string, string[]> = {};
   Object.values(questionnaireResponses).forEach((questionnaireResponse) => {
@@ -427,7 +428,7 @@ export const createDateQuestionnaireNamesRecord = (
   // sort by key descending (newest first)
   let sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .sort((a, b) => order === "ascending" ?  new Date(a).getTime() - new Date(b).getTime() : new Date(b).getTime() - new Date(a).getTime())
     .forEach((key) => {
       sortedQuestionnairesByDate[key] = questionnairesByDate[key];
     });

@@ -7,11 +7,10 @@ interface Props {
 const ErrorCard = ({ data }: Props) => {
 
   return (
-    <div className="tw:card tw:lg:basis-1/3 tw:xl:basis-md tw:bg-base-100 tw:shadow-md tw:overflow-y-auto tw:max-h-[60vh]">
+    <div className="tw:card tw:card-border tw:border tw:border-gray-200 tw:bg-base-100 tw:max-w-2xl tw:md:w-2xl tw:overflow-y-auto tw:max-h-[60vh]">
       <div className="tw:card-body">
-        <h3 className="tw:card-title">Data Issues</h3>
-        <div>Some issues have occured while processing the data.</div>
-        
+        {/* <h3 className="tw:card-title">Data Issues</h3> */}
+                
         <div className="tw:overflow-y-auto tw:flex-1">
           {data.some((issue) => issue.level === "error") && (
             <p className="tw:mb-2 tw:mt-2">
@@ -27,7 +26,7 @@ const ErrorCard = ({ data }: Props) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-error tw:alert-outline tw:mb-2"
                 >
-                  <p>{issue.userMessage}</p>
+                  <p>{issue.message}</p>
                 </div>
               ),
           )}
@@ -45,7 +44,7 @@ const ErrorCard = ({ data }: Props) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-warning tw:alert-outline tw:mb-2"
                 >
-                  <p>{issue.userMessage}</p>
+                  <p>{issue.message}</p>
                 </div>
               ),
           )}

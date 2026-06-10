@@ -41,7 +41,7 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       };
     });
 
-    if (answerOptions?.some((opt) => isNaN(opt.value))) {
+    if (item.answerOptions?.some((opt) => opt.value !== undefined && isNaN(Number(opt.value)))) {
       issues.push(issueFactories.questionnaire.invalidItemAnswerOption(questionnaire, linkId, item.answerOptions));
     }
 

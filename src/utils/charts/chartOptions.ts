@@ -98,7 +98,7 @@ const justYAxisLineChartYAxisOption: YAXisComponentOption = {
   splitNumber: 1,
   axisLabel: {
     show: true,
-    margin: 0,
+    margin: -2,
     align: "right",
     showMinLabel: true,
     showMaxLabel: true,
@@ -108,6 +108,15 @@ const justYAxisLineChartYAxisOption: YAXisComponentOption = {
   },
   axisLine: {
     show: false,
+  },
+  axisTick: {
+    show: true,
+    inside: false,
+    length: 8,
+    alignWithLabel: false,
+    lineStyle: {
+      color: "#e5e7eb"
+    }
   }
 }
 

@@ -103,15 +103,28 @@ const MappingTable = ({ data }: Props) => {
     questionnaireSymbolColorRecord[questionnaire] = { symbol: symbol, color: color};
   });
 
-  const pill = (label: string, symbol = "", color = "gray", borderWidth = 1, paddingX = 3.5, paddingY = 1.5, addXMargin = false, symbolPosition= "right", wrap=false) => {
+  const pill = (label: string, symbol = "", color = "gray", symbolPosition= "right") => {
     const key = `${symbol}:${label}`;
     const borderClass = borderColorClassRecord[color] ?? borderColorClassRecord.gray;
     return (
       <div
         key={key}
-        className={`${borderWidth > 1 ? `tw:border-${borderWidth}` : "tw:border"} ${borderClass} tw:rounded tw:bg-white
-          tw:text-xs tw:px-${paddingX} tw:py-${paddingY} ${addXMargin ? "tw:mx-2" : ""}
-          tw:leading-snug tw:text-center ${wrap ? "tw:whitespace-wrap" : "tw:whitespace-nowrap"}`}
+        className={`tw:border ${borderClass} tw:rounded tw:bg-white
+          tw:text-xs tw:px-3.5 tw:py-1.5
+          tw:leading-snug tw:text-center tw:whitespace-nowrap`}
+        >
+        {symbol.length > 0 ? symbolPosition === "left" ? "(" + symbol + ") " + label : label + " (" + symbol + ")" : label}
+      </div>
+    );
+  };
+  const domainPill = (label: string, symbol = "", color = "gray", symbolPosition= "right") => {
+    const key = `${symbol}:${label}`;
+    const borderClass = borderColorClassRecord[color] ?? borderColorClassRecord.gray;
+    return (
+      <div
+        key={key}
+        className={`tw:text-xs tw:font-semibold
+          tw:leading-snug tw:text-center tw:whitespace-pre-wrap`}
         >
         {symbol.length > 0 ? symbolPosition === "left" ? "(" + symbol + ") " + label : label + " (" + symbol + ")" : label}
       </div>
@@ -119,10 +132,10 @@ const MappingTable = ({ data }: Props) => {
   };
 
   return (
-    <div className="tw:flex tw:flex-col tw:gap-4">
+    <div className="tw:flex tw:flex-col tw:gap-y-2 tw:gap-x-4">
       <div className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 tw:gap-4">
         <div
-          className="tw:col-span-1 tw:text-sm tw:font-semibold tw:uppercase tw:tracking-widest tw:text-gray-400 tw:select-none"
+          className="tw:col-span-1 tw:text-sm tw:text-left tw:font-semibold tw:uppercase tw:tracking-widest tw:text-gray-400 tw:select-none"
         >
           Domains
         </div>
@@ -133,28 +146,36 @@ const MappingTable = ({ data }: Props) => {
           Dimensions
         </div>
       </div>
+      <div className="tw:divider tw:my-0"></div>
       {Object.entries(data).map(
-        ([domain, dimensionsWithQuestionnaire]) =>
+        ([domain, dimensionsWithQuestionnaire], i) =>
           dimensionsWithQuestionnaire.length > 0 && (
             <>
               <div key={`${domain}: ${dimensionsWithQuestionnaire[0]}: ${dimensionsWithQuestionnaire[1]}`} 
-                className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 tw:gap-4">
-                <div className="tw:col-span-1">
-                 {pill(domain, undefined, undefined, 2, 4, 2, false, undefined, true)}
+                className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 
+                  tw:gap-4 tw:items-center">
+                
+                <div className="tw:col-span-1 tw:ml-2">
+                 {domainPill(domain, undefined, undefined, undefined)}
                 </div>
-                <div className="tw:col-span-2 tw:col-start-2 tw:md:col-span-3 tw:lg:col-span-4 tw:2xl:col-span-5">
+                
+                <div className="tw:col-span-2 tw:col-start-2 tw:md:col-span-3 tw:lg:col-span-4 tw:2xl:col-span-5 tw:mr-2">
                   <div className="tw:flex tw:flex-wrap tw:justify-start tw:gap-2">
                     {dimensionsWithQuestionnaire.map(
                       (dimensionAndQuestionnaire) => 
+                       
                         pill(
                           dimensionAndQuestionnaire[0],
                           questionnaireSymbolColorRecord[dimensionAndQuestionnaire[1]].symbol,
                           //questionnaireSymbolColorRecord[dimensionAndQuestionnaire[1]].color
                         )
+                        
+                      
                     )}
                   </div>
                 </div>
               </div>
+              <div className={`tw:divider tw:my-0 ${i < dimensionsWithQuestionnaire.length - 1 ? "tw:mx-2" : ""}`}></div>
             </>
           ),
       )}
@@ -166,9 +187,10 @@ const MappingTable = ({ data }: Props) => {
             Legend
           </div>
         </div>
+        <div className="tw:border-0 tw:border-gray-300">
         <div className="tw:flex tw:flex-wrap tw:justify-start tw:gap-y-2 tw:gap-x-4 tw:mx-4">
           {questionnaires.map((questionnaire) => (
-            <div key={questionnaire} className="tw:inline-flex tw:text-sm tw:leading-snug tw:whitespace-wrap">
+            <div key={questionnaire} className="tw:inline-flex tw:text-sm tw:leading-snug tw:whitespace-pre-wrap">
               {questionnaireSymbolColorRecord[questionnaire].symbol}: {questionnaire}
               {/* {pill(
                 questionnaire, 
@@ -184,6 +206,7 @@ const MappingTable = ({ data }: Props) => {
                 )} */}
             </div>
           ))}
+        </div>
         </div>
       </div>
   );

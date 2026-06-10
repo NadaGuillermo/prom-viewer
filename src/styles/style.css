@@ -11,6 +11,12 @@
   word-break: break-word;
 }
 
+.tooltip-content {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 
 thead,
 tr>th {
