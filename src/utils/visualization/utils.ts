@@ -849,8 +849,9 @@ export const extractItemsDataSeries = (
         });
         const items = referencedItems !== undefined ? _.uniqBy([...dimensionItems, ...referencedItems], (series) => series.id) : _.uniqBy(dimensionItems, (series) => series.id);
         const domainScoreIds = domainScoresDataSeries.map((series) => series.id);
+        const dimensionScoreIds = dimensionScoresDataSeries.map((series) => series.id);
         const otherDimensionScoreIds = dimensionScoresDataSeries.map((series) => series.id).filter((id) => !dimensionItems.map((s) => s.id).includes(id));
-        const allScoreIds = [...domainScoreIds, ...otherDimensionScoreIds];
+        const allScoreIds = [...domainScoreIds, ...otherDimensionScoreIds, ...dimensionScoreIds];
         const itemsForDimension = items.filter((item) => !allScoreIds.includes(item.id));
 
         if(dimension !== undefined && itemsForDimension.length > 0) {

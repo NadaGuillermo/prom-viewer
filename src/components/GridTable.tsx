@@ -14,18 +14,18 @@ const GridTable = ({ data, constrainWidth }: Props) => {
 
   return (
     <div
-      className={`tw:w-full tw:overflow-x-scroll tw:min-w-xs
+      className={`tw:w-full tw:overflow-x-scroll
       ${constrainWidth && dates.length < 2 ? "tw:max-w-md" : ""}
       ${constrainWidth && dates.length >= 2 && dates.length < 4 ? "tw:max-w-lg" : ""}
       ${constrainWidth && dates.length >= 4 && dates.length < 6 ? "tw:max-w-2xl" : ""}
       ${constrainWidth && dates.length >= 6 && dates.length < 8 ? "tw:max-w-4xl" : ""}
       ${constrainWidth && dates.length >= 8 && dates.length < 10 ? "tw:max-w-6xl" : ""}
-      ${constrainWidth && dates.length >= 10 && dates.length < 12 ? "tw:max-w-7xl" : "tw:min-w-sm"}
+      ${constrainWidth && dates.length >= 10 && dates.length < 12 ? "tw:max-w-7xl" : ""}
       
       tw:border tw:border-gray-300`}
     >
       <div
-        className={`tw:grid tw:gap-0`}
+        className={`tw:grid tw:gap-0 tw:min-w-xs`}
         style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
       >
         <div className="tw:col-span-2 tw:border-b tw:border-gray-300 tw:py-4"></div>

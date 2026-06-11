@@ -147,6 +147,9 @@ function App() {
     string[]
   >([]);
   const [domains, setDomains] = useState<string[]>([]);
+  const [showItemsForDomain, setShowItemsForDomain] = useState<
+    Record<string, boolean>
+  >({});
 
   // Data transformation
   const [questionnaireNamesByDate, setQuestionnaireNamesByDate] = useState<
@@ -199,12 +202,14 @@ function App() {
   const [dimensionsByDomain, setDimensionsByDomain] = useState<
     Record<string, string[]>
   >({});
-  const [domainsSankeyData, setDomainsSankeyData] =
-    useState<Record<string, Record<string, string[]>>>();
+  const [domainsSankeyData, setDomainsSankeyData] = useState<
+    Record<string, Record<string, string[]>>
+  >({});
   const [globalScoresLineChartData, setGlobalScoresLineChartData] =
     useState<Visualization.ChartData>();
-  const [radarChartData, setRadarChartData] =
-    useState<Record<string, string[]>>();
+  const [radarChartData, setRadarChartData] = useState<
+    Record<string, string[]>
+  >({});
   const [
     lengthOfLongestQuestionnaireName,
     setLengthOfLongestQuestionnaireName,
@@ -217,7 +222,7 @@ function App() {
   const [
     domainQuestionnaireDimensionRecord,
     setDomainQuestionnaireDimensionRecord,
-  ] = useState<Record<string, Record<string, string[]>>>();
+  ] = useState<Record<string, Record<string, string[]>>>({});
   const [
     domainDimensionQuestionnaireTuples,
     setDomainDimensionQuestionnaireTuples,
@@ -813,11 +818,12 @@ function App() {
       string,
       Visualization.DataSeries[]
     > = {};
-    const scoresAndItemsDataSeriesByDomainAndDimension: Record<
+    const domainDimensionItemsDataSeriesRecord: Record<
       string,
       Record<string, Visualization.DataSeries[]>
     > = {};
     const selectedDimensionsByDomain: Record<string, string[]> = {};
+    const showItemsFlagByDomain: Record<string, boolean> = {};
 
     domainsForChart.forEach((domain) => {
       chartDataSeriesByDomain[domain] = extractDomainDataSeries(
@@ -836,14 +842,14 @@ function App() {
           questionnairesForChart,
           domainScoresDataSeriesByDomain[domain],
         );
-      scoresAndItemsDataSeriesByDomainAndDimension[domain] =
-        extractItemsDataSeries(
-          chartDataSeriesByDomain[domain],
-          domainScoresDataSeriesByDomain[domain],
-          dimensionScoresDataSeriesByDomain[domain],
-          questionnairesForChart,
-        );
+      domainDimensionItemsDataSeriesRecord[domain] = extractItemsDataSeries(
+        chartDataSeriesByDomain[domain],
+        domainScoresDataSeriesByDomain[domain],
+        dimensionScoresDataSeriesByDomain[domain],
+        questionnairesForChart,
+      );
       selectedDimensionsByDomain[domain] = [];
+      showItemsFlagByDomain[domain] = false;
     });
 
     console.log(
@@ -851,11 +857,18 @@ function App() {
       dimensionScoresDataSeriesByDomain,
     );
 
+    console.log(
+      "Items by domain and dimension: ",
+      domainDimensionItemsDataSeriesRecord,
+    );
+
     const dimensionsByDomain: Record<string, string[]> =
       createDomainDimensionsRecord(
         questionnairesForChart,
         dimensionScoresDataSeriesByDomain,
       );
+
+    console.log("Dimensions by Domain: ", dimensionsByDomain);
 
     // const domainScoresDataSeries = chartData.yData.filter(
     //   (dataseries) =>
@@ -998,9 +1011,7 @@ function App() {
     setGlobalScoresDataSeries(globalScoresDataSeries);
     setDomainScoresDataSeriesByDomain(domainScoresDataSeriesByDomain);
     setDimensionScoresDataSeriesByDomain(dimensionScoresDataSeriesByDomain);
-    setItemDataSeriesByDomainAndDimension(
-      scoresAndItemsDataSeriesByDomainAndDimension,
-    );
+    setItemDataSeriesByDomainAndDimension(domainDimensionItemsDataSeriesRecord);
     setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
     setGlobalScoresLineChartData(globalScoresLineChartData);
     setQuestionnaireNamesByDate(questionnaireNamesByDate);
@@ -1010,6 +1021,7 @@ function App() {
     setQuestionnaireCardData(questionnaireCardData);
     setDomainsSankeyData(domainsSankeyData);
     setSelectedDimensionsByDomain(selectedDimensionsByDomain);
+    setShowItemsForDomain(showItemsFlagByDomain);
     setDomainDimensionQuestionnaireTuples(domainDimensionQuestionnaireTuples);
     setDomainQuestionnaireDimensionRecord(domainQuestionnaireDimensionRecord);
     setDimensionsWithQuestionnaireByDomain(
@@ -1036,6 +1048,16 @@ function App() {
 
   const handleContinue = () => {
     setIsModalOpen(false);
+  };
+
+  const toggleShowItemsForDomain = (domain: string) => {
+    setShowItemsForDomain((prev) => {
+      return {
+        ...prev,
+        [domain]: !prev[domain],
+      };
+    });
+    console.log("Toggled showItemsFlagByDomain: ", showItemsForDomain);
   };
 
   const toggleErrorDetails = () => {
@@ -1066,6 +1088,10 @@ function App() {
         [domain]: dimensions,
       };
     });
+    console.log(
+      "Selected dimensions by domain (all selected): ",
+      selectedDimensionsByDomain,
+    );
   };
 
   const handleQuestionnaireSelection = (questionnaireId: string) => {
@@ -1297,7 +1323,7 @@ function App() {
                           </svg>
                           <span>
                             Some Questionnaires could not be processed.
-                        </span>
+                          </span>
                         </div>
 
                         <button
@@ -1330,34 +1356,19 @@ function App() {
                       title="Domain-to-Dimension Mapping Info"
                       children={
                         <>
-                          
-                            <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
-                              <div
-                                className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
-                                data-tip={`This grid shows how 
+                          <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
+                            <div
+                              className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
+                              data-tip={`This grid shows how 
                                   ${Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
                                   map to their corresponding questionnaire dimensions (right). 
                                   Greek letters indicate the source questionnaire for each dimension (see legend at the bottom).`}
-                                      >
-                                <button className="tw:btn tw:btn-sm">
-                                  About this Diagram
-                                </button>
-                              </div>
+                            >
+                              <button className="tw:btn tw:btn-sm">
+                                About this Diagram
+                              </button>
                             </div>
-                            {/* <Collapse 
-                          title={"About this Diagram"} 
-                          children={
-                            <p>This grid shows how {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains (left) 
-                              are mapped to their corresponding questionnaire dimensions (right).
-                              <ul className="tw:list-disc tw:list-inside">
-                                <li>Greek letters next to a dimension suffix indicate its source questionnaire.</li>
-                                <li>The legend at the bottom defines which questionnaire matches each letter.</li>
-                              </ul>
-                              </p>
-                            } 
-                            constrainWidth={true}
-                          /> */}
-                          
+                          </div>
                           <div className="tw:py-4">
                             <MappingTable
                               data={dimensionsWithQuestionnaireByDomain}
@@ -1368,148 +1379,18 @@ function App() {
                       constrainWidth={true}
                     />
                   )}
-                  {/* <div>
-              <button className="tw:btn tw:btn-sm tw:mt-2 tw:mb-4" onClick={toggleShowFilterOptions}>{showFilterOptions ? "Hide Filter Options" : "Show Filter Options"}</button>
-              </div> */}
-
-                  {/* {showFilterOptions && (
-                <div className="tw:card tw:card-border tw:border tw:border-gray-200 tw:bg-base-100 tw:max-w-2xl tw:md:w-2xl">
-                  <div className="tw:card-body">
-                <FilterOptionsDisplay 
-                    questionnaires={questionnaires} 
-                    selectedQuestionnaires={selectedQuestionnaires}
-                    questionnaireSelectionHandler={handleQuestionnaireSelection}
-                    dates={allDatesOfQuestionnaireResponses}
-                    selectedDates={selectedDates}
-                    dateSelectionHandler={handleDateSelection}
-                    datePickerValue={dateValue}
-                    datePickerRange={dateRange}
-                    rangeSelectionHandler={handleRangeChange}
-                  />
-                  </div>
-                  </div>
-              )} */}
                   <label
-                  htmlFor="filter-drawer"
-                  className="tw:btn tw:btn-sm tw:drawer-button tw:mt-2 tw:lg:hidden"
-                >
-                  <span>Filters</span>
-                  <FontAwesomeIcon icon="fa-solid fa-filter" />
-                </label>
-                  {/* <div className="tw:drawer tw:drawer-open tw:drawer-end">
-                  <input id="filter-drawer" type="checkbox" className="tw:drawer-toggle" />
-                  <div className="tw:drawer-content"> */}
-                  {/* <label
                     htmlFor="filter-drawer"
-                    className="tw:btn tw:btn-sm tw:drawer-button tw:mt-2"
+                    className="tw:btn tw:btn-sm tw:drawer-button tw:mt-2 tw:lg:hidden"
                   >
                     <span>Filters</span>
                     <FontAwesomeIcon icon="fa-solid fa-filter" />
-                  </label> */}
-                  {/* </div> */}
-                  {/* <div className="tw:drawer-side">
-                    <label
-                      htmlFor="filter-drawer"
-                      aria-label="close sidebar"
-                      className="tw:drawer-overlay"
-                    ></label>
-                    <ul className="tw:menu tw:bg-base-200 tw:min-h-full tw:w-80 tw:p-4">
-                      <div className="tw:text tw:font-semibold tw:text-lg tw:pt-4 tw:pb-4">
-                        Filter Questionnaires
-                      </div>
-
-                      <FilterOptionsDisplay
-                        questionnaires={questionnaires}
-                        selectedQuestionnaires={selectedQuestionnaires}
-                        questionnaireSelectionHandler={
-                          handleQuestionnaireSelection
-                        }
-                        dates={allDatesOfQuestionnaireResponses}
-                        selectedDates={selectedDates}
-                        dateSelectionHandler={handleDateSelection}
-                        datePickerValue={dateValue}
-                        datePickerRange={dateRange}
-                        rangeSelectionHandler={handleRangeChange}
-                      />
-                    </ul>
-                  </div> */}
-                  {/* </div> */}
-
-                  {/* <Collapse
-                title="Filter Options"
-                children={
-                  <FilterOptionsDisplay 
-                    questionnaires={questionnaires} 
-                    selectedQuestionnaires={selectedQuestionnaires}
-                    questionnaireSelectionHandler={handleQuestionnaireSelection}
-                    dates={allDatesOfQuestionnaireResponses}
-                    selectedDates={selectedDates}
-                    dateSelectionHandler={handleDateSelection}
-                    datePickerValue={dateValue}
-                    datePickerRange={dateRange}
-                    rangeSelectionHandler={handleRangeChange}
-                  />
-                }
-                constrainWidth={true}
-              /> */}
+                  </label>
                 </div>
 
-                {/* <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-                      Dimension Coverage by Questionnaire
-                    </h2>
-            <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-left tw:items-start">
-               { questionnaires && questionnaireCardData && (
-                Object.entries(questionnaireCardData).
-                map(([id, [name, questionnaireDimensions]]) => (
-                <QuestionnaireCard key={id} questionnaire={{name: name, dimensions: questionnaireDimensions}} dimensions={domains} lengthOfLongestQuestionnaireName={lengthOfLongestQuestionnaireName} />
-                )))
-                }
-            </div> */}
+                {/* <div className="tw:flex-1 tw:item-center tw:py-4"> */}
 
-                {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:py-4">
-              <div className="tw:col-span-15 tw:lg:col-span-15 tw:2xl:col-span-15">
-                <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-                  Dimension Covering
-                </p>
-                {chartData && questionnaireCardData && (
-                  <Matrix
-                    data={questionnaireCardData}
-                    dimensions={[
-                      ...new Set(
-                        dimensions.filter(
-                          (dimension) =>
-                            dimension !== unspecifiedDimension &&
-                            dimension !== "",
-                        ),
-                      ),
-                    ]}
-                    //subtitle={"Health indication per dimension where points closer to edges indicate better health status"}
-                  />
-                )}
-              </div>
-            </div> */}
-                {/* 16 6 5*/}
-                {/* <div className="tw:grid tw:grid-cols-12 tw:item-center tw:py-4"> */}
-                {/* <div className="tw:grid tw:grid-cols-15 tw:item-center tw:pt-4 tw:pb-8"> */}
-                  {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5"> */}
-                  {/* <p className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333]">
-                  Dimension Covering
-                </p>
-                {chartData && questionnaireCardData && (
-                  <Matrix
-                    data={questionnaireCardData}
-                    dimensions={dimensions}
-                    //subtitle={"Health indication per dimension where points closer to edges indicate better health status"}
-                  />
-                )}
-              </div> */}
-
-                  {/* </div>
-              
-          
-                  <div className="tw:flex-1 tw:item-center tw:py-4"> */}
-
-                      {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
+                {/* <div className="tw:col-span-15 tw:lg:col-span-6 tw:2xl:col-span-5">
                     {radarChartData && (
                       <>
                         <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-4">
@@ -1523,75 +1404,51 @@ function App() {
                       </>
                     )}
                   </div> */}
-                  <div className="tw:pt-4 tw:pb-8">
-                    {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
-                    {globalScoresDataSeries.length > 0 && (
-                      <>
-                        <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
-                          Global Health
-                        </h2>
-                        <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
-                              <div
-                                className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
-                                data-tip={`This chart shows the progress over time of
+                <div className="tw:pt-4 tw:pb-8">
+                  {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
+                  {globalScoresDataSeries.length > 0 && (
+                    <>
+                      <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                        Global Health
+                      </h2>
+                      <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
+                        <div
+                          className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
+                          data-tip={`This chart shows the progress over time of
                             those scores which represent global or overall
-                            health of the patient.`}
-                                      >
-                                <button className="tw:btn tw:btn-sm">
-                                  About this Diagram
-                                </button>
-                              </div>
-                            </div>
-                        <div className="tw:flex tw:justify-start">
-                          <LineChart
-                            height={400}
-                            data={{
-                              xData: chartXData,
-                              yData: globalScoresDataSeries,
-                            }}
-                            title={"Normalized Global Health Scores over Time"}
-                            minMaxYLabels={["Worst Health", "Best Health"]}
-                            titleOptions={singleLineChartOptions.title}
-                            legendOptions={singleLineChartOptions.legend}
-                            gridOptions={singleLineChartOptions.grid}
-                            xAxisOptions={singleLineChartOptions.xAxis}
-                            yAxisOptions={singleLineChartOptions.yAxis}
-                            tooltipOptions={singleLineChartOptions.tooltip}
-                            lineOption={lineChartSeriesOption}
-                          />
+                            health of the patient. Negative scores are displayed as 0.`}
+                        >
+                          <button className="tw:btn tw:btn-sm">
+                            About this Diagram
+                          </button>
                         </div>
-                      </>
-                    )}
-                    {globalScoresDataSeries.length === 0 && (
-                      <p className="tw:text-lg tw:text-center tw:text-[#333]">
-                        No global health scores available
-                      </p>
-                    )}
-                  </div>
-                {/* </div> */}
-                {/* <div className="tw:divider" /> */}
-                {/* <div className="tw:flex-1 tw:item-center tw:py-4">
-            <BarChart timeXAxis={true} />
-          </div>
-          <div className="tw:flex-1 tw:item-center tw:py-4">
-            <BarChart timeXAxis={false} />
-          </div> */}
-                {/* <div className="tw:divider"/> */}
-                {/* <div className="tw:flex-1 tw:item-center tw:py-4">
-            
-            <button onClick={toggleItemsDetails} className="tw:btn">
-              {showItemDetails ? "Show Dimensions Only" : "Show Item Details"}
-            </button>
-           
-            <Heatmap showItemDetails={showItemDetails} />
-          </div> */}
-
-                {/* <div className="tw:flex-1 tw:py-8">
-            <div className="tw:join tw:join-vertical tw:bg-base-100" style={{display: "flex", alignItems: "center"}}>   
-            <Heatmap data={chartData} />
-            
-          </div>
-          </div> */}
+                      </div>
+                      <div className="tw:flex tw:justify-start">
+                        <LineChart
+                          height={400}
+                          data={{
+                            xData: chartXData,
+                            yData: globalScoresDataSeries,
+                          }}
+                          title={"Normalized Global Health Scores over Time"}
+                          minMaxYLabels={["Worst Health", "Best Health"]}
+                          titleOptions={singleLineChartOptions.title}
+                          legendOptions={singleLineChartOptions.legend}
+                          gridOptions={singleLineChartOptions.grid}
+                          xAxisOptions={singleLineChartOptions.xAxis}
+                          yAxisOptions={singleLineChartOptions.yAxis}
+                          tooltipOptions={singleLineChartOptions.tooltip}
+                          lineOption={lineChartSeriesOption}
+                        />
+                      </div>
+                    </>
+                  )}
+                  {globalScoresDataSeries.length === 0 && (
+                    <p className="tw:text-lg tw:text-center tw:text-[#333]">
+                      No global health scores available
+                    </p>
+                  )}
+                </div>
                 <div className="tw:pt-4 tw:pb-8">
                   <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
                     Selected PROs by Domain
@@ -1624,7 +1481,7 @@ function App() {
                     )}
                   </div>
                   {domainsForChart.length > 1 && (
-                    <div>
+                    <div className="tw:pb-2">
                       <button
                         className="tw:btn tw:btn-sm tw:mt-2"
                         onClick={() => selectAllDomains(domainsForChart)}
@@ -1641,151 +1498,130 @@ function App() {
                           <h4 className="tw:text-lg tw:font-semibold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-2">
                             {domain}
                           </h4>
-                          <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8">
-                            {dimensionScoresDataSeriesByDomain[domain].map(
-                              (dataSeries, index) => (
-                                <React.Fragment key={dataSeries.id}>
-                                  {/* cell with y axis */}
-                                  
-                                  <div
-                                    className={`tw:col-span-1 
+                          <div className="tw:overflow-x-scroll">
+                            <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
+                              {dimensionScoresDataSeriesByDomain[domain].map(
+                                (dataSeries, index) => (
+                                  <React.Fragment key={dataSeries.id}>
+                                    {/* cell with y axis */}
+
+                                    <div
+                                      className={`tw:col-span-1 
                               ${index % 2 === 1 ? "tw:md:hidden" : ""}`}
-                                  >
-                                    <LineChart
-                                      data={{
-                                        xData: [""],
-                                        yData: [createPseudoDataSeries(0)],
-                                      }}
-                                      height={100}
-                                      minMaxYLabels={[
-                                        "Worst",
-                                        "Best",
-                                      ]}
-                                      minMaxYValues={[-0.15, 1.55]}
-                                      minMaxYValuesPosition={[0, 1]}
-                                      titleOptions={
-                                        justYAxisLineChartOptions.title
-                                      }
-                                      legendOptions={
-                                        justYAxisLineChartOptions.legend
-                                      }
-                                      gridOptions={
-                                        justYAxisLineChartOptions.grid
-                                      }
-                                      xAxisOptions={
-                                        justYAxisLineChartOptions.xAxis
-                                      }
-                                      yAxisOptions={
-                                        justYAxisLineChartOptions.yAxis
-                                      }
-                                      tooltipOptions={
-                                        justYAxisLineChartOptions.tooltip
-                                      }
-                                    />
-                                  </div>
-                                  
-                                  <div
-                                    className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
+                                    >
+                                      <LineChart
+                                        data={{
+                                          xData: [""],
+                                          yData: [createPseudoDataSeries(0)],
+                                        }}
+                                        height={100}
+                                        minMaxYLabels={["Worst", "Best"]}
+                                        minMaxYValues={[-0.15, 1.55]}
+                                        minMaxYValuesPosition={[0, 1]}
+                                        titleOptions={
+                                          justYAxisLineChartOptions.title
+                                        }
+                                        legendOptions={
+                                          justYAxisLineChartOptions.legend
+                                        }
+                                        gridOptions={
+                                          justYAxisLineChartOptions.grid
+                                        }
+                                        xAxisOptions={
+                                          justYAxisLineChartOptions.xAxis
+                                        }
+                                        yAxisOptions={
+                                          justYAxisLineChartOptions.yAxis
+                                        }
+                                        tooltipOptions={
+                                          justYAxisLineChartOptions.tooltip
+                                        }
+                                      />
+                                    </div>
+
+                                    <div
+                                      className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
                                       ${index % 2 === 0 ? "tw:col-start-2 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2" : ""} 
                                       tw:border-gray-200 tw:border-b tw:border-l tw:border-r
                                       ${index % 2 === 0 && dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:md:border-r-0" : ""}
                                       ${index < 1 ? "tw:border-t" : ""} 
                                       ${index === 1 ? "tw:md:border-t" : ""} 
                                     `}
-                                  >
-                                    {/* cell with dimension score */}
-                                    <LineChart
-                                      key={domain + "-" + dataSeries.id}
-                                      data={{
-                                        xData: chartXData,
-                                        yData: [dataSeries],
-                                      }}
-                                      // title={domain}
-                                      height={100}
-                                      minMaxYValues={[-0.15, 1.55]}
-                                      minMaxYValuesPosition={[0, 1]}
-                                      titleOptions={
-                                        groupedLineChartOptions.title
-                                      }
-                                      legendOptions={
-                                        groupedLineChartOptions.legend
-                                      }
-                                      gridOptions={groupedLineChartOptions.grid}
-                                      xAxisOptions={
-                                        groupedLineChartOptions.xAxis
-                                      }
-                                      yAxisOptions={
-                                        groupedLineChartOptions.yAxis
-                                      }
-                                      tooltipOptions={
-                                        groupedLineChartOptions.tooltip
-                                      }
-                                      lineOption={groupedLineChartSeriesOption}
-                                    />
-                                  </div>
-                                </React.Fragment>
-                              ),
-                            )}
-                            {dimensionScoresDataSeriesByDomain[domain].length >
-                              0 &&
-                              dimensionScoresDataSeriesByDomain[domain].length %
-                                2 ===
-                                1 && (
-                                <div
-                                  className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
+                                    >
+                                      {/* cell with dimension score */}
+                                      <LineChart
+                                        key={domain + "-" + dataSeries.id}
+                                        data={{
+                                          xData: chartXData,
+                                          yData: [dataSeries],
+                                        }}
+                                        // title={domain}
+                                        height={100}
+                                        minMaxYValues={[-0.15, 1.55]}
+                                        minMaxYValuesPosition={[0, 1]}
+                                        titleOptions={
+                                          groupedLineChartOptions.title
+                                        }
+                                        legendOptions={
+                                          groupedLineChartOptions.legend
+                                        }
+                                        gridOptions={
+                                          groupedLineChartOptions.grid
+                                        }
+                                        xAxisOptions={
+                                          groupedLineChartOptions.xAxis
+                                        }
+                                        yAxisOptions={
+                                          groupedLineChartOptions.yAxis
+                                        }
+                                        tooltipOptions={
+                                          groupedLineChartOptions.tooltip
+                                        }
+                                        lineOption={
+                                          groupedLineChartSeriesOption
+                                        }
+                                      />
+                                    </div>
+                                  </React.Fragment>
+                                ),
+                              )}
+                              {dimensionScoresDataSeriesByDomain[domain]
+                                .length > 0 &&
+                                dimensionScoresDataSeriesByDomain[domain]
+                                  .length %
+                                  2 ===
+                                  1 && (
+                                  <div
+                                    className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
                                     ${dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:border-b tw:border-l tw:border-gray-200 tw:border-r" : ""} 
                                     tw:hidden tw:md:block`}
-                                >
-                                  {/* empty data cell if number of dimensions is odd */}
-                                  <LineChart
-                                    data={{
-                                      xData: chartXData,
-                                      yData: [
-                                        createPseudoDataSeries(
-                                          chartXData.length,
-                                        ),
-                                      ],
-                                    }}
-                                    height={100}
-                                    titleOptions={emptyLineChartOptions.title}
-                                    legendOptions={emptyLineChartOptions.legend}
-                                    gridOptions={emptyLineChartOptions.grid}
-                                    xAxisOptions={emptyLineChartOptions.xAxis}
-                                    yAxisOptions={emptyLineChartOptions.yAxis}
-                                    tooltipOptions={
-                                      emptyLineChartOptions.tooltip
-                                    }
-                                  />
-                                </div>
-                              )}
-                            <div
-                              className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2"
-                            >
-                              {/* left cell with x axis*/}
-                              <LineChart
-                                data={{
-                                  xData: chartXData,
-                                  yData: [
-                                    createPseudoDataSeries(chartXData.length),
-                                  ],
-                                }}
-                                height={30}
-                                titleOptions={justXAxisLineChartOptions.title}
-                                legendOptions={justXAxisLineChartOptions.legend}
-                                gridOptions={justXAxisLineChartOptions.grid}
-                                xAxisOptions={justXAxisLineChartOptions.xAxis}
-                                yAxisOptions={justXAxisLineChartOptions.yAxis}
-                                tooltipOptions={
-                                  justXAxisLineChartOptions.tooltip
-                                }
-                              />
-                            </div>
-                            {dimensionScoresDataSeriesByDomain[domain].length >
-                              1 && (
-                              <div
-                                className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:hidden tw:md:block`}
-                              >
-                                {/* right cell with x axis */}
+                                  >
+                                    {/* empty data cell if number of dimensions is odd */}
+                                    <LineChart
+                                      data={{
+                                        xData: chartXData,
+                                        yData: [
+                                          createPseudoDataSeries(
+                                            chartXData.length,
+                                          ),
+                                        ],
+                                      }}
+                                      height={100}
+                                      titleOptions={emptyLineChartOptions.title}
+                                      legendOptions={
+                                        emptyLineChartOptions.legend
+                                      }
+                                      gridOptions={emptyLineChartOptions.grid}
+                                      xAxisOptions={emptyLineChartOptions.xAxis}
+                                      yAxisOptions={emptyLineChartOptions.yAxis}
+                                      tooltipOptions={
+                                        emptyLineChartOptions.tooltip
+                                      }
+                                    />
+                                  </div>
+                                )}
+                              <div className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2">
+                                {/* left cell with x axis*/}
                                 <LineChart
                                   data={{
                                     xData: chartXData,
@@ -1806,70 +1642,297 @@ function App() {
                                   }
                                 />
                               </div>
+                              {dimensionScoresDataSeriesByDomain[domain]
+                                .length > 1 && (
+                                <div
+                                  className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:hidden tw:md:block`}
+                                >
+                                  {/* right cell with x axis */}
+                                  <LineChart
+                                    data={{
+                                      xData: chartXData,
+                                      yData: [
+                                        createPseudoDataSeries(
+                                          chartXData.length,
+                                        ),
+                                      ],
+                                    }}
+                                    height={30}
+                                    titleOptions={
+                                      justXAxisLineChartOptions.title
+                                    }
+                                    legendOptions={
+                                      justXAxisLineChartOptions.legend
+                                    }
+                                    gridOptions={justXAxisLineChartOptions.grid}
+                                    xAxisOptions={
+                                      justXAxisLineChartOptions.xAxis
+                                    }
+                                    yAxisOptions={
+                                      justXAxisLineChartOptions.yAxis
+                                    }
+                                    tooltipOptions={
+                                      justXAxisLineChartOptions.tooltip
+                                    }
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="tw:pl-8 tw:pb-4">
+                            <div className="tw:pb-2">
+                              <button
+                                className="tw:btn tw:btn-sm tw:my-2"
+                                onClick={() => toggleShowItemsForDomain(domain)}
+                              >
+                                {showItemsForDomain[domain]
+                                  ? "Hide Items"
+                                  : "Show Items"}
+                              </button>
+                            </div>
+                            {showItemsForDomain[domain] && (
+                              <React.Fragment>
+                                <div className="tw:ml-0 tw:pl-4 tw:pr-2 tw:py-2 tw:border tw:border-gray-200">
+                                  <div>
+                                    <p>
+                                      Please select one or more dimensions to
+                                      view the items belonging to them.
+                                    </p>
+                                  </div>
+                                  <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
+                                    {dimensionsByDomain[domain].map(
+                                      (dimension) =>
+                                        itemDataSeriesByDomainAndDimension[
+                                          domain
+                                        ][dimension] !== undefined && (
+                                          <label
+                                            key={`${domain}: ${dimension}`}
+                                            className="tw:label tw:text-gray-900"
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={selectedDimensionsByDomain[
+                                                domain
+                                              ].includes(dimension)}
+                                              onChange={() =>
+                                                handleDimensionSelection(
+                                                  domain,
+                                                  dimension,
+                                                )
+                                              }
+                                              className="tw:checkbox"
+                                            />
+                                            {dimension}
+                                          </label>
+                                        ),
+                                    )}
+                                  </div>
+                                  {dimensionsByDomain[domain].length > 1 && (
+                                    <div className="tw:pb-4">
+                                      <button
+                                        className="tw:btn tw:btn-sm tw:mt-2"
+                                        onClick={() =>
+                                          selectAllDimensionsForDomain(
+                                            domain,
+                                            dimensionsByDomain[domain],
+                                          )
+                                        }
+                                      >
+                                        Select all
+                                      </button>
+                                    </div>
+                                  )}
+                                  {selectedDimensionsByDomain[domain].map(
+                                    (dimension) =>
+                                      itemDataSeriesByDomainAndDimension[
+                                        domain
+                                      ][dimension] !== undefined &&
+                                      itemDataSeriesByDomainAndDimension[
+                                        domain
+                                      ][dimension].length > 0 && (
+                                        <React.Fragment
+                                          key={`${domain}: ${dimension}`}
+                                        >
+                                          <h5 className="tw:text-md tw:font-semibold tw:text-left tw:text-[#333] tw:pt-2 tw:pb-2">
+                                            {dimension}
+                                          </h5>
+                                          <div
+                                            className={`tw:w-full tw:overflow-x-scroll
+                                     ${chartXData.length < 2 ? "tw:max-w-md" : ""}
+                                      ${chartXData.length >= 2 && chartXData.length < 4 ? "tw:max-w-lg" : ""}
+                                      ${chartXData.length >= 4 && chartXData.length < 6 ? "tw:max-w-2xl" : ""}
+                                      ${chartXData.length >= 6 && chartXData.length < 8 ? "tw:max-w-4xl" : ""}
+                                      ${chartXData.length >= 8 && chartXData.length < 10 ? "tw:max-w-6xl" : ""}
+                                      ${chartXData.length >= 10 && chartXData.length < 12 ? "tw:max-w-7xl" : ""}                                     
+                                      `}
+                                          >
+                                            <div className="tw:grid tw:grid-cols-4 tw:md:grid-cols-6 tw:xl:grid-cols-7 tw:2xl:grid-cols-8 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
+                                              {itemDataSeriesByDomainAndDimension[
+                                                domain
+                                              ][dimension].map(
+                                                (dataSeries, index) => (
+                                                  <React.Fragment
+                                                    key={dataSeries.id}
+                                                  >
+                                                    <div className="tw:col-span-1 tw:flex tw:items-center tw:justify-center">
+                                                      <div className="tw:text-xs tw:break-normal">
+                                                        {dataSeries.shortName}
+                                                      </div>
+                                                    </div>
+                                                    <div
+                                                      className={`tw:col-span-3 tw:md:col-span-5 tw:xl:col-span-6 tw:2xl:col-span-7 tw:col-start-2
+                                                tw:border-gray-200 tw:border-b tw:border-l tw:border-r
+                                                ${index < 1 ? "tw:border-t" : ""} 
+                                              `}
+                                                    >
+                                                      {/* cell with dimension score */}
+                                                      <LineChart
+                                                        key={
+                                                          domain +
+                                                          "-" +
+                                                          dataSeries.id
+                                                        }
+                                                        data={{
+                                                          xData: chartXData,
+                                                          yData: [dataSeries],
+                                                        }}
+                                                        // title={domain}
+                                                        height={40}
+                                                        minMaxYValues={[
+                                                          -0.12, 1.12,
+                                                        ]}
+                                                        //minMaxYValuesPosition={[0, 1]}
+                                                        titleOptions={
+                                                          groupedLineChartOptions.title
+                                                        }
+                                                        legendOptions={
+                                                          emptyLineChartOptions.legend
+                                                        }
+                                                        gridOptions={
+                                                          groupedLineChartOptions.grid
+                                                        }
+                                                        xAxisOptions={
+                                                          groupedLineChartOptions.xAxis
+                                                        }
+                                                        yAxisOptions={
+                                                          groupedLineChartOptions.yAxis
+                                                        }
+                                                        tooltipOptions={
+                                                          groupedLineChartOptions.tooltip
+                                                        }
+                                                        lineOption={
+                                                          groupedLineChartSeriesOption
+                                                        }
+                                                      />
+                                                    </div>
+                                                  </React.Fragment>
+                                                ),
+                                              )}
+                                              {/* empty data cell if number of dimensions is odd */}
+                                              {/* {itemDataSeriesByDomainAndDimension[domain][dimension].length >
+                                        0 &&
+                                        itemDataSeriesByDomainAndDimension[domain][dimension].length %
+                                          2 ===
+                                          1 && (
+                                          <div
+                                            className={`tw:col-span-4 tw:md:col-span-8 tw:xl:col-span-10 tw:2xl:col-span-12
+                                              ${itemDataSeriesByDomainAndDimension[domain][dimension].length > 1 ? "tw:border-b tw:border-l tw:border-gray-200 tw:border-r" : ""} 
+                                              tw:hidden tw:md:block`}
+                                          >
+                                            
+                                            <LineChart
+                                              data={{
+                                                xData: chartXData,
+                                                yData: [
+                                                  createPseudoDataSeries(
+                                                    chartXData.length,
+                                                  ),
+                                                ],
+                                              }}
+                                              height={40}
+                                              titleOptions={emptyLineChartOptions.title}
+                                              legendOptions={emptyLineChartOptions.legend}
+                                              gridOptions={emptyLineChartOptions.grid}
+                                              xAxisOptions={emptyLineChartOptions.xAxis}
+                                              yAxisOptions={emptyLineChartOptions.yAxis}
+                                              tooltipOptions={
+                                                emptyLineChartOptions.tooltip
+                                              }
+                                            />
+                                          </div>
+                                        )} */}
+                                              <div className="tw:col-span-3 tw:col-start-2 tw:md:col-span-5 tw:xl:col-span-6 tw:2xl:col-span-7 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2">
+                                                {/* left cell with x axis*/}
+                                                <LineChart
+                                                  data={{
+                                                    xData: chartXData,
+                                                    yData: [
+                                                      createPseudoDataSeries(
+                                                        chartXData.length,
+                                                      ),
+                                                    ],
+                                                  }}
+                                                  height={30}
+                                                  titleOptions={
+                                                    justXAxisLineChartOptions.title
+                                                  }
+                                                  legendOptions={
+                                                    justXAxisLineChartOptions.legend
+                                                  }
+                                                  gridOptions={
+                                                    justXAxisLineChartOptions.grid
+                                                  }
+                                                  xAxisOptions={
+                                                    justXAxisLineChartOptions.xAxis
+                                                  }
+                                                  yAxisOptions={
+                                                    justXAxisLineChartOptions.yAxis
+                                                  }
+                                                  tooltipOptions={
+                                                    justXAxisLineChartOptions.tooltip
+                                                  }
+                                                />
+                                              </div>
+                                              {/* right cell with x axis */}
+                                              {/* {itemDataSeriesByDomainAndDimension[domain][dimension].length >
+                                        1 && (
+                                        <div
+                                          className={`tw:col-span-4 tw:md:col-span-8 tw:xl:col-span-10 tw:2xl:col-span-12 tw:hidden tw:md:block`}
+                                        >
+                                          <LineChart
+                                            data={{
+                                              xData: chartXData,
+                                              yData: [
+                                                createPseudoDataSeries(chartXData.length),
+                                              ],
+                                            }}
+                                            height={30}
+                                            titleOptions={justXAxisLineChartOptions.title}
+                                            legendOptions={
+                                              justXAxisLineChartOptions.legend
+                                            }
+                                            gridOptions={justXAxisLineChartOptions.grid}
+                                            xAxisOptions={justXAxisLineChartOptions.xAxis}
+                                            yAxisOptions={justXAxisLineChartOptions.yAxis}
+                                            tooltipOptions={
+                                              justXAxisLineChartOptions.tooltip
+                                            }
+                                          />
+                                        </div> 
+                                      )} */}
+                                            </div>
+                                          </div>
+                                        </React.Fragment>
+                                      ),
+                                  )}
+                                </div>
+                              </React.Fragment>
                             )}
                           </div>
-                          
                         </React.Fragment>
                       ),
                   )}
-
-                  {/* {dimensionsByDomain[domain] !== undefined && dimensionsByDomain[domain].length > 0 && (
-                  <> 
-                    <div>
-                      <p>Please select one or more dimensions to view the scores (also shown above) and items belonging to them.</p>
-                    </div>
-                    <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start">
-                      {dimensionsByDomain[domain].map((dimension) => (
-                        itemDataSeriesByDomainAndDimension[domain][dimension].length > 0 && (
-                          <label key={dimension} className="tw:label tw:text-gray-900">
-                            <input type="checkbox" checked={selectedDimensionsByDomain[domain].includes(dimension)} onChange={() => handleDimensionSelection(domain, dimension)} className="tw:checkbox" />
-                            {dimension}
-                          </label>
-                        )
-                      ))}
-                    </div>
-                    {dimensionsByDomain[domain].length > 1 && (
-                      <div>
-                        <button
-                          className="tw:btn tw:btn-outline tw:btn-primary tw:btn-sm tw:mt-2"
-                          onClick={() => selectAllDimensionsForDomain(domain, dimensionsByDomain[domain])}
-                        > 
-                          Select all
-                        </button>
-                      </div>
-                    )}
-                    {selectedDimensionsByDomain[domain] !== undefined && selectedDimensionsByDomain[domain].length > 0 && selectedDimensionsByDomain[domain].map((dimension) => (
-                      <LineChart key={dimension} data={{
-                        xData: chartXData,
-                        yData: itemDataSeriesByDomainAndDimension[domain][dimension]}} title={`${domain} - ${dimension}`} />
-                    ))}
-                  </>
-                )} */}
-
-                  {/* {heatmapDataByDomain && Object.keys(heatmapDataByDomain)
-                .map((domain) => (
-                  <div
-                    key={domain}
-                    className="tw:col-span-6 tw:md:col-span-3 tw:lg:col-span-2"
-                  > 
-                  {heatmapDataByDomain[domain] !== undefined && heatmapDataByDomain[domain].yData.length > 0 && (
-
-                  
-                    <div className="tw:card tw:bg-base-100 tw:shadow-md">
-                      <div className="tw:card-body">
-                        <p className="tw:text-lg tw:font-bold tw:text-[#333]">
-                          {domain}
-                        </p>
-                        <Heatmap data={heatmapDataByDomain[domain]} />
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                ))} */}
-
-                  {/* </div> */}
                 </div>
-
                 <div className="tw:pt-4 tw:pb-8">
                   <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
                     Complete PROs by PROM/Questionnaire
@@ -1942,7 +2005,6 @@ function App() {
               allRowsExpanded={expandAll}
             />
           </div> */}
-                
               </div>
             </div>
             <div className="tw:drawer-side">
