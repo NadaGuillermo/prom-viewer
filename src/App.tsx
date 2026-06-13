@@ -3,7 +3,7 @@ import "@styles/style.css";
 
 // Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library } from "@fortawesome/fontawesome-svg-core";
+import { library, type IconProp } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 library.add(fas);
 
@@ -28,6 +28,7 @@ import MappingTable from "@components/MappingTable";
 import ErrorCard from "@components/ErrorCard";
 import GridTable from "@components/GridTable";
 import FilterOptionsDisplay from "@components/FilterOptionsDisplay";
+import SidebarToggle from "@components/SidebarToggle";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -178,8 +179,10 @@ function App() {
   const [questionnaireCardData, setQuestionnaireCardData] = useState<
     Record<string, [string, string[]]>
   >({});
-  const [questionnairesWithMostRecentResponseDate, setQuestionnairesWithMostRecentResponseDate] =
-    useState<Record<string, string>>({});
+  const [
+    questionnairesWithMostRecentResponseDate,
+    setQuestionnairesWithMostRecentResponseDate,
+  ] = useState<Record<string, string>>({});
   const [chartXData, setChartXData] = useState<string[]>([]);
   const [globalScoresDataSeries, setGlobalScoresDataSeries] = useState<
     Visualization.DataSeries[]
@@ -248,6 +251,7 @@ function App() {
   const [modalShown, setModalShown] = useState(false);
   const [allDomainsSelected, setAllDomainsSelected] = useState(false);
   const [showFilterOptions, setShowFilterOptions] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   const [dateValue, setDateValue] = useState<string>("");
   const [dateRange, setDateRange] = useState<Visualization.RangeState>({
@@ -1027,7 +1031,9 @@ function App() {
     setDimensionsWithQuestionnaireByDomain(
       domainDimensionWithQuestionnaireRecord,
     );
-    setQuestionnairesWithMostRecentResponseDate(questionnaireMostRecentResponseDateRecord);
+    setQuestionnairesWithMostRecentResponseDate(
+      questionnaireMostRecentResponseDateRecord,
+    );
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
@@ -1093,6 +1099,19 @@ function App() {
       "Selected dimensions by domain (all selected): ",
       selectedDimensionsByDomain,
     );
+  };
+
+  const resetFilters = () => {
+    const questionnaireIds = questionnaires.map(
+      (questionnaire) => questionnaire.id,
+    );
+    const allDates = extractDatesOfQuestionnaireResponses(
+      questionnaireResponses,
+    );
+    setSelectedQuestionnaires(questionnaireIds);
+    setSelectedDates(allDates);
+    setDateRange({ start: "", end: "" });
+    setDateValue("");
   };
 
   const handleQuestionnaireSelection = (questionnaireId: string) => {
@@ -1177,6 +1196,10 @@ function App() {
     setDateValue(target.value);
   };
 
+  const toggleShowSidebar = () => {
+    setShowSidebar((prev) => !prev);
+  };
+
   // Loading Errors
   if (configError)
     return (
@@ -1203,13 +1226,17 @@ function App() {
         > */}
         {/* <Header /> */}
         <main>
-          <div className="tw:drawer tw:lg:drawer-open tw:drawer-end">
+          <div className={`tw:drawer tw:drawer-end tw:lg:drawer-open`}>
             <input
               id="filter-drawer"
               type="checkbox"
               className="tw:drawer-toggle"
             />
-            <div className="tw:drawer-content">
+            <div className="tw:drawer-content relative">
+              <SidebarToggle
+                showSidebar={showSidebar}
+                toggleShowSidebar={toggleShowSidebar}
+              />
               <div className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6">
                 {/* <div className="tw:flex tw:flex-col tw:md:flex-row tw:gap-8 tw:py-16 tw:justify-center tw:items-start">
                  */}
@@ -1382,10 +1409,10 @@ function App() {
                   )}
                   <label
                     htmlFor="filter-drawer"
-                    className="tw:btn tw:btn-sm tw:drawer-button tw:mt-2 tw:lg:hidden"
+                    className={`tw:btn tw:btn-sm tw:drawer-button tw:mt-2 tw:lg:hidden`}
                   >
                     <span>Filters</span>
-                    <FontAwesomeIcon icon="fa-solid fa-filter" />
+                    <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />
                   </label>
                 </div>
 
@@ -1407,55 +1434,116 @@ function App() {
                   </div> */}
                 <div className="tw:pt-4 tw:pb-8">
                   <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
-                            Global Health
-                          </h2>
+                    Global Health
+                  </h2>
                   <div className="tw:grid tw:grid-cols-1 tw:lg:grid-cols-7 tw:2xl:grid-cols-5">
                     <div className="tw:lg:row-start-1 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
                       <h3 className="tw:text-lg tw:font-bold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-4">
-                          Current Health Indication
+                        Current Health Indication
                       </h3>
                       {dimensionsWithQuestionnaireByDomain && (
                         <div className="tw:flex tw:justify-center tw:md:px-8 tw:lg:px-0">
-                        <Collapse
-                          title={`Explanation of the Chart`}
-                          children={
-                            <>
-                            <div>
-                              <h6 className="tw:text tw:font-semibold tw:pt-0">About the Diagram</h6>       
-                              <p>
-                                This radar chart provides a high-level overview of the patient&rsquo;s 
-                                health status across {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains, 
-                                using only the <span className="tw:font-semibold">most recent response</span> from each questionnaire. Each axis represents one domain.
-                              </p>
-                              <h6 className="tw:text tw:font-semibold tw:pt-2">The Polygons</h6>
-                              <p>
-                                For each questionnaire, the domain scores are visualized using two distinct shapes:
-                                <ul className="tw:list-disc tw:list-inside">
-                                  <li><span className="tw:font-semibold">Thick Line Polygon:</span> Represents the <span className="tw:font-semibold">best (highest)</span> dimension score within that domain.</li>
-                                  <li><span className="tw:font-semibold">Shaded Area Polygon:</span> Represents the <span className="tw:font-semibold">worst (lowest)</span> dimension score within that domain.</li>
-                                  <li><span className="tw:italic">Note: The shaded polygon will always sit inside or match the thick line polygon.</span></li>
-                                </ul>
-                              </p>
-                              <h6 className="tw:text tw:font-semibold tw:pt-2">Clinical Interpretation</h6>
-                              <p>
-                                <ul className="tw:list-disc tw:list-inside">
-                                  <li><span className="tw:font-semibold">Score Direction:</span> Edges closer to the outer margin indicate better patient scores; edges closer to the center indicate worse scores.</li>
-                                  <li><span className="tw:font-semibold">Domain Variance:</span> The closer the shaded edge is to the thick line edge, the less variance (fluctuation) there is among the scores in that domain.</li>
-                                  <li><span className="tw:font-semibold">Missing Data:</span> If a questionnaire does not provide scores for a domain, both polygon edges for that axis will sit at the center.</li>
-                                </ul>
-                              </p>
+                          <Collapse
+                            title={`Explanation of the Chart`}
+                            children={
+                              <>
+                                <div>
+                                  <h6 className="tw:text tw:font-semibold tw:pt-0">
+                                    About this Diagram
+                                  </h6>
+                                  <p>
+                                    This radar chart provides a high-level
+                                    overview of the patient&rsquo;s health
+                                    status across{" "}
+                                    {
+                                      Object.keys(
+                                        dimensionsWithQuestionnaireByDomain,
+                                      ).length
+                                    }{" "}
+                                    domains, using only the{" "}
+                                    <span className="tw:font-semibold">
+                                      most recent response
+                                    </span>{" "}
+                                    from each questionnaire. Each axis
+                                    represents one domain.
+                                  </p>
+                                  <h6 className="tw:text tw:font-semibold tw:pt-2">
+                                    The Polygons
+                                  </h6>
+                                  <p>
+                                    For each questionnaire, the domain scores
+                                    are visualized using two distinct shapes:
+                                  </p>
+                                  <ul className="tw:list-disc tw:list-inside">
+                                    <li>
+                                      <span className="tw:font-semibold">
+                                        Thick Line Polygon:
+                                      </span>{" "}
+                                      Represents the{" "}
+                                      <span className="tw:font-semibold">
+                                        best (highest)
+                                      </span>{" "}
+                                      dimension score within that domain.
+                                    </li>
+                                    <li>
+                                      <span className="tw:font-semibold">
+                                        Shaded Area Polygon:
+                                      </span>{" "}
+                                      Represents the{" "}
+                                      <span className="tw:font-semibold">
+                                        worst (lowest)
+                                      </span>{" "}
+                                      dimension score within that domain.
+                                    </li>
+                                    <li>
+                                      <span className="tw:italic">
+                                        Note: The shaded polygon will always sit
+                                        inside or match the thick line polygon.
+                                      </span>
+                                    </li>
+                                  </ul>
 
-                            </div>
-                            </>
-                          }
-                          constrainWidth={true}
-                          name={"Domains Radar"}
-                        />
+                                  <h6 className="tw:text tw:font-semibold tw:pt-2">
+                                    Clinical Interpretation
+                                  </h6>
+
+                                  <ul className="tw:list-disc tw:list-inside">
+                                    <li>
+                                      <span className="tw:font-semibold">
+                                        Score Direction:
+                                      </span>{" "}
+                                      Edges closer to the outer margin indicate
+                                      better patient scores; edges closer to the
+                                      center indicate worse scores.
+                                    </li>
+                                    <li>
+                                      <span className="tw:font-semibold">
+                                        Domain Variance:
+                                      </span>{" "}
+                                      The closer the shaded edge is to the thick
+                                      line edge, the less variance (fluctuation)
+                                      there is among the scores in that domain.
+                                    </li>
+                                    <li>
+                                      <span className="tw:font-semibold">
+                                        Missing Data:
+                                      </span>{" "}
+                                      If a questionnaire does not provide scores
+                                      for a domain, both polygon edges for that
+                                      axis will sit at the center.
+                                    </li>
+                                  </ul>
+                                </div>
+                              </>
+                            }
+                            constrainWidth={true}
+                            name={"Domains Radar"}
+                          />
                         </div>
                         // <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
                         //   <div
                         //     className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
-                        //     data-tip={`This chart gives a raw indication of the patient\u2019s health status over the 
+                        //     data-tip={`This chart gives a raw indication of the patient\u2019s health status over the
                         //       ${Object.keys(dimensionsWithQuestionnaireByDomain).length} dimensions for each questionnaire.
                         //       The edges of the thick line mark the value of one or more scores of the respective domain.
                         //       The edges of the shadowed area mark the value of one or more scores that indicates `}
@@ -1478,12 +1566,11 @@ function App() {
                           </ul>
                         )}
                       </div> */}
-                     
                     </div>
 
                     <div className="tw:row-start-3 tw:lg:row-start-1 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-start-3 tw:2xl:col-span-3">
                       <h3 className="tw:text-lg tw:font-bold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-4">
-                          Normalized Global Health Scores
+                        Normalized Global Health Scores
                       </h3>
                       <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4 tw:md:px-8 tw:lg:px-0">
                         <div
@@ -1509,16 +1596,19 @@ function App() {
                       </div> */}
                     </div>
                     <div className="tw:row-start-2 tw:lg:row-start-2 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                      {dimensionScoresDataSeriesByDomain && questionnairesWithMostRecentResponseDate && (
-                        <div className="tw:flex tw:justify-center">
-                          <RadarChart
-                            data={dimensionScoresDataSeriesByDomain}
-                            mostRecentResponses={questionnairesWithMostRecentResponseDate}
-                          />
-                        </div>
-                      )}
+                      {dimensionScoresDataSeriesByDomain &&
+                        questionnairesWithMostRecentResponseDate && (
+                          <div className="tw:flex tw:justify-center">
+                            <RadarChart
+                              data={dimensionScoresDataSeriesByDomain}
+                              mostRecentResponses={
+                                questionnairesWithMostRecentResponseDate
+                              }
+                            />
+                          </div>
+                        )}
                     </div>
-                    
+
                     <div className="tw:row-start-4 tw:lg:row-start-2 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
                       {globalScoresDataSeries.length > 0 && (
                         <>
@@ -1550,7 +1640,7 @@ function App() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="tw:pt-4 tw:pb-8">
                   <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
                     Selected PROs by Domain
@@ -2109,7 +2199,14 @@ function App() {
           </div> */}
               </div>
             </div>
-            <div className="tw:drawer-side">
+            <div
+              className={`tw:drawer-side tw:transition-all 
+                tw:lg:overflow-hidden ${
+                  showSidebar
+                    ? "tw:lg:translate-x-0 tw:ease-in tw:duration-200"
+                    : "tw:lg:translate-x-full tw:lg:pointer-events-none tw:lg:w-0 tw:ease-out tw:duration-250"
+                }`}
+            >
               <label
                 htmlFor="filter-drawer"
                 aria-label="close sidebar"
@@ -2130,6 +2227,7 @@ function App() {
                   datePickerValue={dateValue}
                   datePickerRange={dateRange}
                   rangeSelectionHandler={handleRangeChange}
+                  resetHandler={resetFilters}
                 />
               </ul>
             </div>

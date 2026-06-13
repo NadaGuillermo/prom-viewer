@@ -35,3 +35,8 @@ tr>th {
 thead tr>th:first-child {
   z-index: 30;
 }
+
+
+@media print {
+    #sidebar-toggle { display: none; }
+}
