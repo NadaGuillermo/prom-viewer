@@ -869,10 +869,15 @@ export const extractItemsDataSeries = (
 
 export const createQuestionnaireMostRecentResponseDateRecord = (questionnaireNamesByDate: Record<string, string[]>) => {
   const questionnaireMostRecentResponseDateRecord: Record<string, string> = {};
-  Object.entries(questionnaireNamesByDate).forEach(([questionnaireName, responseDates]) => {
-      const mostRecentResponseDate = responseDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
-      questionnaireMostRecentResponseDateRecord[questionnaireName] = mostRecentResponseDate;
-    });
+  const sortedDates = Object.keys(questionnaireNamesByDate).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  Object.entries(questionnaireNamesByDate).forEach(([date, names]) => {
+    for(let name of names) {
+      const mostRecentDate = sortedDates.find((d) => questionnaireNamesByDate[d].includes(name));
+      if (mostRecentDate !== undefined) {
+        questionnaireMostRecentResponseDateRecord[name] = date;
+      }
+    }
+  });
   return questionnaireMostRecentResponseDateRecord;
 }
 

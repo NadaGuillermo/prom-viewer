@@ -41,8 +41,6 @@ import {
   groupedLineChartOptions,
   emptyLineChartOptions,
   justXAxisLineChartOptions,
-  lineChartSeriesOption,
-  groupedLineChartSeriesOption,
 } from "@utils/charts";
 
 // Services
@@ -180,6 +178,8 @@ function App() {
   const [questionnaireCardData, setQuestionnaireCardData] = useState<
     Record<string, [string, string[]]>
   >({});
+  const [questionnairesWithMostRecentResponseDate, setQuestionnairesWithMostRecentResponseDate] =
+    useState<Record<string, string>>({});
   const [chartXData, setChartXData] = useState<string[]>([]);
   const [globalScoresDataSeries, setGlobalScoresDataSeries] = useState<
     Visualization.DataSeries[]
@@ -1027,6 +1027,7 @@ function App() {
     setDimensionsWithQuestionnaireByDomain(
       domainDimensionWithQuestionnaireRecord,
     );
+    setQuestionnairesWithMostRecentResponseDate(questionnaireMostRecentResponseDateRecord);
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
@@ -1405,13 +1406,86 @@ function App() {
                     )}
                   </div> */}
                 <div className="tw:pt-4 tw:pb-8">
-                  {/* <div className="tw:col-span-12 tw:lg:col-span-10 tw:lg:col-start-2 tw:2xl:col-span-8 tw:2xl:col-start-3"> */}
-                  {globalScoresDataSeries.length > 0 && (
-                    <>
-                      <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
-                        Global Health
-                      </h2>
-                      <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
+                  <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
+                            Global Health
+                          </h2>
+                  <div className="tw:grid tw:grid-cols-1 tw:lg:grid-cols-7 tw:2xl:grid-cols-5">
+                    <div className="tw:lg:row-start-1 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
+                      <h3 className="tw:text-lg tw:font-bold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-4">
+                          Current Health Indication
+                      </h3>
+                      {dimensionsWithQuestionnaireByDomain && (
+                        <div className="tw:flex tw:justify-center tw:md:px-8 tw:lg:px-0">
+                        <Collapse
+                          title={`Explanation of the Chart`}
+                          children={
+                            <>
+                            <div>
+                              <h6 className="tw:text tw:font-semibold tw:pt-0">About the Diagram</h6>       
+                              <p>
+                                This radar chart provides a high-level overview of the patient&rsquo;s 
+                                health status across {Object.keys(dimensionsWithQuestionnaireByDomain).length} domains, 
+                                using only the <span className="tw:font-semibold">most recent response</span> from each questionnaire. Each axis represents one domain.
+                              </p>
+                              <h6 className="tw:text tw:font-semibold tw:pt-2">The Polygons</h6>
+                              <p>
+                                For each questionnaire, the domain scores are visualized using two distinct shapes:
+                                <ul className="tw:list-disc tw:list-inside">
+                                  <li><span className="tw:font-semibold">Thick Line Polygon:</span> Represents the <span className="tw:font-semibold">best (highest)</span> dimension score within that domain.</li>
+                                  <li><span className="tw:font-semibold">Shaded Area Polygon:</span> Represents the <span className="tw:font-semibold">worst (lowest)</span> dimension score within that domain.</li>
+                                  <li><span className="tw:italic">Note: The shaded polygon will always sit inside or match the thick line polygon.</span></li>
+                                </ul>
+                              </p>
+                              <h6 className="tw:text tw:font-semibold tw:pt-2">Clinical Interpretation</h6>
+                              <p>
+                                <ul className="tw:list-disc tw:list-inside">
+                                  <li><span className="tw:font-semibold">Score Direction:</span> Edges closer to the outer margin indicate better patient scores; edges closer to the center indicate worse scores.</li>
+                                  <li><span className="tw:font-semibold">Domain Variance:</span> The closer the shaded edge is to the thick line edge, the less variance (fluctuation) there is among the scores in that domain.</li>
+                                  <li><span className="tw:font-semibold">Missing Data:</span> If a questionnaire does not provide scores for a domain, both polygon edges for that axis will sit at the center.</li>
+                                </ul>
+                              </p>
+
+                            </div>
+                            </>
+                          }
+                          constrainWidth={true}
+                          name={"Domains Radar"}
+                        />
+                        </div>
+                        // <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
+                        //   <div
+                        //     className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
+                        //     data-tip={`This chart gives a raw indication of the patient\u2019s health status over the 
+                        //       ${Object.keys(dimensionsWithQuestionnaireByDomain).length} dimensions for each questionnaire.
+                        //       The edges of the thick line mark the value of one or more scores of the respective domain.
+                        //       The edges of the shadowed area mark the value of one or more scores that indicates `}
+                        //   >
+                        //     <button className="tw:btn tw:btn-sm">
+                        //       About this Diagram
+                        //     </button>
+                        //   </div>
+                        // </div>
+                      )}
+                      {/* <div className="tw:flex tw:flex-col tw:justify-start tw:py-2">
+                        {questionnairesWithMostRecentResponseDate && (
+                          <ul className={`${Object.keys(questionnairesWithMostRecentResponseDate).length > 1 ? "tw:list-disc tw:list-inside" : "tw:list-none"}`}>
+                          {Object.entries(questionnairesWithMostRecentResponseDate).map(
+                            ([questionnaireName, date]) => (
+                              <li className="tw:text-sm" key={questionnaireName}>
+                                {questionnaireName}: <span className="tw:font-semibold">{date}</span>
+                              </li>
+                          ))}
+                          </ul>
+                        )}
+                      </div> */}
+                     
+                    </div>
+
+                    <div className="tw:row-start-3 tw:lg:row-start-1 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-start-3 tw:2xl:col-span-3">
+                      <h3 className="tw:text-lg tw:font-bold tw:text-center tw:text-[#333] tw:pt-4 tw:pb-4">
+                          Normalized Global Health Scores
+                      </h3>
+                      <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4 tw:md:px-8 tw:lg:px-0">
                         <div
                           className="tw:tooltip tw:tooltip-top tw:md:tooltip-right tw:whitespace-normal tw:break-normal"
                           data-tip={`This chart shows the progress over time of
@@ -1423,32 +1497,60 @@ function App() {
                           </button>
                         </div>
                       </div>
-                      <div className="tw:flex tw:justify-start">
-                        <LineChart
-                          height={400}
-                          data={{
-                            xData: chartXData,
-                            yData: globalScoresDataSeries,
-                          }}
-                          title={"Normalized Global Health Scores over Time"}
-                          minMaxYLabels={["Worst Health", "Best Health"]}
-                          titleOptions={singleLineChartOptions.title}
-                          legendOptions={singleLineChartOptions.legend}
-                          gridOptions={singleLineChartOptions.grid}
-                          xAxisOptions={singleLineChartOptions.xAxis}
-                          yAxisOptions={singleLineChartOptions.yAxis}
-                          tooltipOptions={singleLineChartOptions.tooltip}
-                          lineOption={lineChartSeriesOption}
+                      {/* <div className="tw:flex tw:justify-center tw:md:px-8 tw:lg:px-0">
+                        <Collapse
+                          title="About this Diagram"
+                          children={`This chart shows the progress over time of
+                              those scores which represent global or overall
+                              health of the patient. Negative scores are displayed as 0.`}
+                          constrainWidth={true}
+                          name={"Global Line"}
                         />
-                      </div>
-                    </>
-                  )}
-                  {globalScoresDataSeries.length === 0 && (
-                    <p className="tw:text-lg tw:text-center tw:text-[#333]">
-                      No global health scores available
-                    </p>
-                  )}
+                      </div> */}
+                    </div>
+                    <div className="tw:row-start-2 tw:lg:row-start-2 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
+                      {dimensionScoresDataSeriesByDomain && questionnairesWithMostRecentResponseDate && (
+                        <div className="tw:flex tw:justify-center">
+                          <RadarChart
+                            data={dimensionScoresDataSeriesByDomain}
+                            mostRecentResponses={questionnairesWithMostRecentResponseDate}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="tw:row-start-4 tw:lg:row-start-2 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
+                      {globalScoresDataSeries.length > 0 && (
+                        <>
+                          <div className="tw:flex tw:justify-center">
+                            <LineChart
+                              height={400}
+                              data={{
+                                xData: chartXData,
+                                yData: globalScoresDataSeries,
+                              }}
+                              // title={"Normalized Global Health Scores over Time"}
+                              minMaxYLabels={["Worst Health", "Best Health"]}
+                              titleOptions={singleLineChartOptions.title}
+                              legendOptions={singleLineChartOptions.legend}
+                              gridOptions={singleLineChartOptions.grid}
+                              xAxisOptions={singleLineChartOptions.xAxis}
+                              yAxisOptions={singleLineChartOptions.yAxis}
+                              tooltipOptions={singleLineChartOptions.tooltip}
+                              lineOption={singleLineChartOptions.series}
+                            />
+                          </div>
+                        </>
+                      )}
+                      {globalScoresDataSeries.length === 0 && (
+                        <p className="tw:text-lg tw:text-center tw:text-[#333]">
+                          No global health scores available
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
+                
                 <div className="tw:pt-4 tw:pb-8">
                   <h2 className="tw:text-xl tw:font-bold tw:text-center tw:text-[#333] tw:pt-8 tw:pb-6">
                     Selected PROs by Domain
@@ -1578,7 +1680,7 @@ function App() {
                                           groupedLineChartOptions.tooltip
                                         }
                                         lineOption={
-                                          groupedLineChartSeriesOption
+                                          groupedLineChartOptions.series
                                         }
                                       />
                                     </div>
@@ -1821,7 +1923,7 @@ function App() {
                                                           groupedLineChartOptions.tooltip
                                                         }
                                                         lineOption={
-                                                          groupedLineChartSeriesOption
+                                                          groupedLineChartOptions.series
                                                         }
                                                       />
                                                     </div>
@@ -1965,7 +2067,7 @@ function App() {
             //   </div>
             // </div> */}
 
-                  <div className="tw:join tw:join-vertical tw:bg-base-100 tw:flex tw:justify-center">
+                  <div className="tw:join tw:join-vertical tw:flex tw:justify-center">
                     {questionnaires &&
                       tableDataByQuestionnaire &&
                       questionnaires.map((questionnaire) => (

@@ -5,7 +5,42 @@ import type {
   XAXisComponentOption, 
   YAXisComponentOption,
   LineSeriesOption,
+  TooltipComponentOption,
+  RadarSeriesOption,
+  RadarComponentOption,
 } from "echarts";
+
+const lineChartSeriesOption: LineSeriesOption = {
+  connectNulls: true,
+  symbol: "circle",
+  symbolSize: 7,
+  emphasis: {
+    focus: "series",
+    scale: true,
+    lineStyle: {
+      width: 3,
+      opacity: 1,
+    },
+    itemStyle: {
+      opacity: 1,
+    }
+  },
+  lineStyle: {
+    width: 3,
+  },
+}
+
+const groupedLineChartSeriesOption: LineSeriesOption = {
+  connectNulls: true,
+  symbol: "circle",
+  symbolSize: 7,
+  emphasis: {
+    disabled: true,
+  },
+  lineStyle: {
+    width: 3,
+  },
+}
 
 const singleLineChartTitleOption: TitleComponentOption = {
 
@@ -59,7 +94,7 @@ const singleLineChartYAxisOption: YAXisComponentOption = {
   },
 };
 
-const singleLineChartTooltipOption = {
+const singleLineChartTooltipOption: TooltipComponentOption = {
 
 }
 
@@ -70,6 +105,7 @@ export const singleLineChartOptions = {
   xAxis: singleLineChartXAxisOption,
   yAxis: singleLineChartYAxisOption,
   tooltip: singleLineChartTooltipOption,
+  series: lineChartSeriesOption,
 }
 
 const justYAxisLineChartTitleOption: TitleComponentOption = {
@@ -120,7 +156,7 @@ const justYAxisLineChartYAxisOption: YAXisComponentOption = {
   }
 }
 
-const justYAxisLineChartTooltipOption = {
+const justYAxisLineChartTooltipOption: TooltipComponentOption = {
 
 }
 
@@ -162,7 +198,7 @@ const groupedLineChartYAxisOption: YAXisComponentOption = {
   show: false,
 }
 
-const groupedLineChartTooltipOption = {
+const groupedLineChartTooltipOption: TooltipComponentOption = {
 
 }
 
@@ -173,6 +209,7 @@ export const groupedLineChartOptions = {
   xAxis: groupedLineChartXAxisOption,
   yAxis: groupedLineChartYAxisOption,
   tooltip: groupedLineChartTooltipOption,
+  series: groupedLineChartSeriesOption,
 }
 
 const emptyLineChartTitleOption: TitleComponentOption = {
@@ -199,7 +236,7 @@ const emptyLineChartYAxisOption: YAXisComponentOption = {
   show: false,
 }
 
-const emptyLineChartTooltipOption = {
+const emptyLineChartTooltipOption: TooltipComponentOption = {
 
 }
 
@@ -245,7 +282,7 @@ const justXAxisLineChartYAxisOption: YAXisComponentOption = {
   show: false,
 }
 
-const justXAxisLineChartTooltipOption = {
+const justXAxisLineChartTooltipOption: TooltipComponentOption = {
 
 }
 
@@ -258,34 +295,37 @@ export const justXAxisLineChartOptions = {
   tooltip: justXAxisLineChartTooltipOption,
 }
 
-export const lineChartSeriesOption: LineSeriesOption = {
-  connectNulls: true,
-  symbol: "circle",
-  symbolSize: 7,
-  emphasis: {
-    focus: "series",
-    scale: true,
-    lineStyle: {
-      width: 3,
-      opacity: 1,
-    },
-    itemStyle: {
-      opacity: 1,
-    }
-  },
-  lineStyle: {
-    width: 3,
-  },
+/* Radar Chart */
+
+const radarTitleOption: TitleComponentOption = {
+
 }
 
-export const groupedLineChartSeriesOption: LineSeriesOption = {
-  connectNulls: true,
-  symbol: "circle",
-  symbolSize: 7,
-  emphasis: {
-    disabled: true,
-  },
-  lineStyle: {
-    width: 3,
-  },
+const radarLegendOption: LegendComponentOption = {
+
+}
+
+const radarGridOption: GridComponentOption = {
+
+}
+
+const radarTooltip: TooltipComponentOption = {
+
+}
+
+const radarOption: RadarComponentOption = {
+
+}
+
+const radarSeriesOption: RadarSeriesOption = {
+
+}
+
+export const radarOptions = {
+  title: radarTitleOption,
+  legend: radarLegendOption,
+  grid: radarGridOption,
+  tooltip: radarTooltip,
+  radar: radarOption,
+  series: radarSeriesOption,
 }
