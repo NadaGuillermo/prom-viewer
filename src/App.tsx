@@ -29,6 +29,8 @@ import ErrorCard from "@components/ErrorCard";
 import GridTable from "@components/GridTable";
 import FilterOptionsDisplay from "@components/FilterOptionsDisplay";
 import SidebarToggle from "@components/SidebarToggle";
+import ErrorPage from "@components/ErrorPage";
+import DataLoadingScreen from "@components/DataLoadingScreen";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -1200,23 +1202,26 @@ function App() {
     setShowSidebar((prev) => !prev);
   };
 
+  const retryLoading = () => {
+    window.location.reload();
+  };
+
   // Loading Errors
   if (configError)
     return (
-      <React.Fragment>
-        <div>Failed to load config</div>
-        <div>{configError}</div>
-      </React.Fragment>
+      <ErrorPage
+        error={fhirError}
+        heading={"Failed to load configuration file"}
+        onRetry={retryLoading}
+      />
     );
   if (fhirError)
-    return (
-      <React.Fragment>
-        <div>Failed to load FHIR data</div>
-        <div>{fhirError}</div>
-      </React.Fragment>
-    );
-  if (!dataLoaded.config || !dataLoaded.fhirData) return <div>Loading...</div>;
-  if (!questionnairesReady) return <div>Processing data...</div>;
+    return <ErrorPage error={fhirError} heading={"Failed to load FHIR data"} onRetry={retryLoading} />;
+  if (!dataLoaded.config || !dataLoaded.fhirData)
+    return <DataLoadingScreen message="Loading" animation="spinner" />;
+
+  if (!questionnairesReady)
+    return <DataLoadingScreen message="Processing" animation="bars" />;
 
   return (
     <div className="tw:@container">
