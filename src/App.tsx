@@ -1399,7 +1399,7 @@ function App() {
                                     </li>
                                     <li>
                                       <span className="tw:font-semibold">
-                                        Shaded Area Polygon:
+                                        Darker Shaded Area Polygon:
                                       </span>{" "}
                                       Represents the{" "}
                                       <span className="tw:font-semibold">
@@ -1409,7 +1409,7 @@ function App() {
                                     </li>
                                     <li>
                                       <span className="tw:italic">
-                                        Note: The shaded polygon will always sit
+                                        Note: The (darker) shaded polygon will always sit
                                         inside or match the thick line polygon.
                                       </span>
                                     </li>

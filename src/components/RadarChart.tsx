@@ -125,37 +125,44 @@ const RadarChart = ({
     const seriesList: any[] = [];
     Object.entries(transformedData).forEach(([questionnaireName, data], i) => {
       const series = [
+        // inner values
         {
         name: questionnaireName,
         type: "radar",
+        z: 2,
+        silent: true,
         // symbol: "circle",
         // symbolSize: 8,
         symbol: 'none',
         lineStyle: {
-          width: 1,
-          opacity: 0.2
+          width: 0,
+          opacity: 0,
         },
         areaStyle: {
-          //shadowColor: 'rgba(0, 0, 0, 0.5)',
-          //shadowBlur: 0,
-          opacity: 0.2,
+          // color: 'rgba(0,0,0,1)',
+          // shadowColor: 'rgba(0, 0, 0, 0.1)',
+          // shadowBlur: 5,
+          color: colors[i % colors.length],
+          opacity: 0.25,
         },
         itemStyle: {
           color: colors[i % colors.length],
         },
         emphasis: {
-          lineStyle: {
-            opacity: 0.4,
-          },
-          areaStyle: {
-            opacity: 0.4,
-          },
+        //   lineStyle: {
+        //     opacity: 0.4,
+        //   },
+          // areaStyle: {
+          //   opacity: 0.3,
+          // },
         },
         data: [data[0].map((item) => item[1])],
       },
+      // outer values
         {
         name: questionnaireName,
         type: "radar",
+        z: 1,
         // symbol: "circle",
         // symbolSize: 8,
         symbol: 'none',
@@ -166,7 +173,8 @@ const RadarChart = ({
         areaStyle: {
           //shadowColor: 'rgba(0, 0, 0, 0.5)',
           //shadowBlur: 10,
-          opacity: 0,
+          color: colors[i % colors.length],
+          opacity: 0.15,
         },
         itemStyle: {
           color: colors[i % colors.length],
@@ -176,7 +184,7 @@ const RadarChart = ({
             width: 3,
           },
           // areaStyle: {
-          //   opacity: 0.3,
+          //   opacity: 0.2,
           // },
         },
         data: [data[1].map((item) => item[1])],
@@ -223,7 +231,8 @@ const RadarChart = ({
       // bottom: 50,
       // textStyle: {
       //   overflow: "break",
-      // }
+      // },
+      selectedMode: 'single',
     },
     radar: {
       indicator: radarIndicators.map((indicator) => {
