@@ -17,7 +17,7 @@ const DataLoadingScreen: React.FC<DataLoadingScreenProps> = ({
   animation = 'spinner',
 }) => {
   return (
-    <div className={`tw:fixed tw:inset-0 tw:bg-slate-100 tw:flex tw:items-center tw:justify-center tw:p-6 tw:z-[10000]`}>
+    <div className={`tw:fixed tw:inset-0 tw:bg-base-300 tw:flex tw:items-center tw:justify-center tw:p-6 tw:z-10000`}>
       <div className="tw:max-w-md tw:w-full tw:text-center">
         {/* Animation */}
         <div className="tw:flex tw:justify-center tw:mb-8">
@@ -35,13 +35,13 @@ const DataLoadingScreen: React.FC<DataLoadingScreenProps> = ({
         </div>
 
         {/* Main Message */}
-        <h2 className="tw:text-3xl tw:font-semibold tw:text-slate-800 tw:mb-3 tw:tracking-tight">
+        <h1 className="tw:mb-4 tw:tracking-tight">
           {message}
-        </h2>
+        </h1>
 
         {/* Optional Sub-message */}
         {subMessage && (
-          <p className="tw:text-slate-600 tw:text-lg">
+          <p className="tw:text-lg">
             {subMessage}
           </p>
         )}

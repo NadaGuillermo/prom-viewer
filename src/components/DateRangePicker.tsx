@@ -7,17 +7,17 @@ const DateRangePicker = (
 
     return (
       <div className="tw:mt-2">
-      <button popoverTarget="rdp-popover" className="tw:input tw:input-border tw:mb-0 tw:mr-2" style={{ anchorName: "--rdp" } as React.CSSProperties}>
+      <button popoverTarget="rdp-popover" className="tw:input tw:input-border border-medium tw:bg-base-100 tw:mb-0 tw:mr-2 border-rounded" style={{ anchorName: "--rdp" } as React.CSSProperties}>
         {range.start && range.end ? `${range.start} \u2013 ${range.end}` : `Pick start and end date`}
       </button>
       {/* <div className="tw:flex tw:justify-end tw:self-end"> */}
-      <button className="tw:btn tw:btn-sm tw:mt-2" onClick={() => rangeHandler(new Event("clear"))}>
+      <button className="tw:btn tw:btn-neutral tw:btn-outline tw:text-base-content tw:border border-medium tw:btn-sm tw:mt-2 border-rounded" onClick={() => rangeHandler(new Event("clear"))}>
         Clear
       </button>
       {/* </div> */}
       <div popover="auto" id="rdp-popover" className="tw:dropdown" style={{ positionAnchor: "--rdp" } as React.CSSProperties}>
        
-        <calendar-range value={dateValue} onchange={rangeHandler} className="tw:cally tw:bg-base-100 tw:border tw:border-base-300 tw:shadow-lg tw:rounded-box">
+        <calendar-range value={dateValue} onchange={rangeHandler} className="tw:cally tw:bg-base-100 tw:border border-medium tw:rounded-box border-rounded">
           <svg aria-label="Previous" className="tw:fill-current tw:size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
           <svg aria-label="Next" className="tw:fill-current tw:size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg>
         <calendar-month></calendar-month>

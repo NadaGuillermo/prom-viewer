@@ -238,6 +238,39 @@
           "domain": "Symptoms",
           "questions": [
             {
+              "itemId": "qlq-c30-q09"
+            },
+            {
+              "itemId": "qlq-c30-q10"
+            },
+            {
+              "itemId": "qlq-c30-q11"
+            },
+            {
+              "itemId": "qlq-c30-q12"
+            },
+            {
+              "itemId": "qlq-c30-q13"
+            },
+            {
+              "itemId": "qlq-c30-q14"
+            },
+            {
+              "itemId": "qlq-c30-q15"
+            },
+            {
+              "itemId": "qlq-c30-q16"
+            },
+            {
+              "itemId": "qlq-c30-q17"
+            },
+            {
+              "itemId": "qlq-c30-q18"
+            },
+            {
+              "itemId": "qlq-c30-q19"
+            },
+            {
               "itemId": "score-pa",
               "shortName": "Pain",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pa",
@@ -258,7 +291,8 @@
               "shortName": "Nausea and Vomiting",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-nv",
               "scoreDefinitionId": "eortc-symptom",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "dimension": "Nausea and Vomiting"
             },
             {
               "itemId": "score-dy",
@@ -299,37 +333,6 @@
               "scoreDefinitionId": "eortc-symptom",
               "isDimensionScore": true,
               "dimension": "Dierrhea"
-            }
-          ]
-        },
-        {
-          "questions": [
-            {
-              "itemId": "qlq-c30-q11"
-            },
-            {
-              "itemId": "qlq-c30-q12"
-            },
-            {
-              "itemId": "qlq-c30-q13"
-            },
-            {
-              "itemId": "qlq-c30-q14"
-            },
-            {
-              "itemId": "qlq-c30-q15"
-            },
-            {
-              "itemId": "qlq-c30-q16"
-            },
-            {
-              "itemId": "qlq-c30-q17"
-            },
-            {
-              "itemId": "qlq-c30-q18"
-            },
-            {
-              "itemId": "qlq-c30-q19"
             }
           ]
         },

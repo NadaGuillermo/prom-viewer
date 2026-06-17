@@ -11,7 +11,7 @@ const Collapse = ({ title, children, constrainWidth, name }: Props) => {
       className={`tw:w-full ${constrainWidth ? "tw:max-w-4xl" : ""} tw:pb-2`}
     >
       <details
-        className={`tw:collapse tw:collapse-plus tw:bg-base-100 tw:border-base-300 tw:border tw:overflow-visible`}
+        className={`tw:collapse tw:collapse-plus tw:bg-base-100 tw:border tw:overflow-visible border-medium border-rounded-prominent`}
         name={name ?? title}
       >
         <summary className="tw:collapse-title tw:font-semibold">

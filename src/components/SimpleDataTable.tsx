@@ -16,7 +16,6 @@ import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 
 import "@styles/echartStyles.css";
-import "@styles/style.css";
 
 /** Optional warning data per cell */
 interface CellWarning {
@@ -80,7 +79,7 @@ const SimpleDataTable = ({
       {/* Scrollable container */}
       <div className="tw:overflow-auto" style={{ maxHeight: maxHeight }}>
         <table className=" tw:table">
-          <thead className="tw:bg-gray-50">
+          <thead>
             <tr>
               {/* Empty corner cell */}
               <th className="tw:w-48 tw:min-w-48">
@@ -102,7 +101,7 @@ const SimpleDataTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="tw:bg-white">
+          <tbody className="tw:bg-base-100">
             {yData.map((row) => {
               const rowTooltip = row.name;
               
@@ -141,12 +140,18 @@ const SimpleDataTable = ({
 
                           {warning && (
                             <span
-                              className="tw:tooltip tw:text-amber-500 tw:hover:text-amber-600"
-                              data-tip={warning}
+                              className="tw:tooltip tw:tooltip-warning tw:tooltip-top"
                               // title={warning}
                               aria-label="Warning"
                             >
-                              <FontAwesomeIcon icon="fa-solid fa-triangle-exclamation" />
+                              <div className="tw:tooltip-content">
+                                  <div className="tw:min-w-xs tw:max-w-md">
+                                    <div className="tw:text-left tw:whitespace-normal tw:break-normal">
+                                      {warning}
+                                    </div>
+                                  </div>
+                                </div>
+                              <span className="tw:text-warning"><FontAwesomeIcon icon="fa-solid fa-triangle-exclamation" /></span>
                             </span>
                           )}
                         </div>

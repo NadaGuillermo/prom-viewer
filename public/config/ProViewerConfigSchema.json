@@ -96,7 +96,16 @@
                                                 "$comment": "If isDimensionScore is set to true, a dimension must be given. If the isDimensionScore is not set, an item is assigned to a dimension either through the value in this field or through reference in a dimension score's calculation expression"
                                             }
                                         },
-                                        "required": ["itemId"]
+                                        "required": ["itemId"],
+                                        "if": {
+                                          "properties": {
+                                            "isDimensionScore": { "const": true }
+                                          },
+                                          "required": ["isDimensionScore"]
+                                        },
+                                        "then": {
+                                          "required": ["dimension"]
+                                        }
                                     },
                                     "minItems": 1
                                 },
