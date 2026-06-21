@@ -11,7 +11,7 @@ export const chartColorRecord: Record<string, string> = {
 }
 
 // Tol Muted
-export const colorPalette: string[] = [
+export const mutedColorPalette: string[] = [
   "#332288",
   "#88ccee",
   "#44aa99",
@@ -21,4 +21,18 @@ export const colorPalette: string[] = [
   "#cc6677",
   "#882255",
   "#aa4499",
+  
 ];
+
+// okabe ito
+
+export const colorPalette: string[] = [
+  "#E69F00", 
+  "#56B4E9", 
+  "#009E73", 
+  "#F0E442", 
+  "#0072B2", 
+  "#D55E00", 
+  "#CC79A7", 
+  "#000000",
+]

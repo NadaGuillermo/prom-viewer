@@ -1,10 +1,15 @@
 import * as _ from "lodash-es";
+import { colorPalette } from "@utils/charts";
 
 interface Props {
   data: Record<string, [string, string][]>;
+  colors?: string[];
 }
 
-const MappingTable = ({ data }: Props) => {
+const MappingTable = ({ 
+  data,
+  colors = colorPalette,
+}: Props) => {
 
   const symbolRecord: Record<string, string> = {
     "Group 1": "\u03B1",
@@ -58,64 +63,6 @@ const MappingTable = ({ data }: Props) => {
     "Group 49": "\u03A9",
   }
 
-  const borderColorClassRecord: Record<string, string> = {
-    orange: "tw:border-orange-300",
-    green: "tw:border-green-300",
-    sky: "tw:border-sky-300",
-    violet: "tw:border-violet-300",
-    rose: "tw:border-rose-300",
-    amber: "tw:border-amber-300",
-    purple: "tw:border-purple-300",
-    yellow: "tw:border-yellow-300",
-    teal: "tw:border-teal-300",
-    indigo: "tw:border-indigo-300",
-    fuchsia: "tw:border-fuchsia-300",
-    red: "tw:border-red-300",
-    lime: "tw:border-lime-300",
-    cyan: "tw:border-cyan-300",
-    pink: "tw:border-pink-300",
-    zinc: "tw:border-zinc-300",
-    neutral: "tw:border-neutral-300",    
-    stone: "tw:border-stone-300",
-    taupe: "tw:border-taupe-300",
-    mauve: "tw:border-mauve-300",
-    mist: "tw:border-mist-300",
-    olive: "tw:border-olive-300",  
-    gray: "tw:border-gray-300",
-    slate: "tw:border-slate-300",
-    // blue: "tw:border-blue-300", 
-    // emerald: "tw:border-emerald-300",
-  };
-
-  const backgroundClassRecord: Record<string, string> = {
-    orange: "tw:bg-orange-50",
-    green: "tw:bg-green-50",
-    sky: "tw:bg-sky-50",
-    violet: "tw:bg-violet-50",
-    rose: "tw:bg-rose-50",
-    amber: "tw:bg-amber-50",
-    purple: "tw:bg-purple-50",
-    yellow: "tw:bg-yellow-50",
-    teal: "tw:bg-teal-50",
-    indigo: "tw:bg-indigo-50",
-    fuchsia: "tw:bg-fuchsia-50",
-    red: "tw:bg-red-50",
-    lime: "tw:bg-lime-50",
-    cyan: "tw:bg-cyan-50",
-    pink: "tw:bg-pink-50",
-    zinc: "tw:bg-zinc-50",
-    neutral: "tw:bg-neutral-50",    
-    stone: "tw:bg-stone-50",
-    taupe: "tw:bg-taupe-50",
-    mauve: "tw:bg-mauve-50",
-    mist: "tw:bg-mist-50",
-    olive: "tw:bg-olive-50",  
-    gray: "tw:bg-gray-50",
-    slate: "tw:bg-slate-50",
-    // blue: "tw:bg-blue-50",
-    // emerald: "tw:bg-emerald-50",
-  }
-
   const questionnaires = _.uniq(
     Object.values(data).flatMap((dimensionWithQuestionnaireArray) =>
       dimensionWithQuestionnaireArray.flatMap(
@@ -128,20 +75,19 @@ const MappingTable = ({ data }: Props) => {
   questionnaires.forEach((questionnaire, index) => {
     //questionnaireSymbolColorRecord[questionnaire] = {};
     const symbol = symbolRecord[`Group ${(index % Object.keys(symbolRecord).length) + 1}`];
-    const color = Object.keys(borderColorClassRecord)[index % Object.keys(borderColorClassRecord).length];
+    const color = colors[index % colors.length];
     questionnaireSymbolColorRecord[questionnaire] = { symbol: symbol, color: color};
   });
 
-  const pill = (label: string, symbol = "", color = "slate", symbolPosition= "right") => {
+  const pill = (label: string, symbol = "", color: string, symbolPosition= "right") => {
     const key = `${symbol}:${label}`;
-    const borderClass = borderColorClassRecord[color] ?? borderColorClassRecord.slate;
-    const backgroundClass = backgroundClassRecord[color] ?? backgroundClassRecord.slate;
     return (
       <div
         key={key}
-        className={`tw:border ${borderClass} tw:rounded-full ${backgroundClass}
+        className={`tw:border tw:rounded-full
           tw:text-xs tw:px-3.5 tw:py-1.5
           tw:leading-snug tw:text-center tw:whitespace-normal`}
+        style={{borderColor: color, backgroundColor: color + "15"}}
         >
         {symbol.length > 0 ? symbolPosition === "left" ? symbol + ": " + label : label + " (" + symbol + ")" : label}
       </div>
@@ -224,7 +170,6 @@ const MappingTable = ({ data }: Props) => {
               {pill(
                 questionnaire, 
                 questionnaireSymbolColorRecord[questionnaire].symbol,
-                
                 questionnaireSymbolColorRecord[questionnaire].color,
                 "left",
                 

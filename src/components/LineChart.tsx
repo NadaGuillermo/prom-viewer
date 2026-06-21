@@ -1,5 +1,5 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import { type Charts, colorPalette } from "@utils/charts";
+import { type Charts, mutedColorPalette } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
@@ -44,7 +44,7 @@ const LineChart = ({
   subtitle,
   height = 400,
   data,
-  colors = colorPalette,
+  colors = mutedColorPalette,
   titleOptions,
   legendOptions,
   gridOptions,
