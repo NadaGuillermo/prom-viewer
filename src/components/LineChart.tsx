@@ -1,5 +1,5 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import type { Charts } from "@utils/charts";
+import { type Charts, colorPalette } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
@@ -24,6 +24,7 @@ interface Props {
   subtitle?: string;
   height?: number;
   data: Visualization.ChartData;
+  colors?: string[];
   titleOptions?: TitleComponentOption;
   legendOptions?: LegendComponentOption;
   gridOptions?: GridComponentOption;
@@ -35,6 +36,7 @@ interface Props {
   minMaxYValuesPosition?: [number, number];
   showLegendTooltip?: boolean;
   lineOption?: LineSeriesOption;
+  displayNameInTooltip?: boolean;
 }
 
 const LineChart = ({
@@ -42,6 +44,7 @@ const LineChart = ({
   subtitle,
   height = 400,
   data,
+  colors = colorPalette,
   titleOptions,
   legendOptions,
   gridOptions,
@@ -53,6 +56,7 @@ const LineChart = ({
   minMaxYValuesPosition,
   showLegendTooltip = true,
   lineOption,
+  displayNameInTooltip = true,
 }: Props) => {
   const { xData, yData } = data;
 
@@ -63,27 +67,10 @@ const LineChart = ({
     const seriesList: any[] = [];
     yData.forEach((dataseries) => {
       const series = {
+        ...lineOption,
         name: dataseries.shortName,
         type: "line",
         data: dataseries.data,
-        ...lineOption,
-        // connectNulls: true,
-        // symbol: "circle",
-        // symbolSize: 7,
-        // emphasis: {
-        //   focus: "series",
-        // },
-        // endLabel: {
-        //   show: false,
-        //   formatter: "{a}",
-        //   distance: 20,
-        // },
-        // lineStyle: {
-        //   width: 3,
-        // }
-        // select: {
-        //   selectedMode: "series",
-        // }
       };
       seriesList.push(series);
     });
@@ -128,12 +115,20 @@ const LineChart = ({
       seriesName,
     );
     const longName = getDataSeriesNameFromShortName(yData, seriesName);
-    const displayName = longName ? longName : seriesName;
+    const displayName = longName.length > 0 ? longName : seriesName;
 
     if (originalValue !== null) {
-      return `
+      if (displayNameInTooltip) {
+        return `
       <div class="tooltip-content">
         ${echarts.format.encodeHTML(seriesName)}<br/>
+        ${echarts.format.encodeHTML(name)}:
+        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
+      </div>
+      `;
+      }
+      return `
+      <div class="tooltip-content">
         ${echarts.format.encodeHTML(name)}:
         &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
       </div>
@@ -148,6 +143,7 @@ const LineChart = ({
   };
 
   const options: Charts.EChartsOption = {
+    color: colors,
     title: {
       ...titleOptions,
       ...(title && { text: title }),
@@ -160,7 +156,7 @@ const LineChart = ({
         show: showLegendTooltip,
         // @ts-ignore
         renderMode: "html",
-        className: "echarts-tooltip",
+        // className: "echarts-tooltip",
         confine: true,
         formatter: (params: any) => legendTooltipFormatter(params),
       },
@@ -168,7 +164,7 @@ const LineChart = ({
     tooltip: {
       ...tooltipOptions,
       renderMode: "html",
-      className: "echarts-tooltip",
+      // className: "echarts-tooltip",
       confine: true,
       formatter: (params: any) => tooltipFormatter(params),
     },

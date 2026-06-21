@@ -141,7 +141,7 @@ const MappingTable = ({ data }: Props) => {
         key={key}
         className={`tw:border ${borderClass} tw:rounded-full ${backgroundClass}
           tw:text-xs tw:px-3.5 tw:py-1.5
-          tw:leading-snug tw:text-center tw:whitespace-nowrap`}
+          tw:leading-snug tw:text-center tw:whitespace-normal`}
         >
         {symbol.length > 0 ? symbolPosition === "left" ? symbol + ": " + label : label + " (" + symbol + ")" : label}
       </div>
@@ -153,7 +153,7 @@ const MappingTable = ({ data }: Props) => {
       <div
         key={key}
         className={`tw:text-xs tw:font-semibold
-          tw:leading-snug tw:text-center tw:whitespace-pre-wrap`}
+          tw:leading-snug tw:text-center tw:whitespace-normal`}
         >
         {label}
       </div>

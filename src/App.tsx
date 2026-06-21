@@ -28,6 +28,8 @@ import FilterOptionsDisplay from "@components/FilterOptionsDisplay";
 import SidebarToggle from "@components/SidebarToggle";
 import ErrorPage from "@components/ErrorPage";
 import DataLoadingScreen from "@components/DataLoadingScreen";
+import { Tooltip } from "react-tooltip";
+import Portal from "@components/Portal";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -41,6 +43,7 @@ import {
   groupedLineChartOptions,
   emptyLineChartOptions,
   justXAxisLineChartOptions,
+  radarChartOptions,
 } from "@utils/charts";
 
 // Services
@@ -98,6 +101,7 @@ import {
   createPseudoDataSeries,
   createDomainDimensionQuestionnaireTupleArray,
   createDimensionWithQuestionnaireByDomainRecord,
+  truncateAtWord,
 } from "@utils/visualization";
 
 // Config
@@ -1228,6 +1232,7 @@ function App() {
     return <DataLoadingScreen message="Processing" animation="bars" />;
 
   return (
+    // <body>
     <div className="tw:@container">
       {/* <div className="tw:min-h-screen"> */}
       <main>
@@ -1281,7 +1286,7 @@ function App() {
                         </div>
 
                         <button
-                          className="tw:btn tw:btn-sm tw:btn-primary tw:btn-soft border-rounded"
+                          className="tw:btn tw:btn-sm tw:btn-primary tw:btn-soft tw:shadow-none border-rounded"
                           onClick={toggleShowErrors}
                         >
                           {showErrors ? "Hide Details" : "Show Details"}
@@ -1297,36 +1302,38 @@ function App() {
                   {dimensionsWithQuestionnaireByDomain && (
                     <div className="tw:pt-4">
                       <Collapse
-                        title="Domain-to-Dimension Mapping Info"
+                        title="Domain-to-Dimension Mapping"
                         children={
                           <>
-                            <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4">
-                              <div className="tw:tooltip tw:tooltip-neutral tw:tooltip-top tw:md:tooltip-right">
-                                <div className="tw:tooltip-content">
-                                  <div className="tw:min-w-xs tw:max-w-md">
-                                    <div className="tw:text-left tw:whitespace-normal tw:break-normal">
-                                      <p>
-                                        This grid shows how{" "}
-                                        {
-                                          Object.keys(
-                                            dimensionsWithQuestionnaireByDomain,
-                                          ).length
-                                        }{" "}
-                                        domains (left) map to their
-                                        corresponding questionnaire dimensions
-                                        (right). 
-                                      </p>
-                                      <p>Greek letters indicate the
-                                        source questionnaire for each dimension
-                                        (see legend at the bottom).
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                                <button className="tw:btn tw:btn-sm tw:btn-neutral border-rounded">
+                            <div className="tw:flex tw:justify-start tw:pb-4">                              
+                              <div data-tooltip-id="mapping-info">
+                                <button className="tw:btn tw:btn-sm button-tooltip-basic border-rounded">
                                   About this Diagram
                                 </button>
                               </div>
+                              <Portal>                    
+                              <Tooltip id="mapping-info" opacity={1} className="custom-tooltip tooltip-neutral"> 
+                                <div className="tw:w-64">
+                                  <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
+                                    <p>
+                                      This grid shows how{" "}
+                                      {
+                                        Object.keys(
+                                          dimensionsWithQuestionnaireByDomain,
+                                        ).length
+                                      }{" "}
+                                      domains (left) map to their
+                                      corresponding questionnaire dimensions
+                                      (right). 
+                                    </p>
+                                    <p>Greek letters indicate the
+                                      source questionnaire for each dimension
+                                      (see legend at the bottom).
+                                    </p>
+                                  </div>
+                                </div>  
+                              </Tooltip>
+                              </Portal>                                               
                             </div>
                             <div className="tw:py-4">
                               <MappingTable
@@ -1341,7 +1348,7 @@ function App() {
                   )}
                   <label
                     htmlFor="filter-drawer"
-                    className={`tw:btn tw:btn-accent tw:btn-sm tw:drawer-button tw:mt-2 tw:lg:hidden border-rounded`}
+                    className={`tw:btn tw:btn-primary tw:btn-sm tw:btn-soft tw:shadow-none tw:drawer-button tw:mt-2 tw:lg:hidden border-rounded`}
                   >
                     <span>Filters</span>
                     <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />
@@ -1360,10 +1367,10 @@ function App() {
                       {dimensionsWithQuestionnaireByDomain && (
                         <div className="tw:flex tw:justify-center tw:md:px-8 tw:lg:px-0">
                           <Collapse
-                            title={`Explanation of the Chart`}
+                            title={`Explanation`}
                             children={
                               <>
-                                <div>
+                                <div className="tw:text-sm">
                                   <p className="h5">About this Diagram</p>
                                   <p>
                                     This radar chart provides a high-level
@@ -1450,27 +1457,29 @@ function App() {
                         </div>
                       )}
                     </div>
-                    <div className="tw:row-start-5 tw:lg:row-start-2 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                      <div className="tw:flex tw:justify-center tw:md:justify-start tw:pb-4 tw:md:px-8 tw:lg:px-0">
-                        <div className="tw:tooltip tw:tooltip-neutral tw:tooltip-top tw:md:tooltip-right">
-                                <div className="tw:tooltip-content">
-                                  <div className="tw:min-w-xs tw:max-w-md">
-                                    <div className="tw:text-left tw:whitespace-normal tw:break-normal">
-                                      <p>
-                                        This chart shows the progress over time of
-                                        those scores which represent global or overall
-                                        health of the patient. 
-                                      </p>
-                                      <p>
-                                        Negative scores are displayed as 0.
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                                <button className="tw:btn tw:btn-neutral tw:btn-sm border-rounded">
+                    <div className="tw:row-start-5 tw:lg:row-start-2 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:flex tw:justify-start tw:lg:justify-center">
+                      <div className="tw:md:px-8 tw:lg:px-0">
+                        <div data-tooltip-id="global-scores-explanation">
+                                <button className="tw:btn tw:btn-md button-tooltip-basic border-rounded">
                                   About this Diagram
                                 </button>
                               </div>
+                              <Portal>                                              
+                              <Tooltip id="global-scores-explanation" opacity={1} className="custom-tooltip tooltip-neutral"> 
+                                <div className="tw:w-64">
+                                  <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
+                                    <p>
+                                  This chart shows the progress over time of
+                                  those scores which represent global or overall
+                                  health of the patient. 
+                                </p>
+                                <p>
+                                  Negative scores are displayed as 0.
+                                </p>
+                                  </div>
+                                </div>  
+                              </Tooltip>                              
+                              </Portal> 
                       </div>
                     </div>
                     <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
@@ -1482,6 +1491,12 @@ function App() {
                               mostRecentResponses={
                                 questionnairesWithMostRecentResponseDate
                               }
+                              titleOptions={radarChartOptions.title}
+                              legendOptions={radarChartOptions.legend}
+                              gridOptions={radarChartOptions.grid}
+                              tooltipOptions={radarChartOptions.tooltip}
+                              radarOptions={radarChartOptions.radar}
+                              seriesOptions={radarChartOptions.series}
                             />
                           </div>
                         )}
@@ -1534,7 +1549,7 @@ function App() {
                               type="checkbox"
                               checked={selectedDomains.includes(domain)}
                               onChange={() => handleDomainSelection(domain)}
-                              className="tw:checkbox tw:checkbox-secondary tw:checkbox-md tw:shadow-none border-rounded"
+                              className="tw:checkbox tw:checkbox-md tw:shadow-none border-rounded"
                             />
                             {domain}
                           </label>
@@ -1544,7 +1559,7 @@ function App() {
                   {domainsForChart.length > 1 && (
                     <div className="tw:pb-2">
                       <button
-                        className="tw:btn tw:btn-neutral tw:btn-sm tw:mt-2 border-rounded"
+                        className="tw:btn tw:btn-sm tw:mt-2 tw:btn-neutral tw:btn-soft tw:shadow-none border-rounded"
                         onClick={() => selectAllDomains(domainsForChart)}
                       >
                         Select all
@@ -1556,7 +1571,7 @@ function App() {
                       dimensionScoresDataSeriesByDomain[domain] && dimensionScoresDataSeriesByDomain[domain].length > 0 && (
                         <React.Fragment key={domain}>
                           <h3>{domain}</h3>
-                          <div className="tw:overflow-x-scroll">
+                          <div className="tw:overflow-x-auto">
                             <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
                               {dimensionScoresDataSeriesByDomain[domain].map(
                                 (dataSeries, index) => (
@@ -1745,7 +1760,7 @@ function App() {
                               <div className="tw:md:px-8 tw:pb-4">
                                 <div className="tw:pb-2">
                                   <button
-                                    className="tw:btn tw:btn-primary tw:btn-sm tw:btn-soft tw:my-2 border-rounded"
+                                    className="tw:btn tw:btn-primary tw:btn-sm tw:my-2 tw:shadow-none tw:hover:text-primary tw:hover:bg-primary-content tw:hover:border-primary-content border-rounded"
                                     onClick={() =>
                                       toggleShowItemsForDomain(domain)
                                     }
@@ -1757,23 +1772,12 @@ function App() {
                                 </div>
                                 {showItemsForDomain[domain] && (
                                   <React.Fragment>
-                                    <div className="tw:ml-0 tw:pl-4 tw:pr-2 tw:py-2 tw:border border-medium border-rounded-prominent">
+                                    <div className="tw:ml-0 tw:px-4 tw:py-2 tw:border border-medium border-rounded-prominent">
                                       <div>
                                         <p>
                                           Please select one or more dimensions
                                           to view the items belonging to them{" "}
-                                          <div className="tw:text-info tw:tooltip tw:tooltip-info tw:tooltip-top">
-                                            <div className="tw:tooltip-content">
-                                              <div className="tw:w-52">
-                                                <div className="tw:text-left tw:whitespace-normal tw:break-normal">
-                                                  <p>
-                                                    Only dimensions are
-                                                    displayed for which items
-                                                    exist.
-                                                  </p>
-                                                </div>
-                                              </div>
-                                            </div>
+                                          <a data-tooltip-id={`${domain}-info`} className="tw:text-info">
                                             <FontAwesomeIcon
                                               icon={
                                                 [
@@ -1782,8 +1786,18 @@ function App() {
                                                 ] as IconProp
                                               }
                                             />
-                                          </div>
-                                          .
+                                          </a>.
+                                          <Portal>                                                      
+                                          <Tooltip id={`${domain}-info`} opacity={1} className="custom-tooltip tooltip-info">                                                                
+                                            <div className="tw:w-52">
+                                              <div className="tw:text-left tw:whitespace-normal tw:break-normal">
+                                                <p>
+                                                  Only dimensions containing items are displayed.
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </Tooltip>
+                                          </Portal>                                           
                                         </p>
                                       </div>
                                       <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
@@ -1808,7 +1822,7 @@ function App() {
                                                       dimension,
                                                     )
                                                   }
-                                                  className="tw:checkbox tw:checkbox-secondary tw:checkbox-md tw:shadow-none border-rounded"
+                                                  className="tw:checkbox tw:checkbox-md tw:shadow-none border-rounded"
                                                 />
                                                 {dimension}
                                               </label>
@@ -1819,7 +1833,7 @@ function App() {
                                         0 && (
                                         <div className="tw:pb-4">
                                           <button
-                                            className="tw:btn tw:btn-neutral tw:btn-sm tw:mt-2 border-rounded"
+                                            className="tw:btn tw:btn-sm tw:mt-2 tw:btn-neutral tw:btn-soft tw:shadow-none border-rounded"
                                             onClick={() =>
                                               selectAllDimensionsForDomain(
                                                 domain,
@@ -1844,16 +1858,9 @@ function App() {
                                             >
                                               <h5>{dimension}</h5>
                                               <div
-                                                className={`tw:w-full tw:overflow-x-scroll
-                                     ${chartXData.length < 2 ? "tw:max-w-md" : ""}
-                                      ${chartXData.length >= 2 && chartXData.length < 4 ? "tw:max-w-lg" : ""}
-                                      ${chartXData.length >= 4 && chartXData.length < 6 ? "tw:max-w-2xl" : ""}
-                                      ${chartXData.length >= 6 && chartXData.length < 8 ? "tw:max-w-4xl" : ""}
-                                      ${chartXData.length >= 8 && chartXData.length < 10 ? "tw:max-w-6xl" : ""}
-                                      ${chartXData.length >= 10 && chartXData.length < 12 ? "tw:max-w-7xl" : ""}                                     
-                                      `}
+                                                className={`tw:w-full tw:overflow-x-auto tw:max-w-5xl`}
                                               >
-                                                <div className="tw:grid tw:grid-cols-4 tw:md:grid-cols-6 tw:xl:grid-cols-7 tw:2xl:grid-cols-8 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
+                                                <div className="tw:grid tw:grid-cols-3 tw:xl:grid-cols-4 tw:2xl:grid-cols-5 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
                                                   {itemDataSeriesByDomainAndDimension[
                                                     domain
                                                   ][dimension].map(
@@ -1861,15 +1868,62 @@ function App() {
                                                       <React.Fragment
                                                         key={dataSeries.id}
                                                       >
-                                                        <div className="tw:col-span-1 tw:flex tw:items-center tw:justify-end">
+                                                        <div className="tw:col-span-1 tw:flex tw:items-center tw:justify-start tw:border-b tw:first:border-t tw:md:border-none border-light">
+                                                          {dataSeries.name !== truncateAtWord(dataSeries.name, 80) ? (
+                                                            
+                                                            
+                                                              // <CustomTooltip
+                                                              // content={
+                                                              //   <div className="tw:w-52">
+                                                              //     <div className="tw:text-left tw:text-xs tw:whitespace-normal tw:break-normal">
+                                                              //       {
+                                                              //         dataSeries.name
+                                                              //       }
+                                                              //     </div>
+                                                              //   </div>                                                           
+                                                              // }
+                                                              // type={"neutral"}
+                                                              // children={<div className="tw:text-xs tw:break-normal tw:mr-4">
+                                                              //   {
+                                                              //     truncateAtWord(dataSeries.name, 80)
+                                                              //   }
+                                                              // </div>} />
+                                                              <>
+                                                              <div data-tooltip-id={`${dataSeries.id}`} className="tw:text-xs tw:break-normal tw:mr-4">
+                                                                {
+                                                                truncateAtWord(dataSeries.name, 80)
+                                                                }
+                                                              </div>
+                                                              <Portal>
+                                                              <Tooltip id={`${dataSeries.id}`} place="top" opacity={1} className="custom-tooltip tooltip-neutral">
+                                                                
+                                                                <div className="tw:w-52">
+                                                                   <div className="tw:text-left tw:text-xs tw:whitespace-normal tw:break-normal">
+                                                                    {
+                                                                       dataSeries.name
+                                                                     }
+                                                                   </div>
+                                                                 </div>
+                                                                   
+                                                                 </Tooltip>
+                                                                 </Portal>
+                                                                 
+                                                                
+                                                                 </>
+
+                                                          )
+                                                          :
                                                           <div className="tw:text-xs tw:break-normal tw:mr-4">
                                                             {
-                                                              dataSeries.shortName
+                                                              dataSeries.name.slice(0, 80)
                                                             }
                                                           </div>
+
+                                                          }
+                                                          
                                                         </div>
                                                         <div
-                                                          className={`tw:col-span-3 tw:md:col-span-5 tw:xl:col-span-6 tw:2xl:col-span-7 tw:col-start-2
+                                                          className={`tw:col-span-2 tw:xl:col-span-3 tw:2xl:col-span-4 tw:col-start-2
                                                 tw:border-b tw:border-l tw:border-r border-light
                                                 ${index < 1 ? "tw:border-t" : ""} 
                                               `}
@@ -1914,12 +1968,13 @@ function App() {
                                                             lineOption={
                                                               groupedLineChartOptions.series
                                                             }
+                                                            displayNameInTooltip={false}
                                                           />
                                                         </div>
                                                       </React.Fragment>
                                                     ),
                                                   )}
-                                                  <div className="tw:col-span-3 tw:col-start-2 tw:md:col-span-5 tw:xl:col-span-6 tw:2xl:col-span-7 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2">
+                                                  <div className="tw:col-span-2 tw:col-start-2 tw:xl:col-span-3 tw:2xl:col-span-4 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2">
                                                     {/* left cell with x axis*/}
                                                     <LineChart
                                                       data={{
@@ -2006,7 +2061,7 @@ function App() {
               aria-label="close sidebar"
               className="tw:drawer-overlay"
             ></label>
-            <ul className="tw:menu tw:bg-base-200 tw:min-h-full tw:w-80 tw:p-4">
+            <ul className="tw:menu tw:bg-base-300 tw:min-h-full tw:w-80 tw:p-4">
               <div className="h4">
                 <p>Filter Questionnaires</p>
               </div>
@@ -2030,6 +2085,7 @@ function App() {
       {/* <Footer /> */}
       {/* </div> */}
     </div>
+    
   );
 }
 

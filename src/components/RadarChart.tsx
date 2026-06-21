@@ -1,9 +1,18 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@utils/visualization/types";
-import type { Charts } from "@utils/charts";
+import { type Charts,  colorPalette, } from "@utils/charts";
 import * as _ from "lodash-es";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as echarts from "echarts/core";
+
+import type {
+  TitleComponentOption,
+  GridComponentOption,
+  LegendComponentOption,
+  TooltipComponentOption,
+  RadarSeriesOption,
+  RadarComponentOption,
+} from "echarts";
 
 interface Props {
   title?: string;
@@ -12,6 +21,13 @@ interface Props {
   mostRecentResponses: Record<string, string>;
   height?: number;
   colors?: string[];
+  titleOptions?: TitleComponentOption;
+  legendOptions?: LegendComponentOption;
+  gridOptions?: GridComponentOption;
+  tooltipOptions?: TooltipComponentOption;
+  radarOptions?: RadarComponentOption;
+  seriesOptions?: RadarSeriesOption;
+  showLegendTooltip?: boolean;
 }
 
 const RadarChart = ({
@@ -20,18 +36,14 @@ const RadarChart = ({
   data,
   mostRecentResponses,
   height = 400,
-  colors = [
-    "#5ee9b5", // 300er
-    "#51a2ff", 
-    "#ff8904",
-    "#ffd6a7",// 200
-    "#a4f4cf", 
-    "#9ae600",
-    '#e12afb', 
-    "#00a6f4",
-    '#00bc7d', 
-    "#ed6aff",
-    "#00d492"],
+  colors = colorPalette,
+  titleOptions,
+  legendOptions,
+  gridOptions,
+  tooltipOptions,
+  radarOptions,
+  seriesOptions,
+  showLegendTooltip = true,
 }: Props) => {
   
   const questionnaireNames = _.uniq(Object.values(data).flatMap((series) => series.map((item) => item.questionnaireName)))
@@ -127,6 +139,7 @@ const RadarChart = ({
       const series = [
         // inner values
         {
+        ...seriesOptions,
         name: questionnaireName,
         type: "radar",
         z: 2,
@@ -160,6 +173,7 @@ const RadarChart = ({
       },
       // outer values
         {
+        ...seriesOptions,
         name: questionnaireName,
         type: "radar",
         z: 1,
@@ -197,14 +211,18 @@ const RadarChart = ({
 
   const options: Charts.EChartsOption = {
     title: {
+      ...titleOptions,
       ...(title && { text: title }),
       ...(subtitle && { subtext: subtitle }),
     },
     tooltip: {
+      ...tooltipOptions,
       show: true,
+      confine: true,
       formatter: (params) => tooltipFormatter(params)
     },
     legend: {
+      ...legendOptions,
       data: questionnaireNames.map((name) => {
         return {
           name: name,
@@ -214,27 +232,20 @@ const RadarChart = ({
           }
         }
       }),
+      // @ts-ignore
       tooltip: {
-        show: true,
+        ...tooltipOptions,
+        show: showLegendTooltip,
+        confine: true,
         position: "top",
-        // formatter: 'zzz',
       },
-      // selectedMode: 'single',
       type: "scroll",
       orient: 'vertical',
       bottom: 4,
-      //left: 'right',
-      // top: 'middle',
-      // right: "25%",
-      // align: 'left',
-      //padding: [5, 200, 5, 5],
-      // bottom: 50,
-      // textStyle: {
-      //   overflow: "break",
-      // },
       selectedMode: 'single',
     },
     radar: {
+      ...radarOptions,
       indicator: radarIndicators.map((indicator) => {
         const words = indicator.name.split(' ');
         let indicatorName = "";
@@ -246,25 +257,11 @@ const RadarChart = ({
           max: indicator.max,
         }
       }),
-      // shape: 'circle',
       splitNumber: 3,
       radius: "50%",
-      axisLine: {
-        show: true, //false,
-        lineStyle: {
-          color: "#d1d5dc", // "#99a1af",
-        }
-      },
-      splitLine: {
-        show: true, //false,
-        lineStyle: {
-          color: "#d1d5dc", // "#e5e7eb",
-          opacity: 0.5,
-        }
-      },
-      splitArea: {
-        show: false,
-      },
+    },
+    grid: {
+      ...gridOptions,
     },
     series: generateSeriesList(),
   };

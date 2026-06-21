@@ -978,3 +978,16 @@ export const createPseudoDataSeries = (length: number): Visualization.DataSeries
   
   return dataSeries;
 }
+
+
+export const truncateAtWord = (str: string, maxLength:number = 80) => {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  let truncated = str.slice(0, maxLength);
+  const lastSpaceIndex = truncated.lastIndexOf(' ');
+  if (lastSpaceIndex > -1) {
+    truncated = truncated.slice(0, lastSpaceIndex);
+  }
+  return truncated + '...';
+}

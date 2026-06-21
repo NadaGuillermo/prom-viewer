@@ -13,7 +13,7 @@ const SidebarToggle = ({ showSidebar, toggleShowSidebar }: Props) => {
       type="button"
       onClick={toggleShowSidebar}
       aria-label={showSidebar ? "Hide filter sidebar" : "Show filter sidebar"}
-      className={`tw:btn tw:btn-neutral tw:rounded-none tw:border-none tw:text-accent tw:text-lg
+      className={`tw:btn tw:bg-base-300 tw:rounded-none tw:border-none tw:text-accent tw:text-xl
         tw:hidden tw:lg:flex tw:items-center tw:justify-center
         tw:h-12 tw:w-12
         tw:fixed

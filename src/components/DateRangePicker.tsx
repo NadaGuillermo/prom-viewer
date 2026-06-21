@@ -11,7 +11,7 @@ const DateRangePicker = (
         {range.start && range.end ? `${range.start} \u2013 ${range.end}` : `Pick start and end date`}
       </button>
       {/* <div className="tw:flex tw:justify-end tw:self-end"> */}
-      <button className="tw:btn tw:btn-neutral tw:btn-outline tw:text-base-content tw:border border-medium tw:btn-sm tw:mt-2 border-rounded" onClick={() => rangeHandler(new Event("clear"))}>
+      <button className="tw:btn tw:btn-outline tw:btn-sm tw:border border-medium tw:mt-2 tw:shadow-none border-rounded" onClick={() => rangeHandler(new Event("clear"))}>
         Clear
       </button>
       {/* </div> */}
