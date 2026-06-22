@@ -18,6 +18,7 @@ const SidebarToggle = ({ showSidebar, toggleShowSidebar }: Props) => {
         tw:h-12 tw:w-12
         tw:fixed
         tw:z-50
+        tw:hover:text-2xl
         tw:transition-all ${
         showSidebar ? "tw:lg:right-80 tw:ease-in tw:duration-200" : "tw:lg:right-0 tw:ease-out tw:duration-250"
       }`}

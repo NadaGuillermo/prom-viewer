@@ -250,7 +250,13 @@ const RadarChart = ({
         const words = indicator.name.split(' ');
         let indicatorName = "";
         for(let word of words) {
-          indicatorName += word + "\n";
+          indicatorName += word;
+          if (indicatorName.length > 6 && word.length > 4) {
+            indicatorName += "\n";
+          }
+          else {
+            indicatorName += " ";
+          }
         }
         return {
           name: indicatorName,

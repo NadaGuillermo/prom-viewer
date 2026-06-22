@@ -24,7 +24,7 @@ const ErrorCard = ({ data }: Props) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-error tw:alert-outline border-rounded"
                 >
-                  <p>{issue.message}</p>
+                  <p>{issue.userMessage ?? issue.message}</p>
                 </div>
               ),
           )}
@@ -42,7 +42,7 @@ const ErrorCard = ({ data }: Props) => {
                   role="tw:alert"
                   className="tw:alert tw:alert-warning tw:alert-outline border-rounded"
                 >
-                  <p>{issue.message}</p>
+                  <p>{issue.userMessage ?? issue.message}</p>
                 </div>
               ),
           )}

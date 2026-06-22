@@ -413,6 +413,13 @@ const radarTooltip: TooltipComponentOption = {
 }
 
 const radarOption: RadarComponentOption = {
+  axisName: {
+    color: chartColorRecord.text,
+    fontFamily: "sans-serif",
+    fontSize: 12,
+    fontStyle: "normal",
+    fontWeight: "normal",
+  },
   axisLine: {
     show: true,
     lineStyle: {

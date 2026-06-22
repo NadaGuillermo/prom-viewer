@@ -9,17 +9,8 @@ import React, { useState, useEffect } from "react";
 import * as _ from "lodash-es";
 
 // Components
-import DateRangePicker from "@components/DateRangePicker";
 import LineChart from "@components/LineChart";
-import Heatmap from "@components/Heatmap";
-import QuestionnaireCard from "@components/QuestionnaireCard";
-import SankeyDemo from "@components/SankeyDemo";
-import SankeyChart from "@components/SankeyChart";
-import DomainCard from "@components/DomainCard";
-import SimpleDataTable from "@components/SimpleDataTable";
 import Collapse from "@components/Collapse";
-import ErrorModal from "@components/ErrorModal";
-import Mapper from "@components/Mapper";
 import RadarChart from "@components/RadarChart";
 import MappingTable from "@components/MappingTable";
 import ErrorCard from "@components/ErrorCard";
@@ -30,11 +21,12 @@ import ErrorPage from "@components/ErrorPage";
 import DataLoadingScreen from "@components/DataLoadingScreen";
 import { Tooltip } from "react-tooltip";
 import Portal from "@components/Portal";
+import DataTable from "@components/DataTable";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
 import type { Visualization } from "@utils/visualization";
-import { ITEM_TYPES, type Mapping } from "@utils/mapping";
+import type { Mapping } from "@utils/mapping";
 
 // Chart options
 import {
@@ -83,9 +75,7 @@ import {
   addUnspecifiedDimensionToDomains,
   createDateQuestionnaireNamesRecord,
   createTableData,
-  createHeatmapData,
   createQuestionnaireCardData,
-  createRadarData,
   createDomainQuestionnaireNamesDimensionsRecord,
   extractGlobalScoresDataSeries,
   extractDomainScoresDataSeries,
@@ -693,7 +683,7 @@ function App() {
     // Set variables
     setQuestionnaires(questionnaires);
     setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
-    setDataIssuesForUser(uniqueErrors); // ForDisplay
+    setDataIssuesForUser(uniqueErrorsForDisplay); // ForDisplay
     setDataIssues(uniqueErrors);
     // setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
     setDomains(domains);
@@ -1286,7 +1276,7 @@ function App() {
                         </div>
 
                         <button
-                          className="tw:btn tw:btn-sm tw:btn-primary tw:btn-soft tw:shadow-none border-rounded"
+                          className="tw:btn tw:btn-sm tw:btn-neutral tw:btn-soft tw:shadow-none border-rounded"
                           onClick={toggleShowErrors}
                         >
                           {showErrors ? "Hide Details" : "Show Details"}
@@ -1348,7 +1338,7 @@ function App() {
                   )}
                   <label
                     htmlFor="filter-drawer"
-                    className={`tw:btn tw:btn-primary tw:btn-sm tw:btn-soft tw:shadow-none tw:drawer-button tw:mt-2 tw:lg:hidden border-rounded`}
+                    className={`tw:btn tw:btn-primary tw:btn-sm tw:shadow-none tw:hover:text-primary tw:hover:bg-primary-content tw:hover:border-primary-content tw:drawer-button tw:mt-2 tw:lg:hidden border-rounded`}
                   >
                     <span>Filters</span>
                     <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />
@@ -1869,26 +1859,8 @@ function App() {
                                                         key={dataSeries.id}
                                                       >
                                                         <div className="tw:col-span-1 tw:flex tw:items-center tw:justify-start tw:border-b tw:first:border-t tw:md:border-none border-light">
-                                                          {dataSeries.name !== truncateAtWord(dataSeries.name, 80) ? (
-                                                            
-                                                            
-                                                              // <CustomTooltip
-                                                              // content={
-                                                              //   <div className="tw:w-52">
-                                                              //     <div className="tw:text-left tw:text-xs tw:whitespace-normal tw:break-normal">
-                                                              //       {
-                                                              //         dataSeries.name
-                                                              //       }
-                                                              //     </div>
-                                                              //   </div>                                                           
-                                                              // }
-                                                              // type={"neutral"}
-                                                              // children={<div className="tw:text-xs tw:break-normal tw:mr-4">
-                                                              //   {
-                                                              //     truncateAtWord(dataSeries.name, 80)
-                                                              //   }
-                                                              // </div>} />
-                                                              <>
+                                                          {dataSeries.name !== truncateAtWord(dataSeries.name, 80) ? (   
+                                                            <>
                                                               <div data-tooltip-id={`${dataSeries.id}`} className="tw:text-xs tw:break-normal tw:mr-4">
                                                                 {
                                                                 truncateAtWord(dataSeries.name, 80)
@@ -1898,7 +1870,7 @@ function App() {
                                                               <Tooltip id={`${dataSeries.id}`} place="top" opacity={1} className="custom-tooltip tooltip-neutral">
                                                                 
                                                                 <div className="tw:w-52">
-                                                                   <div className="tw:text-left tw:text-xs tw:whitespace-normal tw:break-normal">
+                                                                   <div className="tw:text-left tw:text-xs tw:whitespace-pre-wrap tw:break-normal">
                                                                     {
                                                                        dataSeries.name
                                                                      }
@@ -2023,7 +1995,7 @@ function App() {
                 </div>
                 <div className="section">
                   <h1>Complete PROs by Questionnaire</h1>
-                  <div className="tw:join tw:join-vertical tw:flex tw:justify-center">
+                  <div className="tw:join tw:join-vertical tw:flex tw:justify-center tw:gap-y-2">
                     {questionnaires &&
                       tableDataByQuestionnaire &&
                       questionnaires.map((questionnaire) => (
@@ -2033,7 +2005,7 @@ function App() {
                             <Collapse
                               title={questionnaire.name}
                               children={
-                                <SimpleDataTable
+                                <DataTable
                                   data={
                                     tableDataByQuestionnaire[questionnaire.id]
                                   }

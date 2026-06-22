@@ -206,10 +206,19 @@ body,
   border: 1px solid var(--color-border-light);
 }
 
-.button-tooltip-basic {
-  @apply tw:bg-base-100 tw:border-2 tw:border-base-300 tw:hover:bg-base-300 tw:hover:border-base-300 tw:hover:cursor-default tw:shadow-none;
+.text-light {
   color: var(--color-base-content-light);
 }
+
+.button-tooltip-basic {
+  @apply tw:bg-base-100 tw:border-none tw:hover:bg-base-300 tw:hover:cursor-default tw:shadow-none;
+  color: var(--color-base-content-light);
+}
+
+
+
+
+
 
 
 .row-header-tooltip::before {
