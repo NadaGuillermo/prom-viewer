@@ -41,8 +41,8 @@ const ErrorPage = ({ error, heading, onRetry }: Props) => {
         {/* Retry Button */}
         {onRetry && (
           <button
+            className="tw:btn tw:btn-primary tw:btn-xl tw:hover:text-primary tw:hover:bg-transparent tw:hover:border-transparent tw:shadow-none border-rounded"
             onClick={onRetry}
-            className="tw:btn tw:btn-primary tw:btn-xl border-rounded-prominent"
           >
             Retry
           </button>

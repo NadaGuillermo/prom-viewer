@@ -1274,9 +1274,8 @@ function App() {
                             Some Questionnaires could not be processed.
                           </span>
                         </div>
-
                         <button
-                          className="tw:btn tw:btn-sm tw:btn-neutral tw:btn-soft tw:shadow-none border-rounded"
+                          className="tw:btn button-neutral"
                           onClick={toggleShowErrors}
                         >
                           {showErrors ? "Hide Details" : "Show Details"}
@@ -1297,9 +1296,11 @@ function App() {
                           <>
                             <div className="tw:flex tw:justify-start tw:pb-4">                              
                               <div data-tooltip-id="mapping-info">
-                                <button className="tw:btn tw:btn-sm button-tooltip-basic border-rounded">
+                                <div
+                                className="tw:text-sm text-tooltip-basic"                                
+                                >
                                   About this Diagram
-                                </button>
+                                </div>
                               </div>
                               <Portal>                    
                               <Tooltip id="mapping-info" opacity={1} className="custom-tooltip tooltip-neutral"> 
@@ -1336,13 +1337,15 @@ function App() {
                       />
                     </div>
                   )}
-                  <label
-                    htmlFor="filter-drawer"
-                    className={`tw:btn tw:btn-primary tw:btn-sm tw:shadow-none tw:hover:text-primary tw:hover:bg-primary-content tw:hover:border-primary-content tw:drawer-button tw:mt-2 tw:lg:hidden border-rounded`}
-                  >
-                    <span>Filters</span>
-                    <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />
-                  </label>
+                  <div className="tw:pt-2 tw:lg:hidden">
+                    <label
+                      htmlFor="filter-drawer"
+                      className="tw:btn tw:drawer-button button-primary"
+                    >
+                      <span>Filters</span>
+                      <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />                     
+                    </label>
+                  </div>
                 </div>
                 <div className="section">
                   <h1>Global Health</h1>
@@ -1450,9 +1453,9 @@ function App() {
                     <div className="tw:row-start-5 tw:lg:row-start-2 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:flex tw:justify-start tw:lg:justify-center">
                       <div className="tw:md:px-8 tw:lg:px-0">
                         <div data-tooltip-id="global-scores-explanation">
-                                <button className="tw:btn tw:btn-md button-tooltip-basic border-rounded">
+                                <div className="text-tooltip-basic tw:text-md">
                                   About this Diagram
-                                </button>
+                                </div>
                               </div>
                               <Portal>                                              
                               <Tooltip id="global-scores-explanation" opacity={1} className="custom-tooltip tooltip-neutral"> 
@@ -1547,9 +1550,9 @@ function App() {
                     )}
                   </div>
                   {domainsForChart.length > 1 && (
-                    <div className="tw:pb-2">
+                    <div className="tw:py-2">
                       <button
-                        className="tw:btn tw:btn-sm tw:mt-2 tw:btn-neutral tw:btn-soft tw:shadow-none border-rounded"
+                        className="tw:btn button-neutral"
                         onClick={() => selectAllDomains(domainsForChart)}
                       >
                         Select all
@@ -1748,9 +1751,9 @@ function App() {
                               itemDataSeriesByDomainAndDimension[domain],
                             ).length > 0 && (
                               <div className="tw:md:px-8 tw:pb-4">
-                                <div className="tw:pb-2">
+                                <div className="tw:pb-4 tw:pt-2">
                                   <button
-                                    className="tw:btn tw:btn-primary tw:btn-sm tw:my-2 tw:shadow-none tw:hover:text-primary tw:hover:bg-primary-content tw:hover:border-primary-content border-rounded"
+                                    className="tw:btn button-primary"
                                     onClick={() =>
                                       toggleShowItemsForDomain(domain)
                                     }
@@ -1821,9 +1824,9 @@ function App() {
                                       </div>
                                       {dimensionsByDomain[domain].length >
                                         0 && (
-                                        <div className="tw:pb-4">
+                                        <div className="tw:pb-4 tw:pt-2">
                                           <button
-                                            className="tw:btn tw:btn-sm tw:mt-2 tw:btn-neutral tw:btn-soft tw:shadow-none border-rounded"
+                                            className="tw:btn button-neutral"
                                             onClick={() =>
                                               selectAllDimensionsForDomain(
                                                 domain,

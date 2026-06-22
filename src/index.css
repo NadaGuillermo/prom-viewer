@@ -28,7 +28,7 @@
   --color-accent: oklch(54.1% 0.281 293.009); /* oklch(60.6% 0.25 292.717); /* violet-500 */
   --color-accent-content: oklch(99.5% 0.002 240); /* white */
 
-  --color-neutral: oklch(44.6% 0.043 257.281); /* oklch(55.4% 0.046 257.417); /* oklch(44.6% 0.043 257.281); /* slate-600 */
+  --color-neutral: oklch(55.4% 0.046 257.417); /* oklch(44.6% 0.043 257.281); /* oklch(55.4% 0.046 257.417); /* oklch(44.6% 0.043 257.281); /* slate-600 */
   --color-neutral-content: oklch(99.5% 0.002 240); /* oklch(96.8% 0.007 247.896); /* slate-100 */
 
   --color-info: oklch(68.5% 0.169 237.323); /* sky-500 */
@@ -99,7 +99,15 @@ body,
   @apply tw:pt-4 tw:pb-8;
 }
 
-.border-rounded, 
+.border-rounded,
+.button-primary,
+.button-secondary,
+.button-accent,
+.button-neutral,
+.button-info,
+.button-success,
+.button-warning,
+.button-error,
 .custom-tooltip.tooltip-neutral,
 .custom-tooltip.tooltip-info,
 .custom-tooltip.tooltip-accent,
@@ -167,37 +175,37 @@ body,
 }
 
 
-/* .button-primary {
-  @apply tw:bg-primary tw:text-primary-content tw:border-none tw:hover:bg-base-100 tw:hover:text-primary tw:shadow-none;
+.button-primary {
+  @apply tw:btn-sm tw:btn-primary tw:hover:text-primary tw:hover:bg-primary-content tw:hover:border-primary-content tw:shadow-none;
 }
 
 .button-secondary {
-  @apply tw:bg-secondary tw:text-secondary-content tw:border-none tw:hover:bg-base-100 tw:shadow-none;
+  @apply tw:btn-sm tw:btn-secondary tw:hover:text-secondary tw:hover:bg-secondary-content tw:hover:border-secondary-content tw:shadow-none;
 }
 
 .button-accent {
-  @apply tw:bg-accent tw:text-accent-content tw:border tw:border-accent tw:hover:bg-accent-content tw:hover:text-accent;
+  @apply tw:btn-sm tw:btn-accent tw:hover:text-accent tw:hover:bg-accent-content tw:hover:border-accent-content tw:shadow-none;
 }
 
 .button-neutral {
-  @apply tw:bg-neutral-content tw:text-neutral tw:border-none tw:hover:bg-base-100 tw:shadow-none;
+  @apply tw:btn-sm tw:btn-neutral tw:hover:text-neutral tw:hover:bg-neutral-content tw:hover:border-neutral-content tw:shadow-none;
 }
 
 .button-info {
-  @apply tw:bg-info tw:text-info-content tw:border tw:border-info tw:hover:bg-info-content tw:hover:text-info;
+  @apply tw:btn-sm tw:btn-info tw:hover:text-info tw:hover:bg-info-content tw:hover:border-info-content tw:shadow-none;
 }
 
 .button-success {
-  @apply tw:bg-success tw:text-success-content tw:border tw:border-success tw:hover:bg-success-content tw:hover:text-success;
+  @apply tw:btn-sm tw:btn-success tw:hover:text-success tw:hover:bg-success-content tw:hover:border-success-content tw:shadow-none;
 }
 
 .button-warning {
-  @apply tw:bg-warning tw:text-warning-content tw:border tw:border-warning tw:hover:bg-warning-content tw:hover:text-warning;
+  @apply tw:btn-sm tw:btn-warning tw:hover:text-warning tw:hover:bg-warning-content tw:hover:border-warning-content tw:shadow-none;
 }
 
 .button-error {
-  @apply tw:bg-error tw:text-error-content tw:border tw:border-error tw:hover:bg-error-content tw:hover:text-error;
-} */
+  @apply tw:btn-sm tw:btn-error tw:hover:text-error tw:hover:bg-error-content tw:hover:border-error-content tw:shadow-none;
+}
 
 .border-light      { border-color: var(--color-border-light); }   /* slate-200 */
 .border-medium     { border-color: var(--color-border-medium); }   /* slate-300 */
@@ -210,13 +218,10 @@ body,
   color: var(--color-base-content-light);
 }
 
-.button-tooltip-basic {
-  @apply tw:bg-base-100 tw:border-none tw:hover:bg-base-300 tw:hover:cursor-default tw:shadow-none;
+.text-tooltip-basic {
+  @apply tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal;
   color: var(--color-base-content-light);
 }
-
-
-
 
 
 

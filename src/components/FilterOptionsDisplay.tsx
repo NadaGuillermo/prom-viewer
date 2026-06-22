@@ -77,7 +77,7 @@ const FilterOptionsDisplay = ({
       </div>
     </div>
     <div className="tw:px-4 tw:pt-4">
-        <button className="tw:btn tw:btn-primary tw:btn-outline tw:btn-sm tw:shadow-none border-rounded" onClick={() => resetHandler()}>
+        <button className="tw:btn tw:btn-sm tw:btn-accent tw:shadow-none border-rounded tw:hover:text-accent tw:hover:bg-transparent tw:hover:border-transparent" onClick={() => resetHandler()}>
           Reset Filters
         </button>
       </div>
