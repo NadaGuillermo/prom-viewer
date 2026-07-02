@@ -187,18 +187,19 @@ export const groupItemsByDomain = (items: Visualization.DataSeries[]) => {
 // }
 
 export const sortDomains = (
-  domains: string[],
+  domainCount: Record<string, number>,
   globalHealthDomains?: string[],
+  sortDomainsAccordingToCount = true,
+  addUnspecified = false,
 ) => {
-  const sortedDomains = domains;
-  const globalDomains = domains.filter((domain) =>
+  const domains = Object.keys(domainCount);
+  // 1. Sort according to number of occurences in questionnaires
+  const sortedDomains = sortDomainsAccordingToCount ? [...domains.sort((a, b) => domainCount[b] - domainCount[a])] : [...domains];
+  console.log("Sorted domains: ", sortedDomains)
+  // 2. Put global domains to front
+  const globalDomains = sortedDomains.filter((domain) =>
     globalHealthDomains?.includes(domain),
   );
-  // const other = dimensions.find((dimension) => dimension === otherDimension);
-  // const unspecified = domains.find(
-  //   (domain) => domain === unspecifiedDimension,
-  // );
-
   if (globalDomains.length > 0) {
     for (let dim of globalDomains) {
       const index = sortedDomains.indexOf(dim);
@@ -206,18 +207,21 @@ export const sortDomains = (
       sortedDomains.unshift(dim);
     }
   }
-  // delete empty
+  
+  // 3. Delete empty
   const filteredDomains = sortedDomains.filter(
     (domain) => domain !== ""
   );
 
+  // 4. Include domain "Unspecified" for items that were not assigned a domain in the configuration file
+  if (addUnspecified) {
+    // sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
+    filteredDomains.push(unspecifiedDimension);
+  }
+
+  // 5. Delete duplicates
   const uniqueDomains = _.uniq(filteredDomains);
-  // sortedDimensions.splice(0, sortedDimensions.length, ...uniqueDimensions);
   
-  // if (unspecified) {
-  //   sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
-  //   sortedDimensions.push(unspecified);
-  // }
   return uniqueDomains;
 };
 

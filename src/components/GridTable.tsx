@@ -58,6 +58,7 @@ const GridTable = ({ data, constrainWidth }: Props) => {
                 <div className="tw:select-none">
                   {data[date] && data[date].includes(questionnaire) ? (
                     <svg
+                      aria-label="Response exists"
                       width="20"
                       height="20"
                       xmlns="http://www.w3.org/2000/svg"

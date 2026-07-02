@@ -435,6 +435,7 @@ const radarOption: RadarComponentOption = {
   splitArea: {
     show: false,
   },
+  startAngle: 90,
 }
 
 const radarSeriesOption: RadarSeriesOption = {

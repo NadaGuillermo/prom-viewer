@@ -1,13 +1,23 @@
 import * as _ from "lodash-es";
 
-export const extractDomainsFromConfig = (config: any): string[] => {
-     const domains: string[] = [];
+export const extractDomainsFromConfig = (config: any): Record<string, number> => {
+     // const domains: string[] = [];
+     const domainCount: Record<string, number> = {};
      
      config.questionnaires.forEach((questionnaire: any) => {
-        const questionnaireDomains = questionnaire.domainItemMapping.map((dom: any) => dom.domain);
-        domains.push(...questionnaireDomains);
+        const questionnaireDomains: string[] = questionnaire.domainItemMapping.map((dom: any) => dom.domain);
+        questionnaireDomains.forEach((dom: string) => {
+            if (domainCount[dom] === undefined) {
+                domainCount[dom] = 1;
+            }
+            else {
+                domainCount[dom] += 1;
+            }
+        })
+        // domains.push(...questionnaireDomains);
      });
-    return [...new Set(domains)];
+    // return [...new Set(domains)];
+    return domainCount;
 }
 
 export const extractGlobalHealthDomainsFromConfig = (config: any): string[] => {

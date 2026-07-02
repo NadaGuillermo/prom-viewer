@@ -580,7 +580,9 @@ function App() {
     // Domains
     // const globalHealthDimensionsFromConfig =
     //   extractGlobalHealthDimensionsFromConfig(config);
-    const domainsFromConfig = extractDomainsFromConfig(config);
+    const domainCountFromConfig = extractDomainsFromConfig(config);
+    // const domainsFromConfig = Object.keys(domainCountFromConfig);
+    console.log("domains from config: ", domainCountFromConfig)
     const globalHealthDomainsFromConfig =
       extractGlobalHealthDomainsFromConfig(config);
     console.log(
@@ -588,7 +590,7 @@ function App() {
       globalHealthDomainsFromConfig,
     );
     const domains = sortDomains(
-      domainsFromConfig,
+      domainCountFromConfig,
       globalHealthDomainsFromConfig,
     );
     // const domainsWithUnspecifiedDomain = addUnspecifiedDimensionToDomains(domains);
@@ -1343,7 +1345,7 @@ function App() {
                       className="tw:btn tw:drawer-button button-primary"
                     >
                       <span>Filters</span>
-                      <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />                     
+                      <span aria-hidden="true"><FontAwesomeIcon icon={["fas", "filter"] as IconProp} /></span>                    
                     </label>
                   </div>
                 </div>

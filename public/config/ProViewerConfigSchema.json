@@ -108,11 +108,6 @@
                                         }
                                     },
                                     "minItems": 1
-                                },
-                                "domainScore": {
-                                    "type": "string",
-                                    "description": "Id of one item, ideally a score, that represents the health state for the entire domain",
-                                    "$comment": "Must match an itemId from questions"
                                 }
                             },
                             "required": []
