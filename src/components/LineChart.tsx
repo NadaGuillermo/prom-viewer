@@ -7,8 +7,6 @@ import {
   type Visualization,
 } from "@utils/visualization";
 
-import "@styles/echartStyles.css";
-
 import type {
   TitleComponentOption,
   GridComponentOption,
