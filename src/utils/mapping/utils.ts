@@ -1,4 +1,12 @@
 import type { Mapping } from "@utils/mapping";
+import { formatDate, getDateFormatPattern } from "@utils/dateFormat";
+
+// Formats using the runtime-configured date pattern (see
+// /public/config/dateFormat.json), falling back to ISO if it's missing or
+// invalid.
+export const convertFhirDateTimeToDateFormat = (isoDate: string): string => {
+  return formatDate(isoDate, getDateFormatPattern());
+};
 
 export const isQuestionnaireItem = (
     item: Mapping.Item,

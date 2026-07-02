@@ -1,6 +1,6 @@
 import type { NormalizedFHIR } from "@utils/fhir";
 import type { Mapping } from "./types";
-import { convertFhirDateTimeToDateFormat } from "./helpers";
+import { convertFhirDateTimeToDateFormat } from "./utils";
 import { issueFactories, type Errors } from "@utils/errors";
 import { isQuestionnaireItem } from "./utils";
 
