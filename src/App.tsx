@@ -22,6 +22,7 @@ import DataLoadingScreen from "@components/DataLoadingScreen";
 import { Tooltip } from "react-tooltip";
 import Portal from "@components/Portal";
 import DataTable from "@components/DataTable";
+import NoData from "@components/NoData";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -1478,8 +1479,8 @@ function App() {
                       </div>
                     </div>
                     <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                      {dimensionScoresDataSeriesByDomain &&
-                        questionnairesWithMostRecentResponseDate && (
+                      {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
+                        questionnairesWithMostRecentResponseDate ? (
                           <div className="tw:flex tw:justify-center">
                             <RadarChart
                               data={dimensionScoresDataSeriesByDomain}
@@ -1494,10 +1495,18 @@ function App() {
                               seriesOptions={radarChartOptions.series}
                             />
                           </div>
-                        )}
+                        ) : 
+                        <NoData 
+                          title="No Data Found"
+                          message="No data could be found for this visualization. Please try to adjust your filters. 
+                          If this does not help, it is possible that there are no domains or dimension scores defined for the selected questionnaires."
+                          action={{label: "Reset Filters", onClick: () => resetFilters()}}
+                          />
+                          
+                        }
                     </div>
                     <div className="tw:row-start-6 tw:lg:row-start-3 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
-                      {globalScoresDataSeries.length > 0 && (
+                      {globalScoresDataSeries.length > 0 ? (
                         <>
                           <div className="tw:flex tw:justify-center">
                             <LineChart
@@ -1517,17 +1526,21 @@ function App() {
                             />
                           </div>
                         </>
-                      )}
-                      {globalScoresDataSeries.length === 0 && (
-                        <p className="tw:text-lg tw:text-center tw:text-[#333]">
-                          No global health scores available
-                        </p>
-                      )}
+                      ) :
+                      <NoData
+                        title = "No Global Health Scores Available"
+                        message="No data could be found for this visualization. Please try to adjust your filters. 
+                        If this does not help, it is possible that there are no global health scores defined for the selected questionnaires."
+                        action={{label: "Reset Filters", onClick: () => resetFilters()}}
+                        />
+                      }
                     </div>
                   </div>
                 </div>
                 <div className="section">
                   <h1>Selected PROs by Domain</h1>
+                  {domainsForChart.length > 0 ? (
+                    <>
                   <div>
                     <p>
                       Please select one or more domains to view the scores
@@ -1997,7 +2010,17 @@ function App() {
                         </React.Fragment>
                       ),
                   )}
+                </>
+                  ): 
+                  <NoData
+                  title = "No Domain Data Available"
+                  message="No data could be found for this visualization. Please try to adjust your filters. 
+                  If this does not help, it is possible that there are no domains defined for the selected questionnaires."
+                  action={{label: "Reset Filters", onClick: () => resetFilters()}}
+                  />
+                }
                 </div>
+                
                 <div className="section">
                   <h1>Complete PROs by Questionnaire</h1>
                   <div className="tw:join tw:join-vertical tw:flex tw:justify-center tw:gap-y-2">
