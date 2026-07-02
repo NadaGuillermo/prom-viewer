@@ -1,38 +1,32 @@
+import type { Colors } from "@utils/colors/types.d";
+import { DEFAULT_COLOR_CONFIG, buildChartColorRecord } from "@utils/colors/defaultColors";
 
+// Initialized with the same defaults as index.css / DEFAULT_COLOR_CONFIG.
+// applyChartColorConfig() mutates these in place once the real color config
+// is resolved (see main.tsx), so anything importing these bindings picks up
+// the resolved values as long as it evaluates after that call.
+export const chartColorRecord: Record<string, string> = buildChartColorRecord(
+  DEFAULT_COLOR_CONFIG.theme,
+);
 
-export const chartColorRecord: Record<string, string> = {
-  title: "#1d293d", // base-content
-  subTitle: "#62748e", // base-content-light
-  axisLine: "#d1d5dc", // border-medium
-  splitLine: "#e2e8f0", // border-light
-  text: "#1d293d", // base-content
-  textLight: "#62748e", // base-content-light
-  tooltipBackground: "#fcfeff", // base-100
-}
-
-// Tol Muted
 export const mutedColorPalette: string[] = [
-  "#332288",
-  "#88ccee",
-  "#44aa99",
-  "#117733",
-  "#999933",
-  "#ddcc77",
-  "#cc6677",
-  "#882255",
-  "#aa4499",
-  
+  ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes.muted,
 ];
 
-// okabe ito
-
 export const colorPalette: string[] = [
-  "#E69F00", 
-  "#56B4E9", 
-  "#009E73", 
-  "#F0E442", 
-  "#0072B2", 
-  "#D55E00", 
-  "#CC79A7", 
-  "#000000",
-]
+  ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes.okabeIto,
+];
+
+export function applyChartColorConfig(config: Colors.ColorConfig): void {
+  Object.assign(chartColorRecord, buildChartColorRecord(config.theme));
+  mutedColorPalette.splice(
+    0,
+    mutedColorPalette.length,
+    ...config.charts.categoricalPalettes.muted,
+  );
+  colorPalette.splice(
+    0,
+    colorPalette.length,
+    ...config.charts.categoricalPalettes.okabeIto,
+  );
+}
