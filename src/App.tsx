@@ -240,7 +240,7 @@ function App() {
     Record<string, string[]>
   >({});
   // const [displayedQuestionnaires, setDisplayedQuestionnaires] = useState<Mapping.Questionnaire[]>([]);
-  // const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
+  const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [modalShown, setModalShown] = useState(false);
@@ -805,6 +805,7 @@ function App() {
 
     // Chart Data
     const chartData = createChartData(questionnaireResponsesForChart);
+    const allChartData = createChartData(questionnaireResponses);
     console.log("Chart Data: ", chartData);
 
     // Data series for different charts
@@ -979,7 +980,7 @@ function App() {
 
     // Table
     const tableDataByQuestionnaire: Record<string, Visualization.ChartData> =
-      createTableData(questionnairesForChart, chartData);
+      createTableData(questionnaires, allChartData);
     console.log("Table Data by Questionnaire: ", tableDataByQuestionnaire);
 
     // Header Cards
@@ -1006,7 +1007,7 @@ function App() {
 
     // set variables
     // setDisplayedQuestionnaires(questionnairesForChart);
-    // setDisplayedQuestionnaireResponses(questionnaireResponsesForChart);
+    setDisplayedQuestionnaireResponses(questionnaireResponsesForChart);
     setDomainsForChart(domainsForChart);
     setDimensionsByDomain(dimensionsByDomain);
     setChartXData(chartData.xData);
@@ -1481,6 +1482,7 @@ function App() {
                     </div>
                     <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
                       {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
+                      displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 && 
                         questionnairesWithMostRecentResponseDate ? (
                           <div className="tw:flex tw:justify-center">
                             <RadarChart
@@ -1544,7 +1546,7 @@ function App() {
                 </div>
                 <div className="section">
                   <h1>Selected PROs by Domain</h1>
-                  {domainsForChart.length > 0 ? (
+                  {domainsForChart.length > 0 && displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 ? (
                     <>
                   <div>
                     <p>
