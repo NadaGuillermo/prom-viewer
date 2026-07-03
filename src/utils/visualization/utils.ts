@@ -4,6 +4,7 @@ import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 import { calculateMean } from "./helpers";
 import { ITEM_TYPES } from "@utils/mapping";
+import { getDateFormatPattern, parseFormattedDate } from "@utils/dateFormat";
 
 export const isScoreSeries = (
   series: Visualization.DataSeries[],
@@ -299,14 +300,21 @@ export const getMinAndMaxAnswerOptionValueForItem = (
 
 // }
 
+const sortDates = (a: string, b:string, order: "ascending" | "descending" = "ascending", dateFormatPattern?: string) => {
+  const pattern = dateFormatPattern ?? getDateFormatPattern();
+  const aDateString = parseFormattedDate(a, pattern);
+  const bDateString = parseFormattedDate(b, pattern);
+  const aDate = new Date(aDateString).getTime();
+  const bDate = new Date(bDateString).getTime();
+  return order === "ascending" ? aDate - bDate : bDate - aDate;
+}
+
 // ok
 export const sortQuestionnaireResponsesByDate = (
   questionnaireResponses: Mapping.QuestionnaireResponse[],
 ) => {
   return questionnaireResponses.sort((a, b) => {
-    const aDate = new Date(a.authored);
-    const bDate = new Date(b.authored);
-    return aDate.getTime() - bDate.getTime();
+    return sortDates(a.authored, b.authored);
   });
 };
 
@@ -320,7 +328,10 @@ export const createCommonTimeAxis = (
     },
   );
   const allDates = [...new Set(allQuestionnaireResponseDates)];
-  allDates.sort();
+  allDates.sort((a, b) => {
+    return sortDates(a, b);
+  }
+  );
 
   return allDates;
 };
@@ -342,6 +353,7 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
   commonTimeAxisDates: string[],
 ) => {
   const groupedQuestionnaireResponses = questionnaireResponses;
+  console.log("grouped QRs: ", questionnaireResponses)
 
   Object.keys(groupedQuestionnaireResponses).forEach((key) => {
     const questionnaireDates = groupedQuestionnaireResponses[key].map(
@@ -372,10 +384,13 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
       groupedQuestionnaireResponses[key].push(nullQuestionnaireResponse);
     });
 
+    console.log("Unsorted QRs: ", groupedQuestionnaireResponses)
+
     // sort questionnaireResponses
     const sortedQuestionnaireResponses = sortQuestionnaireResponsesByDate(
       groupedQuestionnaireResponses[key],
     );
+    console.log("Sorted QRs: ", sortedQuestionnaireResponses)
     groupedQuestionnaireResponses[key] = sortedQuestionnaireResponses;
   });
 
@@ -432,7 +447,11 @@ export const createDateQuestionnaireNamesRecord = (
   // sort by key descending (newest first)
   let sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
-    .sort((a, b) => order === "ascending" ?  new Date(a).getTime() - new Date(b).getTime() : new Date(b).getTime() - new Date(a).getTime())
+    .sort((a, b) => 
+     {
+    return sortDates(a, b, order);
+     }
+    )
     .forEach((key) => {
       sortedQuestionnairesByDate[key] = questionnairesByDate[key];
     });
@@ -873,7 +892,10 @@ export const extractItemsDataSeries = (
 
 export const createQuestionnaireMostRecentResponseDateRecord = (questionnaireNamesByDate: Record<string, string[]>) => {
   const questionnaireMostRecentResponseDateRecord: Record<string, string> = {};
-  const sortedDates = Object.keys(questionnaireNamesByDate).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const sortedDates = Object.keys(questionnaireNamesByDate).sort(
+    (a, b) => {
+    return sortDates(a, b, "descending");
+    });
   Object.entries(questionnaireNamesByDate).forEach(([date, names]) => {
     for(let name of names) {
       const mostRecentDate = sortedDates.find((d) => questionnaireNamesByDate[d].includes(name));
@@ -934,11 +956,17 @@ export const filterQuestionnaireResponsesThatAreOnSingleDates = (
   if (dates.length === 0) {
     return {};
   }
-  const datesAsDates = dates.map((date) => new Date(date));
+  console.log("Dates: ", dates)
+  const dateFormatPattern = getDateFormatPattern();
+  const datesAsDates = dates.map((date) => new Date(parseFormattedDate(date, dateFormatPattern)));
+  console.log("dates as Dates: ", datesAsDates)
+  console.log("Dates DDD: ", datesAsDates[0].toISOString().split('T')[0])
   const questionnaireResponsesOnDates: Record<string, Mapping.QuestionnaireResponse> = {};
   Object.entries(questionnaireResponses).forEach(([questionnaireResponseId, questionnaireResponse]) => {
-    const date = new Date(questionnaireResponse.authored);
-    if (datesAsDates.some((d) => d.getTime() === date.getTime())) {
+    console.log("dates string:, ", questionnaireResponse.authored)
+    const date = new Date(parseFormattedDate(questionnaireResponse.authored, dateFormatPattern));
+    console.log("Dates in QR: ", date)
+    if (datesAsDates.some((d) => d.toISOString().split('T')[0] === date.toISOString().split('T')[0])) {
       questionnaireResponsesOnDates[questionnaireResponseId] = questionnaireResponse;
     }
   });
@@ -962,7 +990,11 @@ export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Rec
     return questionnaireResponse.authored;
   });
   const uniqueDates = _.uniq(dates);
-  return uniqueDates;
+  // sort dates
+  const sortedDates = uniqueDates.sort((a, b) => {
+    return sortDates(a, b);
+  })
+  return sortedDates;
 }
 
 export const createPseudoDataSeries = (length: number): Visualization.DataSeries => {

@@ -32,7 +32,7 @@ const GridTable = ({ data, constrainWidth }: Props) => {
             key={date}
             className="tw:col-span-1 tw:border-b tw:py-4 border-medium"
           >
-            <div className="tw:text-sm tw:text-center tw:whitespace-pre-wrap tw:px-2">
+            <div className="tw:text-sm tw:text-center tw:whitespace-pre-wrap tw:px-2 tw:select-none">
               {date}
             </div>
           </div>
@@ -44,7 +44,7 @@ const GridTable = ({ data, constrainWidth }: Props) => {
               className={`tw:col-span-2 
             ${i < questionnaires.length - 1 ? "tw:border-b border-medium" : ""} tw:py-2 tw:px-2`}
             >
-              <div className="tw:text-sm tw:whitespace-pre-wrap">
+              <div className="tw:text-sm tw:whitespace-pre-wrap tw:select-none">
                 {questionnaire}
               </div>
             </div>

@@ -86,7 +86,7 @@ const MappingTable = ({
         key={key}
         className={`tw:border tw:rounded-full
           tw:text-xs tw:px-3.5 tw:py-1.5
-          tw:leading-snug tw:text-center tw:whitespace-normal`}
+          tw:leading-snug tw:text-center tw:whitespace-normal tw:select-none`}
         style={{borderColor: color, backgroundColor: color + "15"}}
         >
         {symbol.length > 0 ? symbolPosition === "left" ? symbol + ": " + label : label + " (" + symbol + ")" : label}
@@ -99,7 +99,7 @@ const MappingTable = ({
       <div
         key={key}
         className={`tw:text-xs tw:font-semibold
-          tw:leading-snug tw:text-center tw:whitespace-normal`}
+          tw:leading-snug tw:text-center tw:whitespace-normal tw:select-none`}
         >
         {label}
       </div>

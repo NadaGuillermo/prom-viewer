@@ -95,3 +95,41 @@ export function formatDate(isoDateString: string, pattern: string): string {
     )
     .join("");
 }
+
+// Reverse of `formatDate`: builds a regex from `pattern`'s segments (each
+// token becomes a capturing group of digits, each separator is matched
+// literally) and reassembles the captured YYYY/MM/DD groups into an ISO
+// date string. Falls back to ISO (YYYY-MM-DD) if the pattern is invalid,
+// and returns the raw input untouched if it doesn't match the pattern -
+// either way this never throws.
+export function parseFormattedDate(formattedDateString: string, pattern: string): string {
+  const effectivePattern = isValidDateFormatPattern(pattern)
+    ? pattern
+    : ISO_DATE_FORMAT;
+  const segments = tokenizePattern(effectivePattern) ?? tokenizePattern(ISO_DATE_FORMAT)!;
+
+  const tokenGroupCounts: Record<DateToken, number> = { YYYY: 4, MM: 2, DD: 2 };
+  const tokenOrder: DateToken[] = [];
+  const regexSource = segments
+    .map((segment) => {
+      if (segment.type === "token") {
+        const token = segment.value as DateToken;
+        tokenOrder.push(token);
+        return `(\\d{${tokenGroupCounts[token]}})`;
+      }
+      return segment.value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    })
+    .join("");
+
+  const match = new RegExp(`^${regexSource}$`).exec(formattedDateString);
+  if (!match) {
+    return formattedDateString;
+  }
+
+  const values: Partial<Record<DateToken, string>> = {};
+  tokenOrder.forEach((token, index) => {
+    values[token] = match[index + 1];
+  });
+
+  return `${values.YYYY}-${values.MM}-${values.DD}`;
+}
