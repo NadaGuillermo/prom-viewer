@@ -35,6 +35,8 @@ interface Props {
   showLegendTooltip?: boolean;
   lineOption?: LineSeriesOption;
   displayNameInTooltip?: boolean;
+  enableExport?: boolean;
+  exportFileName?: string;
 }
 
 const LineChart = ({
@@ -55,6 +57,8 @@ const LineChart = ({
   showLegendTooltip = true,
   lineOption,
   displayNameInTooltip = true,
+  enableExport = false,
+  exportFileName,
 }: Props) => {
   const { xData, yData } = data;
 
@@ -202,7 +206,12 @@ const LineChart = ({
 
   return (
     <>
-      <ReactEChartsWrapper option={options} chartHeight={height} />
+      <ReactEChartsWrapper
+        option={options}
+        chartHeight={height}
+        enableExport={enableExport}
+        exportFileName={exportFileName ?? title}
+      />
     </>
   );
 };

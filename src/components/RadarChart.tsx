@@ -28,6 +28,8 @@ interface Props {
   radarOptions?: RadarComponentOption;
   seriesOptions?: RadarSeriesOption;
   showLegendTooltip?: boolean;
+  enableExport?: boolean;
+  exportFileName?: string;
 }
 
 const RadarChart = ({
@@ -44,6 +46,8 @@ const RadarChart = ({
   radarOptions,
   seriesOptions,
   showLegendTooltip = true,
+  enableExport = false,
+  exportFileName,
 }: Props) => {
   
   const questionnaireNames = _.uniq(Object.values(data).flatMap((series) => series.map((item) => item.questionnaireName)))
@@ -274,7 +278,12 @@ const RadarChart = ({
 
   return (
     <>
-      <ReactEChartsWrapper option={options} chartHeight={height} />
+      <ReactEChartsWrapper
+        option={options}
+        chartHeight={height}
+        enableExport={enableExport}
+        exportFileName={exportFileName ?? title}
+      />
     </>
   );
 };

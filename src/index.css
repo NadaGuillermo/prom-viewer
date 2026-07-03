@@ -115,8 +115,9 @@ body,
 .custom-tooltip.tooltip-primary,
 .custom-tooltip.tooltip-secondary,
 .custom-tooltip.tooltip-warning,
-.custom-tooltip.tooltip-success
-/* .custom-tooltip.tooltip-basic */
+.custom-tooltip.tooltip-success,
+
+.custom-tooltip.tooltip-basic
 {
   @apply tw:rounded-lg; 
 }
@@ -164,11 +165,10 @@ body,
   @apply tw:bg-warning;
   @apply tw:text-warning-content;
 }
-
-/* .custom-tooltip.tooltip-basic {
+.custom-tooltip.tooltip-basic {
   @apply tw:bg-base-300;
   @apply tw:text-base-content;
-} */
+}
 
 #portal-root {
   z-index: 300;
@@ -216,6 +216,7 @@ body,
 .text-light {
   color: var(--color-base-content-light);
 }
+
 .text-tooltip-basic {
   @apply tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal;
   color: var(--color-base-content-light);

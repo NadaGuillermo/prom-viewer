@@ -23,6 +23,7 @@ import { Tooltip } from "react-tooltip";
 import Portal from "@components/Portal";
 import DataTable from "@components/DataTable";
 import NoData from "@components/NoData";
+import LineChartGroup from "@components/LineChartGroup";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -1493,6 +1494,8 @@ function App() {
                               tooltipOptions={radarChartOptions.tooltip}
                               radarOptions={radarChartOptions.radar}
                               seriesOptions={radarChartOptions.series}
+                              enableExport={true}
+                              exportFileName="Domains Radar"
                             />
                           </div>
                         ) : 
@@ -1523,6 +1526,8 @@ function App() {
                               yAxisOptions={singleLineChartOptions.yAxis}
                               tooltipOptions={singleLineChartOptions.tooltip}
                               lineOption={singleLineChartOptions.series}
+                              enableExport={true}
+                              exportFileName="Normalized Global Health Scores"
                             />
                           </div>
                         </>
@@ -1579,6 +1584,7 @@ function App() {
                       dimensionScoresDataSeriesByDomain[domain] && dimensionScoresDataSeriesByDomain[domain].length > 0 && (
                         <React.Fragment key={domain}>
                           <h3>{domain}</h3>
+                          <LineChartGroup name={domain}>
                           <div className="tw:overflow-x-auto">
                             <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
                               {dimensionScoresDataSeriesByDomain[domain].map(
@@ -1758,6 +1764,7 @@ function App() {
                               )}
                             </div>
                           </div>
+                          </LineChartGroup>
                           {/* children */}
                           {Object.keys(
                             itemDataSeriesByDomainAndDimension[domain],
@@ -1815,7 +1822,7 @@ function App() {
                                               domain
                                             ][dimension] !== undefined && (
                                               <label
-                                                key={`${domain}: ${dimension}`}
+                                                key={domain + "-" + dimension}
                                                 className={`tw:label 
                                                   ${selectedDimensionsByDomain[domain].includes(dimension) ? "tw:text-base-content" : "tw:text-base-content-light"}`}
                                               >
@@ -1862,9 +1869,10 @@ function App() {
                                             domain
                                           ][dimension].length > 0 && (
                                             <React.Fragment
-                                              key={`${domain}: ${dimension}`}
+                                              key={domain + "-" + dimension}
                                             >
                                               <h5>{dimension}</h5>
+                                              <LineChartGroup name={domain + "-" + dimension}>
                                               <div
                                                 className={`tw:w-full tw:overflow-x-auto tw:max-w-5xl`}
                                               >
@@ -1998,6 +2006,7 @@ function App() {
                                                   </div>
                                                 </div>
                                               </div>
+                                              </LineChartGroup>
                                             </React.Fragment>
                                           ),
                                       )}

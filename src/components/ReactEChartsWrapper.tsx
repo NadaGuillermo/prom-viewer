@@ -1,4 +1,4 @@
-import { useRef, useEffect, forwardRef, type CSSProperties } from "react";
+import { useRef, useState, useEffect, forwardRef, type CSSProperties } from "react";
 import type { Charts } from "@utils/charts";
 import type { ECharts } from "echarts/core";
 import { init, use } from "echarts/core";
@@ -16,13 +16,17 @@ import {
   LegendComponent,
   GridComponent,
   TooltipComponent,
-  ToolboxComponent,
   VisualMapComponent,
   TitleComponent,
   DataZoomComponent,
   MatrixComponent,
 } from "echarts/components";
 
+import DownloadImageButton from "@components/DownloadImageButton";
+import {
+  buildExportFileName,
+  captureAndDownloadElement,
+} from "@utils/image/captureAndDownload";
 
 import type { SetOptionOpts } from "echarts/core";
 
@@ -39,7 +43,6 @@ use([
   GridComponent,
   TooltipComponent,
   TitleComponent,
-  ToolboxComponent,
   DataZoomComponent,
   CanvasRenderer,
   SankeyChart,
@@ -55,6 +58,8 @@ use([
     theme?: "light" | "dark";
     chartHeight?: number;
     useMinHeight?: boolean;
+    enableExport?: boolean;
+    exportFileName?: string;
   }
 
 export const ReactEChartsWrapper = forwardRef<
@@ -70,12 +75,15 @@ export const ReactEChartsWrapper = forwardRef<
       theme,
       chartHeight,
       useMinHeight,
+      enableExport = false,
+      exportFileName,
     },
     ref,
   ) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<ECharts | null>(null);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
+    const [isChartReady, setIsChartReady] = useState(false);
     // const [chartHeight, setChartHeight] = useState<number>(0);
     // const [height, setHeight] = useState<number>(chartHeight ?? 0);
     //
@@ -84,6 +92,8 @@ export const ReactEChartsWrapper = forwardRef<
      */
     useEffect(() => {
       if (!containerRef.current) return;
+
+      setIsChartReady(false);
 
       // Dispose existing instance (important for theme changes)
       if (chartRef.current) {
@@ -140,6 +150,7 @@ export const ReactEChartsWrapper = forwardRef<
       });
       requestAnimationFrame(() => {
         chartRef.current?.resize();
+        setIsChartReady(true);
       });
     }, [option, settings, theme]); // Whenever theme changes we need to add option and setting due to it being deleted in cleanup function
 
@@ -156,14 +167,28 @@ export const ReactEChartsWrapper = forwardRef<
       }
     }, [loading, theme]);
 
+    const handleDownload = () => {
+      if (!containerRef.current) return;
+      captureAndDownloadElement(
+        containerRef.current,
+        buildExportFileName(exportFileName),
+      );
+    };
+
     // tw:min-h-100 Höhen ändern !!
     // height: chartHeight ? `${chartHeight}px` : undefined,
     return (
       <div
-        ref={containerRef}
-        className={`${useMinHeight ? "tw:h-full tw:w-full tw:min-h-100" : "tw:h-full tw:w-full"}`}
-        style={{ ...style }}
-      />
+        className={`tw:relative ${useMinHeight ? "tw:h-full tw:w-full tw:min-h-100" : "tw:h-full tw:w-full"}`}
+      >
+        <div ref={containerRef} className="tw:h-full tw:w-full" style={{ ...style }} />
+        {enableExport && (
+          <DownloadImageButton
+            onClick={handleDownload}
+            disabled={!isChartReady}
+          />
+        )}
+      </div>
     );
   },
 );

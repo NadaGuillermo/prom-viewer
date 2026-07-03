@@ -2,7 +2,7 @@ import type {
   TitleComponentOption,
   GridComponentOption,
   LegendComponentOption,
-  XAXisComponentOption, 
+  XAXisComponentOption,
   YAXisComponentOption,
   LineSeriesOption,
   TooltipComponentOption,
