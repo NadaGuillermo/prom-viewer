@@ -3,7 +3,7 @@ import DownloadImageButton from "@components/DownloadImageButton";
 import {
   buildExportFileName,
   captureAndDownloadElement,
-} from "@utils/image/captureAndDownload";
+} from "@utils/export";
 
 interface Props {
   name: string;
@@ -29,13 +29,18 @@ const LineChartGroup = ({ name, children }: Props) => {
 
   const handleDownload = () => {
     if (!groupRef.current) return;
-    captureAndDownloadElement(groupRef.current, buildExportFileName(name));
+    captureAndDownloadElement(groupRef.current, buildExportFileName(name, "png"));
   };
 
   return (
     <div className="tw:relative">
       <div ref={groupRef}>{children}</div>
-      <DownloadImageButton onClick={handleDownload}  disabled={!isReady} className="tw:absolute tw:-top-8 tw:right-2"/>
+      <DownloadImageButton
+        onClick={handleDownload}
+        disabled={!isReady}
+        className="tw:absolute tw:-top-8 tw:right-2"
+        tooltipText="Save as image"
+      />
     </div>
   );
 };

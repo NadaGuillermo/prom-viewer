@@ -24,6 +24,7 @@ import Portal from "@components/Portal";
 import DataTable from "@components/DataTable";
 import NoData from "@components/NoData";
 import LineChartGroup from "@components/LineChartGroup";
+import DownloadImageButton from "@components/DownloadImageButton";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -105,6 +106,12 @@ import {
   extractGlobalHealthDomainsFromConfig,
   extractDomainsFromConfig,
 } from "@utils/config";
+
+// export
+import {
+  buildExportFileName,
+  createAndDownloadCSV,
+} from "@utils/export";
 
 function App() {
   // React states
@@ -2041,16 +2048,30 @@ function App() {
                         <React.Fragment key={questionnaire.id}>
                           {tableDataByQuestionnaire[questionnaire.id] !==
                             undefined && (
+                            <>
                             <Collapse
                               title={questionnaire.name}
                               children={
+                                <>
+                                
                                 <DataTable
                                   data={
                                     tableDataByQuestionnaire[questionnaire.id]
                                   }
                                 />
+                                <DownloadImageButton
+                              onClick={() => createAndDownloadCSV(
+                              tableDataByQuestionnaire[questionnaire.id],
+                              buildExportFileName(questionnaire.name, "csv"))}
+                              disabled={false}
+                              className="tw:mt-2 tw:text-right"
+                              tooltipText="Save as CSV"
+                            />
+                            </>
                               }
                             />
+      
+                              </>
                           )}
                         </React.Fragment>
                       ))}

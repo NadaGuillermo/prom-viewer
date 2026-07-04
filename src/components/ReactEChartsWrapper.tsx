@@ -1,4 +1,10 @@
-import { useRef, useState, useEffect, forwardRef, type CSSProperties } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  type CSSProperties,
+} from "react";
 import type { Charts } from "@utils/charts";
 import type { ECharts } from "echarts/core";
 import { init, use } from "echarts/core";
@@ -26,7 +32,7 @@ import DownloadImageButton from "@components/DownloadImageButton";
 import {
   buildExportFileName,
   captureAndDownloadElement,
-} from "@utils/image/captureAndDownload";
+} from "@utils/export";
 
 import type { SetOptionOpts } from "echarts/core";
 
@@ -48,24 +54,19 @@ use([
   SankeyChart,
 ]);
 
+interface Props {
+  option: Charts.EChartsOption;
+  style?: CSSProperties;
+  settings?: SetOptionOpts;
+  loading?: boolean;
+  theme?: "light" | "dark";
+  chartHeight?: number;
+  useMinHeight?: boolean;
+  enableExport?: boolean;
+  exportFileName?: string;
+}
 
-
-  interface Props {
-    option: Charts.EChartsOption;
-    style?: CSSProperties;
-    settings?: SetOptionOpts;
-    loading?: boolean;
-    theme?: "light" | "dark";
-    chartHeight?: number;
-    useMinHeight?: boolean;
-    enableExport?: boolean;
-    exportFileName?: string;
-  }
-
-export const ReactEChartsWrapper = forwardRef<
-  ECharts | null,
-  Props
->(
+export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
   (
     {
       option,
@@ -171,7 +172,7 @@ export const ReactEChartsWrapper = forwardRef<
       if (!containerRef.current) return;
       captureAndDownloadElement(
         containerRef.current,
-        buildExportFileName(exportFileName),
+        buildExportFileName(exportFileName ?? "file", "png"),
       );
     };
 
@@ -181,11 +182,17 @@ export const ReactEChartsWrapper = forwardRef<
       <div
         className={`tw:relative ${useMinHeight ? "tw:h-full tw:w-full tw:min-h-100" : "tw:h-full tw:w-full"}`}
       >
-        <div ref={containerRef} className="tw:h-full tw:w-full" style={{ ...style }} />
+        <div
+          ref={containerRef}
+          className="tw:h-full tw:w-full"
+          style={{ ...style }}
+        />
         {enableExport && (
           <DownloadImageButton
             onClick={handleDownload}
             disabled={!isChartReady}
+            className="tw:absolute tw:top-4 tw:right-2"
+            tooltipText="Save as image"
           />
         )}
       </div>

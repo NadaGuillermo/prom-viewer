@@ -8,13 +8,15 @@ interface Props {
   disabled?: boolean;
   label?: string;
   className?: string;
+  tooltipText?: string;
 }
 
 const DownloadImageButton = ({
   onClick,
   disabled = false,
   label = "Save as image",
-  className = "tw:absolute tw:top-4 tw:right-2",
+  tooltipText = "Download",
+  className,
 }: Props) => {
   const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   return (
@@ -37,12 +39,12 @@ const DownloadImageButton = ({
         <Tooltip
           id={id}
           opacity={1}
-          className="custom-tooltip tooltip-basic"
+          className="custom-tooltip tooltip-basic tw:z-10"
         >
           <div className="tw:w-24">
             <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">
               <p>
-                {label}
+                {tooltipText ? tooltipText : label}
               </p>
             </div>
           </div>
