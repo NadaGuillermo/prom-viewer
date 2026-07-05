@@ -260,6 +260,7 @@ function App() {
     start: "",
     end: "",
   });
+  const [isFilterActive, setIsFilterActive] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -1057,6 +1058,14 @@ function App() {
     selectedDates,
   ]);
 
+  useEffect(() => {
+    const isFilterActive = Object.keys(displayedQuestionnaireResponses).length !== Object.keys(questionnaireResponses).length;
+    setIsFilterActive(isFilterActive);
+  }, [
+    displayedQuestionnaireResponses,
+    questionnaireResponses,
+  ]);
+
   // Handlers
 
   const handleContinue = () => {
@@ -1238,6 +1247,49 @@ function App() {
     <div className="tw:@container">
       {/* <div className="tw:min-h-screen"> */}
       <main>
+            <div className="tw:lg:hidden">
+              
+                <label
+                  htmlFor="filter-drawer"
+                  data-tooltip-id="filters"
+                  className={`tw:btn tw:bg-base-300 tw:rounded-none tw:border-none tw:text-accent 
+                    tw:text-md
+                    tw:flex tw:items-center tw:justify-center
+                    tw:h-11 tw:w-11
+                    tw:fixed
+                    tw:z-10
+                    tw:top-0 tw:right-0
+                    tw:hover:text-base-content                     
+                  `}
+                >
+                  {/* <span>Filters</span> */}
+                  {isFilterActive ? (
+                  <span aria-label="Show filters, some filters are active"><FontAwesomeIcon icon={["fas", "filter-circle-xmark"] as IconProp} /></span>                    
+                  ): 
+                  <span aria-label="Show filters"><FontAwesomeIcon icon={["fas", "filter"] as IconProp} /></span>                    
+                  }
+                </label>
+              
+              <Portal>
+                <Tooltip
+                  id="filters"
+                  opacity={1}
+                  className="custom-tooltip tooltip-basic tw:z-10"
+                  place="left"
+                  positionStrategy="fixed"
+                >
+                  <div className={`${isFilterActive ? "tw:w-44" : "tw:w-24"}`}>
+                    <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">
+                        {isFilterActive ? 
+                          <span>Show filters, some are active</span>
+                        :
+                        <span>Show filters</span>
+                        }
+                    </div>
+                  </div>
+                </Tooltip>
+              </Portal>
+                  </div>
         <div className={`tw:drawer tw:drawer-end tw:lg:drawer-open`}>
           <input
             id="filter-drawer"
@@ -1248,6 +1300,8 @@ function App() {
             <SidebarToggle
               showSidebar={showSidebar}
               toggleShowSidebar={toggleShowSidebar}
+              isFilterActive={isFilterActive}
+              resetFilters={resetFilters}
             />
             <section className="tw:bg-base-100">
               {/* <div className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6"> */}
@@ -1349,15 +1403,15 @@ function App() {
                       />
                     </div>
                   )}
-                  <div className="tw:pt-2 tw:lg:hidden">
+                  {/* <div className="tw:pt-2 tw:lg:hidden">
                     <label
                       htmlFor="filter-drawer"
-                      className="tw:btn tw:drawer-button button-primary"
+                      className="tw:btn button-primary"
                     >
                       <span>Filters</span>
                       <span aria-hidden="true"><FontAwesomeIcon icon={["fas", "filter"] as IconProp} /></span>                    
                     </label>
-                  </div>
+                  </div> */}
                 </div>
                 <div className="section">
                   <h1>Global Health</h1>

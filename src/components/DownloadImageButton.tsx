@@ -43,9 +43,9 @@ const DownloadImageButton = ({
         >
           <div className="tw:w-24">
             <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">
-              <p>
+              
                 {tooltipText ? tooltipText : label}
-              </p>
+              
             </div>
           </div>
         </Tooltip>
