@@ -1,8 +1,13 @@
 import "cally";
 import type { Visualization } from "@utils/visualization";
+interface Props {
+  rangeHandler: (event: Event) => void;
+  dateValue: string;
+  range: Visualization.RangeState;
+}
 
 const DateRangePicker = (
-  { rangeHandler, dateValue, range }: Visualization.DateRangePickerProps
+  { rangeHandler, dateValue, range }: Props
 ) => {
 
     return (

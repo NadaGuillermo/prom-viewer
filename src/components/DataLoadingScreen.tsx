@@ -1,8 +1,6 @@
-import React from 'react';
-
 type AnimationType = 'spinner' | 'dots' | 'bars';
 
-interface DataLoadingScreenProps {
+interface Props {
   /** Main text to display */
   message?: string;
   /** Optional subtext (e.g. "This may take a few moments...") */
@@ -11,11 +9,11 @@ interface DataLoadingScreenProps {
   animation?: AnimationType;
 }
 
-const DataLoadingScreen: React.FC<DataLoadingScreenProps> = ({
+const DataLoadingScreen = ({
   message = "Loading",
   subMessage,
   animation = 'spinner',
-}) => {
+}: Props) => {
   return (
     <div className={`tw:fixed tw:inset-0 tw:bg-base-300 tw:flex tw:items-center tw:justify-center tw:p-6 tw:z-10000`}>
       <div className="tw:max-w-md tw:w-full tw:text-center">
