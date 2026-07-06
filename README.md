@@ -1,73 +1,78 @@
-# React + TypeScript + Vite
+# PROM Viewer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> ⚠️ **Work in progress.** This README reflects the current state of development only. Sections may be incomplete or change as the project evolves.
 
-Currently, two official plugins are available:
+## Description / Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses (FHIR `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition`) for a patient in a clear, chart-based interface.
 
-## React Compiler
+Currently, the app does not connect to a real FHIR server. It runs against mock FHIR resources and configuration files served as static JSON from the `public/` folder.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Demo
 
-## Expanding the ESLint configuration
+Not set up yet.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+<!-- Screenshot placeholder -->
+![Screenshot placeholder](docs/screenshot-placeholder.png)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Clone the repository:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+   ```bash
+   git clone <repository-url>
+   cd prom-viewer
+   ```
+
+2. Install dependencies (this project uses Yarn):
+
+   ```bash
+   yarn
+   ```
+
+## Usage
+
+Start the development server:
+
+```bash
+yarn dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Other available commands:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Command          | Description                          |
+| ---------------- | ------------------------------------ |
+| `yarn dev`       | Start the dev server with hot reload |
+| `yarn build`     | Type-check and build for production  |
+| `yarn preview`   | Preview the production build locally |
+| `yarn lint`      | Lint the codebase                    |
+| `yarn lint:fix`  | Lint and auto-fix issues             |
+| `yarn format`    | Format code with Prettier            |
+| `yarn typecheck` | Run TypeScript type checking         |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+<!-- Screenshot placeholder -->
+![Screenshot placeholder](docs/screenshot-placeholder.png)
+
+## Features
+
+- Visualizes FHIR questionnaire responses (mock data for now)
+- Charting via ECharts
+- Export charts as PNG and table data as CSV
+- Date range filtering
+- Configurable colors and date formats via config files
+
+More features are planned as the project develops.
+
+## Tech Stack / Built With
+
+- **Language:** TypeScript
+- **Framework:** React 19
+- **Build tool:** Vite
+- **Styling:** Tailwind CSS, daisyUI
+- **Charting:** ECharts
+- **Package manager:** Yarn
+- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash
+
+## License
+
+Not specified yet. The project is intended to be released as open-source, with usage open to everyone.
