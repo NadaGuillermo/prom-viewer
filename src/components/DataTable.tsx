@@ -1,4 +1,5 @@
 import type { Visualization } from "@utils/visualization";
+import React from "react";
 
 import { truncateAtWord } from "@utils/visualization";
 import { Tooltip } from "react-tooltip";
@@ -42,9 +43,8 @@ const DataTable = ({
           </div>
         ))}
         {yData.map((row) => (
-          <>
+          <React.Fragment key={row.id}>
             <div
-              key={row.id}
               className={`tw:col-span-2 tw:border-b border-light
             tw:py-2 tw:px-2`}
             >
@@ -93,7 +93,7 @@ const DataTable = ({
                 </div>
               </div>
             ))}
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>

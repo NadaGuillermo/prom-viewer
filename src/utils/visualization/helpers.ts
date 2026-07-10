@@ -1,17 +1,3 @@
-import type { GlobalTypes } from "@customTypes/globalTypes";
-// import _ from "lodash";
-
-export const calculateMean = (data: GlobalTypes.NumberOrNull[]) => {
-  const filteredData = data.filter((value) => value !== null);
-  if (filteredData.length === 0) {
-    return null;
-  }
-  const sum = filteredData.reduce((a, b) => a + b, 0);
-  const mean = sum / filteredData.length;
-  return mean;
-};
-
-// ok
 export const normalizeValue = (
   value: number,
   minValue: number,

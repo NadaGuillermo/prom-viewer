@@ -1,4 +1,5 @@
 import * as _ from "lodash-es";
+import React from "react";
 
 interface Props {
   data: Record<string, string[]>;
@@ -38,9 +39,9 @@ const GridTable = ({ data, constrainWidth }: Props) => {
           </div>
         ))}
         {questionnaires.map((questionnaire, i) => (
-          <>
+          <React.Fragment
+          key={questionnaire}>
             <div
-              key={questionnaire}
               className={`tw:col-span-2 
             ${i < questionnaires.length - 1 ? "tw:border-b border-medium" : ""} tw:py-2 tw:px-2`}
             >
@@ -76,7 +77,7 @@ const GridTable = ({ data, constrainWidth }: Props) => {
                 </div>
               </div>
             ))}
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>

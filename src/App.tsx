@@ -78,7 +78,6 @@ import {
   addUnspecifiedDimensionToDomains,
   createDateQuestionnaireNamesRecord,
   createTableData,
-  createQuestionnaireCardData,
   createDomainQuestionnaireNamesDimensionsRecord,
   extractGlobalScoresDataSeries,
   extractDomainScoresDataSeries,
@@ -914,17 +913,17 @@ function App() {
     // ];
 
     // Questionnaire Card
-    const questionnaireCardData = createQuestionnaireCardData(
-      questionnairesForChart,
-    );
-    console.log("Questionnaire Card Data: ", questionnaireCardData);
-    const questionnaireNames = Object.keys(questionnaireCardData);
-    const longestQuestionnaireName = questionnaireNames.reduce(
-      (longest, current) =>
-        current.length > longest.length ? current : longest,
-      "",
-    );
-    const lengthOfLongestQuestionnaireName = longestQuestionnaireName.length;
+    // const questionnaireCardData = createQuestionnaireCardData(
+    //   questionnairesForChart,
+    // );
+    // console.log("Questionnaire Card Data: ", questionnaireCardData);
+    // const questionnaireNames = Object.keys(questionnaireCardData);
+    // const longestQuestionnaireName = questionnaireNames.reduce(
+    //   (longest, current) =>
+    //     current.length > longest.length ? current : longest,
+    //   "",
+    // );
+    // const lengthOfLongestQuestionnaireName = longestQuestionnaireName.length;
 
     // Global Scores Line Chart
     const globalScoresLineChartData: Visualization.ChartData = {
@@ -1856,7 +1855,7 @@ function App() {
                                     <div className="tw:ml-0 tw:px-4 tw:py-2 tw:border border-medium border-rounded-prominent">
                                       <div>
                                         <p>
-                                          Please select one or more scores
+                                          Please select one or more dimensions (scores)
                                           to view the items belonging to them{" "}
                                           <a data-tooltip-id={`${domain}-info`} className="tw:text-info">
                                             <FontAwesomeIcon

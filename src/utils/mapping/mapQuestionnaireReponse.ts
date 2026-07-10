@@ -62,19 +62,6 @@ export const mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse =
       };
     });
 
-    // Error: invalid questionnaire reference
-    // never the case since filtered after normalization
-    // if (correspondingQuestionnaire === undefined) {
-    //   issues.push({
-    //     id: `issue-questionnaireResponse-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-    //     level: "error",
-    //     message: `QuestionnaireResponse with id ${responseId} references non-existing questionnaire 
-    //       with url ${questionnaireUrl} and is therefore omitted.`,
-    //     resourceId: responseId,
-    //     resourceType: "QuestionnaireResponse",
-    //     linkId: undefined,
-    //   });
-    // }
     const emptyQuestionnaire: Mapping.Questionnaire = {
       id: "",
       name: "",

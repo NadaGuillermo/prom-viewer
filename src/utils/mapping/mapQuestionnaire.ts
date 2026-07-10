@@ -65,7 +65,7 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
     }
 
     const range = item.range;
-    const scoreHealthCorrelation = item.scoreHealthCorrelation;
+    // const scoreHealthCorrelation = item.scoreHealthCorrelation;
     const referenceQuestionnaireItems = item.referenceQuestionnaireItems;
     const scoreExpression = item.scoreExpression;
 
@@ -75,9 +75,9 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       answerOptions: filteredAnswerOptions,
       ...(item.text !== undefined && {text: item.text}),
       ...(range !== undefined && { range: range }),
-      ...(scoreHealthCorrelation !== undefined && {
-        scoreHealthCorrelation: scoreHealthCorrelation,
-      }),
+      // ...(scoreHealthCorrelation !== undefined && {
+      //   scoreHealthCorrelation: scoreHealthCorrelation,
+      // }),
       ...(referenceQuestionnaireItems !== undefined && {
         referenceQuestionnaireItems: referenceQuestionnaireItems,
       }),

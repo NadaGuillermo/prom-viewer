@@ -17,19 +17,19 @@ export const addConfigurationsToQuestionnaire = (
 ): Errors.Result<Mapping.Questionnaire> => {
   const issues: Errors.DataIssue[] = [];
 
-  const questionnaireLinkIds = Object.keys(questionnaire.items);
-  const configLinkIds: string[] =
-    config.questionnaires
-      .find((q: any) => q.questionnaire === questionnaire.url)
-      ?.domainItemMapping.flatMap((dim: any) =>
-        dim.questions.map((question: any) => question.itemId),
-      ) ?? [];
+  // const questionnaireLinkIds = Object.keys(questionnaire.items);
+  // const configLinkIds: string[] =
+  //   config.questionnaires
+  //     .find((q: any) => q.questionnaire === questionnaire.url)
+  //     ?.domainItemMapping.flatMap((dim: any) =>
+  //       dim.questions.map((question: any) => question.itemId),
+  //     ) ?? [];
 
   // const linkIdsInConfigButNotInQuestionnaire = _.difference(configLinkIds, questionnaireLinkIds);
-  const linkIdsInQuestionnaireButNotInConfig = _.difference(
-    questionnaireLinkIds,
-    configLinkIds,
-  );
+  // const linkIdsInQuestionnaireButNotInConfig = _.difference(
+  //   questionnaireLinkIds,
+  //   configLinkIds,
+  // );
 
   // if (linkIdsInConfigButNotInQuestionnaire.length > 0) {
   //     linkIdsInConfigButNotInQuestionnaire.forEach((linkId) => {

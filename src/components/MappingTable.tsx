@@ -1,5 +1,6 @@
 import * as _ from "lodash-es";
 import { colorPalette } from "@utils/charts";
+import React from "react";
 
 interface Props {
   data: Record<string, [string, string][]>;
@@ -118,15 +119,15 @@ const MappingTable = ({
           className="tw:col-span-2 tw:col-start-2 tw:md:col-span-3 tw:lg:col-span-4 tw:2xl:col-span-5
           tw:text-sm tw:font-semibold tw:uppercase tw:tracking-widest tw:select-none"
         >
-          Dimensions
+          Dimensions/Scores
         </div>
       </div>
       <div className="tw:divider tw:my-0"></div>
       {Object.entries(data).map(
         ([domain, dimensionsWithQuestionnaire], i) =>
           dimensionsWithQuestionnaire.length > 0 && (
-            <>
-              <div key={`${domain}: ${dimensionsWithQuestionnaire[0]}: ${dimensionsWithQuestionnaire[1]}`} 
+            <React.Fragment key={`${domain}: ${dimensionsWithQuestionnaire[0]}: ${dimensionsWithQuestionnaire[1]}`}>
+              <div 
                 className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 
                   tw:gap-4 tw:items-center">
                 
@@ -151,7 +152,7 @@ const MappingTable = ({
                 </div>
               </div>
               <div className={`tw:divider tw:my-0 ${i < dimensionsWithQuestionnaire.length - 1 ? "tw:mx-2" : ""}`}></div>
-            </>
+            </React.Fragment>
           ),
       )}
         <div className="tw:flex tw:flex-wrap tw:justify-start">

@@ -2,7 +2,6 @@ import type { Visualization } from "./types";
 import { unspecifiedDimension, type Mapping } from "@utils/mapping";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
-import { calculateMean } from "./helpers";
 import { ITEM_TYPES } from "@utils/mapping";
 import { getDateFormatPattern, parseFormattedDate } from "@utils/dateFormat";
 
@@ -94,99 +93,6 @@ export const getDataSeriesNameFromShortName = (
   return correspondingSeries ? correspondingSeries.name : "";
 };
 
-// ok
-// export const isQuestionnaireScoreItem = (
-//   item: Mapping.Item,
-// ): item is Mapping.QuestionnaireScoreItem => {
-//   return (item as Mapping.QuestionnaireScoreItem).range !== undefined;
-// };
-
-export const groupItemsByDomain = (items: Visualization.DataSeries[]) => {
-  const itemsByDomain = _.groupBy(items, (item) => item.domain);
-  return itemsByDomain;
-};
-
-/** Matrix */
-
-// export const buildRows = (
-//   dimensions: Visualization.MatrixDimension[],
-//   expanded: Set<string>,
-// ): Visualization.RowMeta[] => {
-//   let rows: Visualization.RowMeta[] = [];
-//   let rowIndex = 0;
-
-//   for (const dim of dimensions) {
-//     let dimensionRows: Visualization.RowMeta[] = [];
-//     const startIndex = rowIndex;
-
-//     dimensionRows.push({
-//       rowIndex: rowIndex++,
-//       dimensionId: dim.id,
-//       isDimension: true,
-//       label: dim.name,
-//     });
-
-//     if (expanded.has(dim.id)) {
-//       Object.keys(dim.items).forEach((itemKey) => {
-//         dimensionRows.push({
-//           rowIndex: rowIndex++,
-//           dimensionId: dim.id,
-//           isDimension: false,
-//           itemId: itemKey,
-//           label: Object.values(dim.questionnaire.items).find((i) => i.linkId === itemKey)?.label ?? "",
-//       });
-//       });
-//     }
-
-//     const endIndex = rowIndex - 1;
-
-//     if (endIndex > startIndex + 1) {
-//       // Reverse dimensionRows
-//       dimensionRows.reverse();
-
-//       // Correct row indices
-//       // dimensionRows.map((r) => {
-//       //   r.rowIndex = endIndex - r.rowIndex + startIndex;
-//       // });
-//     }
-
-//     // Push to rows
-//     rows = dimensionRows.concat(rows);
-//   }
-
-//   return rows;
-// }
-
-// export const buildSeriesData = (
-//   dimensions: Visualization.MatrixDimension[],
-//   rows: Visualization.RowMeta[],
-//   columns: string[],
-// ): [number, number, Visualization.NumberOrNull][] => {
-//   const dimMap = new Map(dimensions.map((d) => [d.id, d]));
-//   const data: [number, number, Visualization.NumberOrNull][] = [];
-
-//   for (const row of rows) {
-//     const dim = dimMap.get(row.dimensionId);
-//     const reversedRowIndex = rows.length - 1 - row.rowIndex;
-
-//     let values: Visualization.NumberOrNull[];
-//     if (row.isDimension) {
-//       values = dim?.dimensionValues ?? [];
-//     } else {
-//       const key = dim != undefined ? Object.keys(dim.items).find((key) => key === row.itemId) : "";
-//       const itemKey = key ?? "";
-//       values = dim != undefined && key ? dim.items[itemKey].map((item) => item) : []; // item.answer
-//     }
-
-//     for (let colIdx = 0; colIdx < columns.length; colIdx++) {
-//       // ECharts heatmap uses [colIndex, rowIndex, value]
-//       data.push([colIdx, reversedRowIndex, values[colIdx]]);
-//     }
-//   }
-
-//   return data;
-// }
-
 export const sortDomains = (
   domainCount: Record<string, number>,
   globalHealthDomains?: string[],
@@ -230,75 +136,16 @@ export const addUnspecifiedDimensionToDomains = (domains: string[]) => {
   return [...domains, unspecifiedDimension];
 }
 
-// TODO: Berechnung ggf. anpassen
-export const calculateRadarChartValue = (data: GlobalTypes.NumberOrNull[]) => {
-  const mean = calculateMean(data);
-  if (mean === null) {
-    return 0; // 0 oder null
-  }
-  return mean;
-};
-
 // ok
 export const getMinAndMaxAnswerOptionValueForItem = (
   item: Mapping.QuestionnaireItem,
 ) => {
   const answerOptions = item.answerOptions;
-  const answerOptionValues = answerOptions.map((answerOption) => {
-    return answerOption.value;
-  });
+  const answerOptionValues = answerOptions.map((opt) => opt.value).filter((val) => val !== null);
   const minValue = Math.min(...answerOptionValues);
   const maxValue = Math.max(...answerOptionValues);
   return [minValue, maxValue];
 };
-
-// not needed
-// export const normalizeQuestionnaireScores = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>) => {
-//   const originalAndNormalizedScoreValues: Record<string, Visualization.OriginalAndNormalizedScore> = {};
-//   const questionnaireResponsesArrayWithNormalizedScores = Object.entries(questionnaireResponses).map(([key, questionnaireResponse]) => {
-//     const questionnaire = questionnaireResponse.questionnaire;
-//     const scoreItemKeys = Object.keys(questionnaireResponse.items).filter((key) => {
-//       return isQuestionnaireScoreItem(questionnaire.items[key]);
-//     });
-//     //if (questionnaireResponse.scoreValue != undefined && questionnaireResponse.questionnaire.score != undefined) {
-//     // ne!
-//     if(scoreItemKeys.length > 0) {
-
-//     }
-//     const normalizedScores = scoreItemKeys.map((key) => {
-//       const normalizedScore = Number(normalizeValue(
-//           questionnaireResponse.items[key].answer,
-//           questionnaireResponse.questionnaire.items[key].range[0],
-//           questionnaireResponse.questionnaire.items[key].range[1],
-//         ).toFixed(3));
-//       const originalScore = questionnaireResponse.scoreValue;
-//       originalAndNormalizedScoreValues[questionnaireResponse.id] = {
-//         originalScore: originalScore,
-//         normalizedScore: normalizedScore,
-//       };
-
-//     });
-
-//     return { questionnaireResponseKey: key,
-//         normalizedQuestionnaireResponse: {
-//         ...questionnaireResponse,
-//         scoreValue: normalizedScore,
-//       } as Mapping.QuestionnaireResponse };
-
-//     //}
-//   });
-
-//   let questionnaireResponsesWithNormalizedScores: Record<string, Mapping.QuestionnaireResponse> = {};
-//   questionnaireResponsesArrayWithNormalizedScores.forEach((questionnaireResponse) => {
-//     if (questionnaireResponse == undefined) {
-//       return;
-//     }
-//     questionnaireResponsesWithNormalizedScores[questionnaireResponse.questionnaireResponseKey] = questionnaireResponse.normalizedQuestionnaireResponse;
-//   });
-
-//   return { questionnaireResponsesWithNormalizedScores: questionnaireResponsesWithNormalizedScores, scoreRecord: originalAndNormalizedScoreValues};
-
-// }
 
 const sortDates = (a: string, b:string, order: "ascending" | "descending" = "ascending", dateFormatPattern?: string) => {
   const pattern = dateFormatPattern ?? getDateFormatPattern();
@@ -397,19 +244,6 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
   return groupedQuestionnaireResponses;
 };
 
-// ok
-// export const getUniqueQuestionnaires = (
-//   proms: Record<string, Mapping.QuestionnaireResponse>,
-// ) => {
-//   const questionnaires = Object.values(proms).map((prom) => {
-//     return prom.questionnaire;
-//   });
-//   const uniqueQuestionnaires = [...new Set(questionnaires)];
-
-//   return uniqueQuestionnaires;
-// };
-
-// ok
 export const calculatePeriodOfObservations = (
   proms: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
@@ -459,54 +293,6 @@ export const createDateQuestionnaireNamesRecord = (
   return sortedQuestionnairesByDate;
 };
 
-
-export const createRadarData = (
-  chartData: Visualization.ChartData,
-): Record<string, string[]> => {
-  
-  const yDataByQuestionnaire: Record<string, Visualization.DataSeries[]> = {};
-  chartData.yData.forEach((series) =>{
-    if (!yDataByQuestionnaire[series.questionnaireName]) {
-      yDataByQuestionnaire[series.questionnaireName] = [];
-    }
-    yDataByQuestionnaire[series.questionnaireName].push(series);
-  });
-
-  const domainsByQuestionnaire: Record<string, string[]> = {};
-  Object.entries(yDataByQuestionnaire).forEach(([key, series]) => {
-    const domains = series.map((series) => series.domain);
-    const uniqueDomains = [...new Set(domains)];
-    if (!domainsByQuestionnaire[key]) {
-      domainsByQuestionnaire[key] = [];
-    }
-    domainsByQuestionnaire[key].push(... uniqueDomains); 
-  });
-
-  return domainsByQuestionnaire;
-}
-
-export const createQuestionnaireCardData = (
-  questionnaires: Mapping.Questionnaire[],
-): Record<string, [string, string[]]> => {
-  
-  const questionnaireDimensions: Record<string, [string, string[]]> = {};
-  questionnaires.forEach((questionnaire) => {
-    const questionnaireNameAndDimensions: [string, string[]] = ["", []];
-    const dimensions = Object.values(questionnaire.items).map((item) => item.domain);
-    const uniqueDimensions = [...new Set(dimensions)];
-    const name = questionnaire.name;
-    questionnaireNameAndDimensions[0] = name;
-    questionnaireNameAndDimensions[1] = uniqueDimensions;
-    questionnaireDimensions[questionnaire.id] = questionnaireNameAndDimensions;
-  });
-
-  return questionnaireDimensions;
-    
-}
-
-export const filterQuestionnairesAndQuestionnaireResponsesBasedOnSelectedFilters = (questionnaires: Mapping.Questionnaire[], questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, selectedQuestionnaireIds: string[], selectedStartDate: string, selectedEndDate: string) => {
-
-}
 
 export const createTableData = (
   questionnaires: Mapping.Questionnaire[],
@@ -632,7 +418,7 @@ export const createDomainQuestionnaireNamesDimensionsRecord = (
     
     dimensionScoresDataSeries.forEach((series) => {
       const questionnaireName = series.questionnaireName;
-      const dimension = series.shortName ?? series.name;
+      const dimension = series.shortName;
       if (!dimensionsByQuestionnaireAndDomain[domain][questionnaireName]) {
         dimensionsByQuestionnaireAndDomain[domain][questionnaireName] = [];;
       }
@@ -675,83 +461,6 @@ export const createDimensionWithQuestionnaireByDomainRecord = (
   });
   return domainDimensionQuestionnaireRecord;
 }
-
-// export const extractDimensionScoresDataSeriesBelongingToDomain = (
-//   domain: string,
-//   questionnaires: Mapping.Questionnaire[],
-//   allScoresDataSeries: Visualization.DataSeries[],
-//   itemsDataSeries: Visualization.DataSeries[],
-// ):Visualization.DataSeries[] => {
-//   const dimensionScoresDataSeries: Visualization.DataSeries[] = [];
-  
-//     const scores = allScoresDataSeries.filter(
-//       (score) => score.domain === domain,
-//     );
-//     const items = itemsDataSeries.filter(
-//       (item) => item.domain === domain,
-//     );
-//     // Filter, besser: valueExpression attribut -> gesamtes Fhir Format ändern
-//     scores.forEach((score) => {
-//       const scoreQuestionnaire = questionnaires.find((q) =>
-//         Object.keys(q.items).includes(score.id),
-//       );
-//       if (scoreQuestionnaire) {
-//         const scoreItem = scoreQuestionnaire.items[
-//           score.id
-//         ] as Mapping.QuestionnaireScoreItem;
-
-//         const itemsToBeRemoved = scoreItem.referenceQuestionnaireItems
-//           ? scoreItem.referenceQuestionnaireItems
-//               .map((linkId) => items.find((item) => item.id === linkId))
-//               .filter((item) => {
-//                 if (item === undefined) {
-//                   return true; // remove
-//                 }
-//                 // keep items that have a scoreExpression (intermediate scores)
-//                 const questionnaireItem = questionnaires.find((q) =>
-//                   Object.keys(q.items).includes(item.id),
-//                 )?.items[item.id] as Mapping.QuestionnaireScoreItem;
-//                 if (questionnaireItem === undefined) {
-//                   return true; // remove
-//                 }
-//                 if (questionnaireItem.scoreExpression !== undefined) {
-//                   return false; // keep intermediate scores
-//                 }
-//                 return true; // remove raw questions
-//               })
-//           : [];
-//         if (itemsToBeRemoved.length > 0) {
-//           _.pullAll(items, itemsToBeRemoved);
-//         }
-//       }
-//     });
-//     // console.log("Scores after filtering: ", scores);
-//     // console.log("Items after filtering: ", items);
-//     dimensionScoresDataSeries.push(...scores);
-//     dimensionScoresDataSeries.push(...items);
-    
-//     return dimensionScoresDataSeries;
-// }
-
-export const createHeatmapData = (
-  domains: string[],
-  dataSeries: Visualization.DataSeries[],
-  xData: string[],
-) => {
-  const chartDataByDomain: Record<string, Visualization.ChartData> = {};
-  domains.forEach((domain) => {
-    const dimensionScoreDataSeries = dataSeries.filter((series) => 
-    series.domain === domain && series.isDimensionScore
-    );
-    const yData = dimensionScoreDataSeries;
-    chartDataByDomain[domain] = {
-      xData: xData,
-      yData,
-    };
-  });
-
-  return chartDataByDomain;
-};
 
 export const extractDomainDataSeries = (
   data: Visualization.DataSeries[], 
@@ -855,10 +564,10 @@ export const extractItemsDataSeries = (
       const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
       const correspondingQuestionnaireItem = questionnaire !== undefined ? questionnaire.items[series.id] : undefined;
       if (correspondingQuestionnaireItem !== undefined) {
-        const dimension = correspondingQuestionnaireItem.dimension;
         const referencedItems = domainData.filter((series) => 
           (correspondingQuestionnaireItem as Mapping.QuestionnaireScoreItem).referenceQuestionnaireItems?.includes(series.id)
         );
+        const dimension = correspondingQuestionnaireItem.dimension ?? series.shortName;
         const dimensionItems = domainData.filter((series) => {
           const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
           if (questionnaire === undefined) {
@@ -870,12 +579,12 @@ export const extractItemsDataSeries = (
           }
           return questionnaireItem.dimension === dimension;
         });
-        const items = referencedItems !== undefined ? _.uniqBy([...dimensionItems, ...referencedItems], (series) => series.id) : _.uniqBy(dimensionItems, (series) => series.id);
-        const domainScoreIds = domainScoresDataSeries.map((series) => series.id);
+        const items = _.uniqBy([...dimensionItems, ...referencedItems], (series: Visualization.DataSeries) => series.id);
+        // const domainScoreIds = domainScoresDataSeries.map((series) => series.id);
         const dimensionScoreIds = dimensionScoresDataSeries.map((series) => series.id);
-        const otherDimensionScoreIds = dimensionScoresDataSeries.map((series) => series.id).filter((id) => !dimensionItems.map((s) => s.id).includes(id));
-        const allScoreIds = [...domainScoreIds, ...otherDimensionScoreIds, ...dimensionScoreIds];
-        const itemsForDimension = items.filter((item) => !allScoreIds.includes(item.id));
+        //const otherDimensionScoreIds = dimensionScoresDataSeries.map((series) => series.id).filter((id) => !dimensionItems.map((s) => s.id).includes(id));
+        // const allScoreIds = [...otherDimensionScoreIds, ...dimensionScoreIds];
+        const itemsForDimension = items.filter((item) => !dimensionScoreIds.includes(item.id));
 
         if(dimension !== undefined && itemsForDimension.length > 0) {
           if (!dimensionItemDataSeriesRecord[dimension]) {
@@ -913,17 +622,19 @@ export const createDomainDimensionsRecord = (
 ) => {
   const domainDimensionsRecord: Record<string, string[]> = {};
   Object.entries(dimensionScoresDataSeriesByDomain).forEach(([domain, dimensionScoresDataSeries]) => {
-    const dimensions = dimensionScoresDataSeries.map((series) => {
+    const dimensions = dimensionScoresDataSeries.map((series) =>
+     {
       const questionnaire = questionnaires.find((q) => q.id === series.questionnaireId);
       if (questionnaire !== undefined) {
         const questionnaireItem = questionnaire.items[series.id];
         if (questionnaireItem !== undefined) {
-          return questionnaireItem.dimension;
+          return questionnaireItem.dimension ?? series.shortName;
         }
-        return undefined;
+        return series.shortName;
       }
-      return undefined;
-    });
+      return series.shortName;
+    }
+  );
     const uniqueDimensions = _.uniq(dimensions.filter((dim) => dim !== undefined));
     domainDimensionsRecord[domain] = uniqueDimensions;
   });
