@@ -33,5 +33,15 @@
       ]
     },
     "decimalPrecision": 2
-  }
+  },
+  "qualifiedInterval": [
+    {
+      "category": "reference",
+      "range": {
+        "low": 25,
+        "high": 68
+      },
+      "context": "normal"
+    }
+  ]
 }
