@@ -1,6 +1,12 @@
-import { type Mapping, SCORE_HEALTH_CORRELATIONS, isScoreItem } from "@utils/mapping";
-
+import * as _ from "lodash-es";
+import {
+  type Mapping,
+  SCORE_HEALTH_CORRELATIONS,
+  isScoreItem,
+} from "@utils/mapping";
+// import type { NormalizedFHIR } from "@utils/fhir";
 import { issueFactories, type Errors } from "@utils/errors";
+import type { Config } from "./types";
 
 export const addDomainToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
@@ -37,6 +43,181 @@ export const getEmptyAnswerOptions = (
     }
   });
   return answerOptionsNotDefined;
+};
+
+export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
+  questionnaire: Mapping.Questionnaire,
+  observationDefinitions: Mapping.ObservationDefinition[],
+  config: any,
+): Errors.Result<Record<string, Mapping.Item>> => {
+  const issues: Errors.DataIssue[] = [];
+  const items: Record<string, Mapping.Item> = {};
+
+  const linkIds = Object.keys(questionnaire.items);
+  const scoreIds = Object.values(questionnaire.items)
+    .filter((item) => isScoreItem(item))
+    .map((item) => item.linkId);
+
+  linkIds.forEach((linkId) => {
+    const item = questionnaire.items[linkId];
+    if (scoreIds.includes(linkId)) {
+      const scoreItem = item as Mapping.QuestionnaireScoreItem;
+      const questionnaireDomainItemMapping = config.questionnaires.find(
+        (q: any) => q.questionnaire === questionnaire.url,
+      )?.domainItemMapping;
+      const questionnaireDomainItemMappingQuestionsInConfig =
+        questionnaireDomainItemMapping?.find((mapping: any) =>
+          mapping.questions.find((q: any) => q.itemId === linkId),
+        )?.questions;
+      const questionnaireScoreItemInConfig =
+        questionnaireDomainItemMappingQuestionsInConfig.find(
+          (q: any) => q.itemId === linkId,
+        );
+      const scoreDefinitionInConfig = questionnaireScoreItemInConfig
+        ? config.scoreDefinitions.find(
+            (scoreDef: any) =>
+              scoreDef.id === questionnaireScoreItemInConfig.scoreDefinitionId,
+          )
+        : undefined;
+      const observationDefinitionURLInConfig =
+        questionnaireScoreItemInConfig?.observationDefinition;
+      const correspondingObservationDefinition = observationDefinitions.find(
+        (obsdef) =>
+          observationDefinitionURLInConfig !== undefined &&
+          obsdef.url === observationDefinitionURLInConfig,
+      );
+      if (
+        scoreDefinitionInConfig !== undefined &&
+        correspondingObservationDefinition !== undefined
+      ) {
+        const referenceRangeInConfig: Config.ReferenceRange[] =
+          scoreDefinitionInConfig.referenceRange;
+        // const referenceValueInConfig: Config.ReferenceRange = scoreDefinitionInConfig.referenceValue;
+
+        //  const correspondingObservations = observations.filter((obs) => obs.observationDefinition === correspondingObservationDefinition.url);
+        // const correspondingResponses = questionnaireResponses.filter((response) => Object.keys(response.items).includes(linkId));
+
+        const referenceRangeInObservationDefinition:
+          | Mapping.ReferenceRange[]
+          | undefined = correspondingObservationDefinition.referenceRange;
+        // const referenceValueInObservationDefinition = correspondingObservationDefinition.referenceValue;
+
+        if (
+          referenceRangeInObservationDefinition !== undefined &&
+          referenceRangeInObservationDefinition.length > 0
+        ) {
+          if (
+            referenceRangeInConfig !== undefined &&
+            referenceRangeInConfig.length > 0
+          ) {
+            // warning that both have reference ranges defined
+            issues.push(
+              issueFactories.observationDefinition.additionalReferenceValuesInConfig(
+                correspondingObservationDefinition,
+              ),
+            );
+            // const scoreItemReferenceValue: Mapping.ReferenceRange[] = [];
+            const scoreItemReferenceRange: Mapping.ReferenceRange[] = [];
+            referenceRangeInConfig.forEach((refRange) => {
+              if (refRange.range.length === 1) {
+                scoreItemReferenceRange.push({
+                  range: refRange.range[0],
+                  name: refRange.name,
+                  ...(refRange.description && {
+                    description: refRange.description,
+                  }),
+                });
+              }
+              if (refRange.range.length === 2) {
+                scoreItemReferenceRange.push({
+                  range: [refRange.range[0], refRange.range[1]],
+                  name: refRange.name,
+                  ...(refRange.description && {
+                    description: refRange.description,
+                  }),
+                });
+              }
+            });
+            if (scoreItemReferenceRange.length > 0) {
+               scoreItem.referenceRange = scoreItemReferenceRange;
+            } else {
+               items[linkId] = scoreItem;
+            }
+          } else {
+            // take from observationDefinition
+            // const scoreItemReferenceValue: Mapping.ReferenceRange[] = [];
+            const scoreItemReferenceRange: Mapping.ReferenceRange[] = [];
+            referenceRangeInObservationDefinition.forEach((refRange) => {
+              if (typeof refRange.range === "number") {
+                scoreItemReferenceRange.push({
+                  range: refRange.range,
+                  name: refRange.name,
+                  ...(refRange.description && {
+                    description: refRange.description,
+                  }),
+                });
+              }
+              if (Array.isArray(refRange.range)) {
+                scoreItemReferenceRange.push({
+                  range: [refRange.range[0], refRange.range[1]],
+                  name: refRange.name,
+                  ...(refRange.description && {
+                    description: refRange.description,
+                  }),
+                });
+              }
+            });
+            if (scoreItemReferenceRange.length > 0) {
+              scoreItem.referenceRange = scoreItemReferenceRange;
+            }
+            items[linkId] = scoreItem;
+          }
+        } else {
+          if (
+            referenceRangeInConfig !== undefined &&
+            referenceRangeInConfig.length > 0
+          ) {
+            // const scoreItemReferenceValue: Mapping.ReferenceRange[] = [];
+            const scoreItemReferenceRange: Mapping.ReferenceRange[] = [];
+            referenceRangeInConfig.forEach((refRange) => {
+              if (refRange.range.length === 1) {
+                scoreItemReferenceRange.push({
+                  range: refRange.range[0],
+                  name: refRange.name,
+                  ...(refRange.description && {
+                    description: refRange.description,
+                  }),
+                });
+              }
+              if (refRange.range.length === 2) {
+                scoreItemReferenceRange.push({
+                  range: [refRange.range[0], refRange.range[1]],
+                  name: refRange.name,
+                  ...(refRange.description && {
+                    description: refRange.description,
+                  }),
+                });
+              }
+            });
+            if (scoreItemReferenceRange.length > 0) {
+              scoreItem.referenceRange = scoreItemReferenceRange;
+            }
+            items[linkId] = scoreItem;
+          } else {
+            items[linkId] = item;
+          }
+        }
+      } else {
+        items[linkId] = item;
+      }
+    } else {
+      items[linkId] = item;
+    }
+  });
+  return {
+    data: items,
+    issues: issues,
+  };
 };
 
 export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
@@ -103,13 +284,21 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
             range !== undefined &&
             (range[0] !== configRange[0] || range[1] !== configRange[1])
           ) {
-            issues.push(issueFactories.observationDefinition.contradictingRangeInConfig(correspondingObservationDefinition));
+            issues.push(
+              issueFactories.observationDefinition.contradictingRangeInConfig(
+                correspondingObservationDefinition,
+              ),
+            );
           }
           if (
             scoreHealthCorrelation !== undefined &&
             scoreHealthCorrelation !== configScoreHealthCorrelation
           ) {
-            issues.push(issueFactories.observationDefinition.contradictingScoreHealthCorrelationInConfig(correspondingObservationDefinition));
+            issues.push(
+              issueFactories.observationDefinition.contradictingScoreHealthCorrelationInConfig(
+                correspondingObservationDefinition,
+              ),
+            );
           }
         }
         // overwrite values
@@ -121,16 +310,28 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
         if (
           range !== undefined &&
           !isNaN(range[0]) &&
-          !isNaN(range[1]) &&
-          range[0] <= range[1]
+          !isNaN(range[1])
+          // && range[0] <= range[1]
         ) {
           items[linkId].range = [range[0], range[1]];
         } else {
           if (correspondingObservationDefinition !== undefined) {
             if (range === undefined) {
-              issues.push(issueFactories.observationDefinition.missingRange(correspondingObservationDefinition));
-            } else if (isNaN(range[0]) || isNaN(range[1]) || range[0] > range[1]) {
-              issues.push(issueFactories.observationDefinition.invalidRange(correspondingObservationDefinition));
+              issues.push(
+                issueFactories.observationDefinition.missingRange(
+                  correspondingObservationDefinition,
+                ),
+              );
+            } else if (
+              isNaN(range[0]) ||
+              isNaN(range[1]) ||
+              range[0] > range[1]
+            ) {
+              issues.push(
+                issueFactories.observationDefinition.invalidRange(
+                  correspondingObservationDefinition,
+                ),
+              );
             }
           }
         }
@@ -143,10 +344,17 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
         } else {
           if (correspondingObservationDefinition !== undefined) {
             if (scoreHealthCorrelation === undefined) {
-              issues.push(issueFactories.observationDefinition.missingScoreHealthCorrelation(correspondingObservationDefinition));
-            }
-            else {
-              issues.push(issueFactories.observationDefinition.invalidScoreHealthCorrelation(correspondingObservationDefinition));
+              issues.push(
+                issueFactories.observationDefinition.missingScoreHealthCorrelation(
+                  correspondingObservationDefinition,
+                ),
+              );
+            } else {
+              issues.push(
+                issueFactories.observationDefinition.invalidScoreHealthCorrelation(
+                  correspondingObservationDefinition,
+                ),
+              );
             }
           }
         }
@@ -180,26 +388,26 @@ export const addShortNamesToQuestionnaireItems = (
     items[linkId] = item;
     if (shortName !== undefined) {
       items[linkId].shortText = shortName;
-    } 
+    }
     // else {
-      // shortText is linkId
-      // cut length of linkId (should not be necessary in practice)
-      // const itemShortText = item.shortText;
-      // const shortenedItemText = item.shortText.slice(0, 25);
-      // items[linkId].shortText = shortenedItemText;
-      // if (shortenedItemText !== itemShortText) {
-      //   // warning
-      //   issues.push({
-      //     id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-      //     level: "warning",
-      //     message: `The name for item with linkId ${linkId} in Questionnaire with 
-      //       url ${questionnaire.url} had to be shortened 
-      //       to ${shortenedItemText} since it exceeds the maximum of 25 characters.`,
-      //     resourceId: questionnaire.id,
-      //     resourceType: "Questionnaire",
-      //     linkId: linkId,
-      //   });
-      // }
+    // shortText is linkId
+    // cut length of linkId (should not be necessary in practice)
+    // const itemShortText = item.shortText;
+    // const shortenedItemText = item.shortText.slice(0, 25);
+    // items[linkId].shortText = shortenedItemText;
+    // if (shortenedItemText !== itemShortText) {
+    //   // warning
+    //   issues.push({
+    //     id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
+    //     level: "warning",
+    //     message: `The name for item with linkId ${linkId} in Questionnaire with
+    //       url ${questionnaire.url} had to be shortened
+    //       to ${shortenedItemText} since it exceeds the maximum of 25 characters.`,
+    //     resourceId: questionnaire.id,
+    //     resourceType: "Questionnaire",
+    //     linkId: linkId,
+    //   });
+    // }
     // }
   });
   return {
@@ -228,16 +436,16 @@ export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
     const dimension = domainItemMapping?.questions.find(
       (question: any) => question.itemId === linkId,
     )?.dimension;
-    const isDimensioScore = domainItemMapping?.questions.find(
+    const isScore = domainItemMapping?.questions.find(
       (question: any) => question.itemId === linkId,
-    )?.isDimensionScore;
+    )?.isScore;
 
     items[linkId] = item;
     if (dimension !== undefined && dimension.length > 0) {
       items[linkId].dimension = dimension;
     }
-    if (isDimensioScore !== undefined && isDimensioScore) {
-      items[linkId].isDimensionScore = true;
+    if (isScore !== undefined && isScore) {
+      items[linkId].isScore = true;
     }
     if (domainScoreLinkId !== undefined && linkId === domainScoreLinkId) {
       (items[linkId] as Mapping.QuestionnaireScoreItem).isDomainScore = true;

@@ -1,8 +1,8 @@
-import type { GlobalTypes} from "@customTypes/globalTypes";
 import { SCORE_HEALTH_CORRELATIONS } from "./constants";
+import type { NormalizedFHIR } from "@utils/fhir";
 
 export namespace Mapping {
-  type Answer = GlobalTypes.NumberOrNull; // | string | boolean;
+  type Answer = number | null;
   type Item = QuestionnaireItem | QuestionnaireScoreItem;
 
   interface BaseItem {
@@ -11,14 +11,20 @@ export namespace Mapping {
     text?: string;
     shortText?: string;
     dimension?: string;
-    isDimensionScore?: boolean;
+    isScore?: boolean;
     thresholds?: number[];
   }
 
   /** Questionnaire */
   interface AnswerOption {
-    value: number;
+    value: Answer;
     label: string;
+  }
+
+  type ReferenceRange = {
+    range: [number, number] | number;
+    name: string;
+    description?: string;
   }
 
   interface QuestionnaireItem extends BaseItem {
@@ -32,6 +38,8 @@ export namespace Mapping {
     isGlobalScore?: boolean;
     referenceQuestionnaireItems?: string[]; // linkIds
     scoreExpression?: string;
+    referenceRange?: ReferenceRange[];
+    // referenceValue?: ReferenceRange[];
   }
 
   interface Questionnaire {
@@ -47,6 +55,8 @@ export namespace Mapping {
     url: string;
     range?: [number, number];
     scoreHealthCorrelation?: string;
+    referenceRange?: ReferenceRange[];
+    // referenceValue?: NormalizedFHIR.ReferenceRange[];
   }
 
   /** Response */
@@ -66,6 +76,6 @@ export namespace Mapping {
     id: string;
     value: Answer;
     questionnaireResponse: string; // QuestionnaireResponse.id
-    observationDefinition: string; // ObservationDefinition.id
+    observationDefinition: string; // ObservationDefinition.url
   }
 }

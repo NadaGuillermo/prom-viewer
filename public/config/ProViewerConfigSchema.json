@@ -30,6 +30,34 @@
                             "increase",
                             "decrease"
                         ]
+                    },
+                    "referenceRange": {
+                        "type": "array",
+                        "description": "Specifies one or more reference ranges or values for the score",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "range": {
+                                    "description": "Range as an array of lenth 2 (min, max) or value as an array of length 1",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "number"
+                                    },
+                                    "minItems": 1,
+                                    "maxItems": 2
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "description": "Name of the reference range"
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "Description or or context for the reference range"
+                                }
+                            },
+                            "required": ["range", "name"]                       
+                        },
+                        "minItems": 1                   
                     }
                 },
                 "required": ["id", "range", "scoreHealthCorrelation"]
@@ -71,8 +99,8 @@
                                             },
                                             "shortName": {
                                                 "type": "string",
-                                                "description": "Short name that should be displayed in the chart",
-                                                "$comment": "Useful if FHIR Questionnaire.item.text is not defined or item.linkId very long",
+                                                "description": "Human readable, preferably short, name that should be displayed in the chart",
+                                                "$comment": "Useful for all scores or if FHIR Questionnaire.item.text is not defined or item.linkId very long",
                                                 "maxLength": 25
                                             },
                                             "observationDefinition": {
@@ -85,10 +113,10 @@
                                                 "description": "Id of an item in scoreDefinitions",
                                                 "$comment": "Must match an id from scoreDefinitions"
                                             },
-                                            "isDimensionScore": {
+                                            "isScore": {
                                                 "type": "boolean",
                                                 "description": "Flag that determines whether the item is treated as a score for a health dimension",
-                                                "$comment": "Scores of a questionnaire which are not global health scores should be marked as dimension scores. Sometimes even simple items can be dimension scores"
+                                                "$comment": "Scores of a questionnaire should be marked as scores. Sometimes even simple items can be scores"
                                             },
                                             "dimension": {
                                                 "type": "string",
@@ -99,12 +127,12 @@
                                         "required": ["itemId"],
                                         "if": {
                                           "properties": {
-                                            "isDimensionScore": { "const": true }
+                                            "isScore": { "const": true }
                                           },
-                                          "required": ["isDimensionScore"]
+                                          "required": ["isScore"]
                                         },
                                         "then": {
-                                          "required": ["dimension"]
+                                          "required": []
                                         }
                                     },
                                     "minItems": 1

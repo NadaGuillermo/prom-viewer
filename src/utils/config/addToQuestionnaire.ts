@@ -6,6 +6,7 @@ import {
   addShortNamesToQuestionnaireItems,
   addDimensionAndDomainScoreFlagsToQuestionnaireItems,
   getEmptyAnswerOptions,
+  addReferenceRangesAndValuesToQuestionnaireScoreItems,
 } from "./utils";
 import * as _ from "lodash-es";
 
@@ -103,7 +104,17 @@ export const addConfigurationsToQuestionnaire = (
     issues.push(issue);
   });
 
+  // Reference ranges and values
+  const questionnaireItemsWithReferenceValuesAndErrorMessages = 
+    addReferenceRangesAndValuesToQuestionnaireScoreItems(questionnaireWithConfigSettings, observationDefinitions, config);
+  questionnaireWithConfigSettings.items = 
+  questionnaireItemsWithReferenceValuesAndErrorMessages.data;
+  questionnaireItemsWithReferenceValuesAndErrorMessages.issues.forEach((issue) => {
+    issues.push(issue);
+  })
 
+  
+    // empty answer options
   const itemsWithEmptyAnswerOptions = getEmptyAnswerOptions(
     questionnaireWithConfigSettings,
   );

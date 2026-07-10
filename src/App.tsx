@@ -544,9 +544,12 @@ function App() {
     /* Questionnaire */
     const promDataQuestionnairesWithConfigurationsAndErrorMessages =
       promDataQuestionnaires.map((questionnaire) => {
+        const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
+        const observations = promDataObservations.filter((obs) => responses.map((res) => res.id).includes(obs.questionnaireResponse));
+        const observationDefinitions = promDataObservationDefinitions.filter((obsDef) => observations.map((obs) => obs.observationDefinition).includes(obsDef.url));
         return addConfigurationsToQuestionnaire(
           questionnaire,
-          promDataObservationDefinitions,
+          observationDefinitions,
           config,
         );
       });
@@ -575,11 +578,11 @@ function App() {
       );
     const promDataQuestionnaireResponsesWithConfigurations =
       promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
-        (questionnaire) => questionnaire.data,
+        (response) => response.data,
       );
     const promDataQuestionnaireResponsesConfigurationIssues =
-      promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
-        (questionnaire) => questionnaire.issues,
+      promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.flatMap(
+        (response) => response.issues,
       );
     errors.push(...promDataQuestionnaireResponsesConfigurationIssues);
     console.log(
@@ -1380,11 +1383,11 @@ function App() {
                                         ).length
                                       }{" "}
                                       domains (left) map to their
-                                      corresponding questionnaire dimensions
+                                      corresponding questionnaire scores
                                       (right). 
                                     </p>
                                     <p>Greek letters indicate the
-                                      source questionnaire for each dimension
+                                      source questionnaire for each score
                                       (see legend at the bottom).
                                     </p>
                                   </div>
@@ -1853,7 +1856,7 @@ function App() {
                                     <div className="tw:ml-0 tw:px-4 tw:py-2 tw:border border-medium border-rounded-prominent">
                                       <div>
                                         <p>
-                                          Please select one or more dimensions
+                                          Please select one or more scores
                                           to view the items belonging to them{" "}
                                           <a data-tooltip-id={`${domain}-info`} className="tw:text-info">
                                             <FontAwesomeIcon

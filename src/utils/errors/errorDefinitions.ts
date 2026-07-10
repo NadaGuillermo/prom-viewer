@@ -86,7 +86,7 @@ export const issueFactories = {
       }),
     missingItems: (resource: NormalizedFHIR.QuestionnaireResponse): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.QR_EMPTY,
+        code: DataIssueCode.EMPTY_RESOURCE,
         level: "error",
 
         message: `QuestionnaireResponse has no items.`,
@@ -104,7 +104,7 @@ export const issueFactories = {
       }),
     missingQuestionnaire: (resource: any): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.QR_MISSING_QUESTIONNAIRE,
+        code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
 
         message: `Questionnaire referenced by QuestionnaireResponse is missing. The URL is probably invalid.`,
@@ -159,7 +159,7 @@ export const issueFactories = {
       }),
       missingInConfig: (resource: NormalizedFHIR.Questionnaire): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.Q_NOT_IN_CONFIG,
+        code: DataIssueCode.MISSING_RESOURCE_IN_CONFIG,
         level: "error",
 
         message: `Questionnaire is missing in the configuration file.`,
@@ -173,12 +173,12 @@ export const issueFactories = {
         context: {
           resourceId: resource.id,
         },
-      })
+      }), 
   },
   observation: { 
     missingQuestionnaireResponse: (resource: any): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.O_MISSING_QUESTIONNAIRE_RESPONSE,
+        code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
 
         message: `QuestionnaireResponse referenced by Observation is missing.`,
@@ -194,7 +194,7 @@ export const issueFactories = {
       }),
     missingObservationDefinition: (resource: any): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.O_MISSING_OBSERVATION_DEFINITION,
+        code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
 
         message: `ObservationDefinition referenced by Observation is missing.`,
@@ -230,7 +230,7 @@ export const issueFactories = {
   observationDefinition: { 
     contradictingRangeInConfig: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.OD_CONTRADICTING_CONFIG,
+        code: DataIssueCode.CONTRADICTING_VALUES,
         level: "warning",
 
         message: "Score range definition in ObservationDefinition contradicts range given in the configuration file. The latter is used.",
@@ -247,7 +247,7 @@ export const issueFactories = {
       }),
     contradictingScoreHealthCorrelationInConfig: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.OD_CONTRADICTING_CONFIG,
+        code: DataIssueCode.CONTRADICTING_VALUES,
         level: "warning",
 
         message: "ScoreHealthCorrelation definition in ObservationDefinition contradicts scoreHealthCorrelation given in the configuration file. The latter is used.",
@@ -330,7 +330,22 @@ export const issueFactories = {
           //range: resource.scoreHealthCorrelation,
           //expectedType: "increase | decrease",
         }
-      })
-    
+      }),
+      additionalReferenceValuesInConfig: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+        createIssue({
+          code: DataIssueCode.DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG,
+          level: "warning",
+
+          message: "There are reference values defined in both the ObservationDefinition and the configuration file. Only thos in the latter are used.",
+
+          resourceType: "ObservationDefinition",
+
+          showUser: false,
+
+          context: {
+            resourceId: resource.id,
+            value: resource.referenceRange
+          }
+        }),
   },
 };

@@ -113,15 +113,39 @@ export const createChartData = (
         seriesType = ITEM_TYPES.item;
       }
 
-      let referencedItems: string[] | undefined = undefined;
+      // let referencedItems: string[] = [];
+
+      const referenceValues: Visualization.ReferenceRange[] = [];
       if (isScoreItem(questionnaireItem)) {
-        if (
-          questionnaireItem.referenceQuestionnaireItems &&
-          questionnaireItem.referenceQuestionnaireItems.length > 0
-        ) {
-          referencedItems = questionnaireItem.referenceQuestionnaireItems;
-        }
+        const item = questionnaireItem as Mapping.QuestionnaireScoreItem;
+        if (item.referenceRange !== undefined && item.referenceRange.length > 0) {
+          const [min, max] = item.range;
+          item.referenceRange.forEach((range) => {
+            const referenceRange: Visualization.NumberOrTuple = range.range;
+            let normalizedReferenceRange: Visualization.NumberOrTuple;
+            if (Array.isArray(referenceRange)) {
+              let values: number[] = [];
+              referenceRange.forEach((val) => {
+                const normalizedValue = Number(normalizeValue(val, min, max).toFixed(3));
+                const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;
+                values.push(adjustedNormalizedValue)
+              })
+              normalizedReferenceRange = [values[0], values[1]];
+            } else {
+              const normalizedValue = Number(normalizeValue(referenceRange, min, max).toFixed(3));
+              const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;
+              normalizedReferenceRange = adjustedNormalizedValue;
+            }
+            referenceValues.push({
+              value: referenceRange,
+              normalizedValue: normalizedReferenceRange,
+              name: range.name,
+              description: range.description,
+            })
+        });       
       }
+      }
+
       const shortLinkId = linkId.slice(0, 25);
 
       dataSeriesOfQuestionnaire.push({
@@ -135,6 +159,7 @@ export const createChartData = (
         seriesType: seriesType,
         questionnaireId: questionnaire.id,
         questionnaireName: questionnaire.name,
+        ...(referenceValues.length > 0 && {referenceValues: referenceValues}),
       });
     });
 

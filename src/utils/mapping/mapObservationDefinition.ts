@@ -8,18 +8,26 @@ export const mapNormalizedObservationDefinitionToPromDataObservationDefinition =
   ): Errors.Result<Mapping.ObservationDefinition> => {
     const issues: Errors.DataIssue[] = [];
 
+    const range = normalizedObservationDefinition.range;
+    const scoreHealthCorrelation = normalizedObservationDefinition.scoreHealthCorrelation
+    const referenceRange: Mapping.ReferenceRange[] | undefined = normalizedObservationDefinition.referenceRange?.map((range) => {
+      return {
+        range: range.range,
+        name: range.context ?? "Reference Value"
+      }
+    });   
+    
+      //?.filter((range) => Array.isArray(range.range));
+    // const referenceValue = normalizedObservationDefinition.referenceRange?.filter((range) => typeof range.range === "number");
+
     return {
       data: {
         id: normalizedObservationDefinition.id,
         url: normalizedObservationDefinition.url,
-        ...(normalizedObservationDefinition.range !== undefined && {
-          range: normalizedObservationDefinition.range,
-        }),
-        ...(normalizedObservationDefinition.scoreHealthCorrelation !==
-          undefined && {
-          scoreHealthCorrelation:
-            normalizedObservationDefinition.scoreHealthCorrelation,
-        }),
+        ...(range && {range: range}),
+        ...(scoreHealthCorrelation && {scoreHealthCorrelation: scoreHealthCorrelation}),
+        ...(referenceRange && {referenceRange: referenceRange}),
+        // ...(referenceValue && {referenceValue: referenceValue}), 
       },
       issues: issues,
     };

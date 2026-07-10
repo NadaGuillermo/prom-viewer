@@ -6,23 +6,36 @@ export const normalizeObservationDefinition = (
 ): Errors.Result<NormalizedFHIR.ObservationDefinition> => {
   const issues: Errors.DataIssue[] = [];
 
-  const range = resource.qualifiedInterval?.find((interval: any) => {
-    return interval.range != undefined;
-  }).range;
+  const range = resource.qualifiedInterval?.find((interval: any) => interval.category !== undefined && interval.category === "absolute")?.range;
   const lowerBoundary = range?.low?.value;
   const upperBoundary = range?.high?.value;
-
   const lowerBoundNumber = Number(lowerBoundary);
   const upperBoundNumber = Number(upperBoundary);
+  const scoreHealthCorrelation: string | undefined = range?.extension
+    ?.find((ext: any) => ext.url === "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-ex-pro-score-score-health-correlation").text;
 
-  const scoreHealthCorrelation = range?.extension
-    ?.find((ext: any) => {
-      const coding = ext.valueCodeableConcept?.coding;
-      return coding != undefined;
+  
+  const referenceRangeObjects = resource.qualifiedInterval?.filter((interval: any) => interval.category !== undefined && (interval.category === "critical" || interval.category === "reference"));
+  const referenceRangeRaw: {range: [any, any], context: any}[] | undefined = referenceRangeObjects ? referenceRangeObjects.map((obj: any) => {return {range: [obj.range.low, obj.range.high], context: obj.context}}) : undefined;
+  // implicitely assume healthScoreCorrelation same as for absolute interval
+  let referenceRange: NormalizedFHIR.ReferenceRange[] = [];
+  // let referenceValue: NormalizedFHIR.ReferenceRange[] = [];
+  if (referenceRangeRaw !== undefined) {
+    referenceRangeRaw.forEach((rangeRaw) => {
+      const range = rangeRaw.range;
+      const context = rangeRaw.context;
+      if (range[0] !== undefined && range[1] !== undefined && !isNaN(range[0] && !isNaN(range[1]))) {
+        referenceRange.push({range: [Number(range[0]), Number(range[1])], ...(context && {context: context})});
+      } else {
+        if (range[0] !== undefined && !isNaN(range[0])) {
+          referenceRange.push({range: Number(range[0]), ...(context && {context: context})});
+        }
+        if (range[1] !== undefined && !isNaN(range[1])) {
+          referenceRange.push({range: Number(range[1]), ...(context && {context: context})});
+        }
+      }
     })
-    .valueCodeableConcept?.coding?.find((cod: any) => {
-      return cod.code != undefined;
-    })?.code;
+  }
 
   return {
     data: {
@@ -32,6 +45,8 @@ export const normalizeObservationDefinition = (
         !isNaN(upperBoundNumber) && {
           range: [lowerBoundNumber, upperBoundNumber],
         }),
+      ...(referenceRange.length > 0 && {referenceRange: referenceRange}),
+      //...(referenceValue.length > 0 && {referenceValue: referenceValue}),
       ...(scoreHealthCorrelation !== undefined && {
         scoreHealthCorrelation: scoreHealthCorrelation,
       }),

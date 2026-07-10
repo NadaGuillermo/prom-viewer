@@ -13,10 +13,10 @@ export namespace NormalizedFHIR {
     text: string;
     answerOptions?: AnswerOption[];
     referenceQuestionnaireItems?: string[];
-    range?: [number, number]; // update from ObservationDefinition
+    range?: [number, number]; // unused
     // observationCode?: string; // from Observation
     observationDefinition?: string; // id for ObservationDefinition
-    scoreHealthCorrelation?: string; // from ObservationDefinition
+    // scoreHealthCorrelation?: string; // from ObservationDefinition
     scoreExpression?: string;
   }
 
@@ -28,6 +28,11 @@ export namespace NormalizedFHIR {
     items: Record<string, QuestionnaireItem>;
   }
 
+  interface ReferenceRange {
+    range: [number, number] | number;
+    context?: string;
+  }
+
   /** Observation Definition */
   interface ObservationDefinition {
     id: string;
@@ -35,6 +40,8 @@ export namespace NormalizedFHIR {
     range?: [number, number];
     scoreHealthCorrelation?: string;
     // code: string;
+    referenceRange?: ReferenceRange[];
+    // referenceValue?: ReferenceRange[];
   }
 
   /** Response */
