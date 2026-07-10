@@ -436,16 +436,16 @@ export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
     const dimension = domainItemMapping?.questions.find(
       (question: any) => question.itemId === linkId,
     )?.dimension;
-    const isScore = domainItemMapping?.questions.find(
+    const isDimensionScore = domainItemMapping?.questions.find(
       (question: any) => question.itemId === linkId,
-    )?.isScore;
+    )?.isDimensionScore;
 
     items[linkId] = item;
     if (dimension !== undefined && dimension.length > 0) {
       items[linkId].dimension = dimension;
     }
-    if (isScore !== undefined && isScore) {
-      items[linkId].isScore = true;
+    if (isDimensionScore !== undefined && isDimensionScore) {
+      items[linkId].isDimensionScore = true;
     }
     if (domainScoreLinkId !== undefined && linkId === domainScoreLinkId) {
       (items[linkId] as Mapping.QuestionnaireScoreItem).isDomainScore = true;

@@ -113,7 +113,7 @@
                                                 "description": "Id of an item in scoreDefinitions",
                                                 "$comment": "Must match an id from scoreDefinitions"
                                             },
-                                            "isScore": {
+                                            "isDimensionScore": {
                                                 "type": "boolean",
                                                 "description": "Flag that determines whether the item is treated as a score for a health dimension",
                                                 "$comment": "Scores of a questionnaire should be marked as scores. Sometimes even simple items can be scores"
@@ -127,9 +127,9 @@
                                         "required": ["itemId"],
                                         "if": {
                                           "properties": {
-                                            "isScore": { "const": true }
+                                            "isDimensionScore": { "const": true }
                                           },
-                                          "required": ["isScore"]
+                                          "required": ["isDimensionScore"]
                                         },
                                         "then": {
                                           "required": []

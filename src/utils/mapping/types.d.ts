@@ -11,7 +11,7 @@ export namespace Mapping {
     text?: string;
     shortText?: string;
     dimension?: string;
-    isScore?: boolean;
+    isDimensionScore?: boolean;
     thresholds?: number[];
   }
 
