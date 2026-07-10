@@ -2,11 +2,12 @@ import type { Mapping } from "@utils/mapping/types";
 import { addObservationItemsToQuestionnaireResponse } from "./utils";
 import { issueFactories, type Errors } from "@utils/errors";
 import * as _ from "lodash-es";
+import type { Config } from "./types";
 
 export const addConfigurationsToQuestionnaireResponse = (
   response: Mapping.QuestionnaireResponse,
   observations: Mapping.Observation[],
-  config: any,
+  config: Config.PromConfig,
 ): Errors.Result<Mapping.QuestionnaireResponse> => {
   const issues: Errors.DataIssue[] = [];
 

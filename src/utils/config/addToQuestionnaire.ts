@@ -9,11 +9,12 @@ import {
   addReferenceRangesAndValuesToQuestionnaireScoreItems,
 } from "./utils";
 import * as _ from "lodash-es";
+import type { Config } from "./types";
 
 export const addConfigurationsToQuestionnaire = (
   questionnaire: Mapping.Questionnaire,
   observationDefinitions: Mapping.ObservationDefinition[],
-  config: any,
+  config: Config.PromConfig,
 ): Errors.Result<Mapping.Questionnaire> => {
   const issues: Errors.DataIssue[] = [];
 
@@ -72,7 +73,7 @@ export const addConfigurationsToQuestionnaire = (
   questionnaireWithConfigSettings.items = questionnaireItemsWithDomains;
 
   // Score attributes
-  const questionnaireItemsWithScoreAttributesAndErrorMessages =
+  const questionnaireItemsWithScoreAttributesAndErrorMessages = 
     addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems(
       questionnaireWithConfigSettings,
       observationDefinitions,

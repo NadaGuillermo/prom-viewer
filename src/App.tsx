@@ -30,6 +30,7 @@ import DownloadImageButton from "@components/DownloadImageButton";
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
 import type { Visualization } from "@utils/visualization";
 import type { Mapping } from "@utils/mapping";
+import type { Config } from "@utils/config";
 
 // Chart options
 import {
@@ -120,7 +121,7 @@ function App() {
     fhirData: false,
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
-  const [config, setConfig] = useState<any>(null);
+  const [config, setConfig] = useState<Config.PromConfig>();
   const [configError, setConfigError] = useState<string | null>(null);
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
 
@@ -267,8 +268,10 @@ function App() {
     const fetchConfig = async () => {
       try {
         const result = await loadConfig();
+       
         setConfig(result);
         setDataLoaded((prev) => ({ ...prev, config: true }));
+        
       } catch (error) {
         console.error("Error fetching config file:", error);
         setConfigError("Error fetching config file: " + error);
@@ -335,7 +338,7 @@ function App() {
     const errors: Errors.DataIssue[] = [];
 
     // only questionnaires and responses that are defined in config file
-    const questionnairesInConfig = extractQuestionnairesFromConfig(config);
+    const questionnairesInConfig: string[] = config !== undefined ? extractQuestionnairesFromConfig(config) : [];
 
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Questionnaires */
@@ -541,6 +544,10 @@ function App() {
 
     /* ----------------------- Add config data ------------------------ */
     /* Questionnaire */
+    let promDataQuestionnairesWithConfigurations = promDataQuestionnaires;
+    let promDataQuestionnaireResponsesWithConfigurations = promDataQuestionnaireResponses;
+    let domainsFromConfig: string[] = []
+    if (config !== undefined) {
     const promDataQuestionnairesWithConfigurationsAndErrorMessages =
       promDataQuestionnaires.map((questionnaire) => {
         const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
@@ -552,7 +559,7 @@ function App() {
           config,
         );
       });
-    const promDataQuestionnairesWithConfigurations =
+    promDataQuestionnairesWithConfigurations =
       promDataQuestionnairesWithConfigurationsAndErrorMessages.map(
         (questionnaire) => questionnaire.data,
       );
@@ -575,7 +582,7 @@ function App() {
           config,
         ),
       );
-    const promDataQuestionnaireResponsesWithConfigurations =
+    promDataQuestionnaireResponsesWithConfigurations =
       promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
         (response) => response.data,
       );
@@ -592,20 +599,21 @@ function App() {
     // Domains
     // const globalHealthDimensionsFromConfig =
     //   extractGlobalHealthDimensionsFromConfig(config);
-    const domainCountFromConfig = extractDomainsFromConfig(config);
+    const domainRecordFromConfig = extractDomainsFromConfig(config);
     // const domainsFromConfig = Object.keys(domainCountFromConfig);
-    console.log("domains from config: ", domainCountFromConfig)
+    console.log("domains from config: ", domainRecordFromConfig)
     const globalHealthDomainsFromConfig =
       extractGlobalHealthDomainsFromConfig(config);
     console.log(
       "Global Health Domains from Config: ",
       globalHealthDomainsFromConfig,
     );
-    const domains = sortDomains(
-      domainCountFromConfig,
+    domainsFromConfig = sortDomains(
+      domainRecordFromConfig,
       globalHealthDomainsFromConfig,
     );
     // const domainsWithUnspecifiedDomain = addUnspecifiedDimensionToDomains(domains);
+  }
 
     /* ----------------------- Clean data ------------------------ */
     /* Questionnaire Response */
@@ -700,7 +708,7 @@ function App() {
     setDataIssuesForUser(uniqueErrorsForDisplay); // ForDisplay
     setDataIssues(uniqueErrors);
     // setGlobalHealthDimensions(globalHealthDimensionsFromConfig);
-    setDomains(domains);
+    setDomains(domainsFromConfig);
     setQuestionnairesReady(true);
     setSelectedQuestionnaires(
       questionnaires.map((questionnaire) => questionnaire.id),

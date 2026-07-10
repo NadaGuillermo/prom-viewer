@@ -1,9 +1,10 @@
 import type { NormalizedFHIR } from "@utils/fhir";
 import { issueFactories, type Errors } from "@utils/errors";
 import * as _ from "lodash-es";
+import type { Config } from "./types";
 
-export const extractQuestionnairesFromConfig = (config: any): string[] => {
-    const questionnaires: string[] = config.questionnaires.map((q: any) => q.questionnaire);
+export const extractQuestionnairesFromConfig = (config: Config.PromConfig): string[] => {
+    const questionnaires: string[] = config.questionnaires.map((q) => q.questionnaire);
     return [...new Set(questionnaires)];
 }
 

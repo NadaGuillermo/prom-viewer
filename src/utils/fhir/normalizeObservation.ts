@@ -10,7 +10,7 @@ export const normalizeObservation = (
   const questionnaireResponse =
     getQuestionnaireResponseIdFromObservationReferenceAttribute(resource);
   const observationDefinition = resource.extension?.find(
-    (ext: any) => ext.valueCanonical !== undefined,
+    (ext: any) => ext.url === "http://hl7.org/fhir/StructureDefinition/workflow-instantiatesCanonical"
   )?.valueCanonical; // url
   // const observationText = resource.code?.coding?.find((cod: any) => cod.display !== undefined && cod.code !== undefined)?.display;
   const observationValue = resource.valueQuantity

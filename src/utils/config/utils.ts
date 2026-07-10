@@ -10,14 +10,14 @@ import type { Config } from "./types";
 
 export const addDomainToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
-  config: any,
+  config: Config.PromConfig,
 ): Record<string, Mapping.Item> => {
   const items: Record<string, Mapping.Item> = {};
   const questionnaireDomainItemMapping = config.questionnaires.find(
     (q: any) => q.questionnaire === questionnaire.url,
   )?.domainItemMapping;
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
-    const domain = questionnaireDomainItemMapping.find((dim: any) =>
+    const domain = questionnaireDomainItemMapping?.find((dim: any) =>
       dim.questions.map((question: any) => question.itemId).includes(linkId),
     )?.domain;
     items[linkId] = item;
@@ -48,7 +48,7 @@ export const getEmptyAnswerOptions = (
 export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
   questionnaire: Mapping.Questionnaire,
   observationDefinitions: Mapping.ObservationDefinition[],
-  config: any,
+  config: Config.PromConfig,
 ): Errors.Result<Record<string, Mapping.Item>> => {
   const issues: Errors.DataIssue[] = [];
   const items: Record<string, Mapping.Item> = {};
@@ -70,7 +70,7 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
           mapping.questions.find((q: any) => q.itemId === linkId),
         )?.questions;
       const questionnaireScoreItemInConfig =
-        questionnaireDomainItemMappingQuestionsInConfig.find(
+        questionnaireDomainItemMappingQuestionsInConfig?.find(
           (q: any) => q.itemId === linkId,
         );
       const scoreDefinitionInConfig = questionnaireScoreItemInConfig
@@ -88,6 +88,7 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
       );
       if (
         scoreDefinitionInConfig !== undefined &&
+        scoreDefinitionInConfig.referenceRange !== undefined &&
         correspondingObservationDefinition !== undefined
       ) {
         const referenceRangeInConfig: Config.ReferenceRange[] =
@@ -223,7 +224,7 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
 export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
   questionnaire: Mapping.Questionnaire,
   observationDefinitions: Mapping.ObservationDefinition[],
-  config: any,
+  config: Config.PromConfig,
 ): Errors.Result<Record<string, Mapping.Item>> => {
   const issues: Errors.DataIssue[] = [];
   const items: Record<string, Mapping.Item> = {};
@@ -231,12 +232,12 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
     (q: any) => q.questionnaire === questionnaire.url,
   )?.domainItemMapping;
   const observationDefinitionUrlsInConfig =
-    questionnaireDomainItemMapping.flatMap((dim: any) =>
+    questionnaireDomainItemMapping?.flatMap((dim: any) =>
       dim.questions.map((question: any) => question.observationDefinition),
     );
   const correspondingObservationDefinitions = observationDefinitions.filter(
     (observationDefinition) =>
-      observationDefinitionUrlsInConfig.includes(observationDefinition.url),
+      observationDefinitionUrlsInConfig?.includes(observationDefinition.url),
   );
 
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
@@ -247,7 +248,7 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
     const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
       dim.questions.map((question: any) => question.itemId).includes(linkId),
     );
-    const observationDefinitionUrl = domainItemMapping?.questions.find(
+    const observationDefinitionUrl = domainItemMapping?.questions?.find(
       (question: any) => question.itemId === linkId,
     )?.observationDefinition;
     if (observationDefinitionUrl !== undefined) {
@@ -264,7 +265,7 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
       }
 
       // config
-      const scoreDefinitionId = domainItemMapping?.questions.find(
+      const scoreDefinitionId = domainItemMapping?.questions?.find(
         (question: any) => question.itemId === linkId,
       )?.scoreDefinitionId;
       const scoreDefinition = config.scoreDefinitions.find(
@@ -371,7 +372,7 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
 
 export const addShortNamesToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
-  config: any,
+  config: Config.PromConfig,
 ): Errors.Result<Record<string, Mapping.Item>> => {
   const items: Record<string, Mapping.Item> = {};
   const issues: Errors.DataIssue[] = [];
@@ -382,7 +383,7 @@ export const addShortNamesToQuestionnaireItems = (
     const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
       dim.questions.map((question: any) => question.itemId).includes(linkId),
     );
-    const shortName = domainItemMapping?.questions.find(
+    const shortName = domainItemMapping?.questions?.find(
       (question: any) => question.itemId === linkId,
     )?.shortName;
     items[linkId] = item;
@@ -418,7 +419,7 @@ export const addShortNamesToQuestionnaireItems = (
 
 export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
-  config: any,
+  config: Config.PromConfig,
 ): Errors.Result<Record<string, Mapping.Item>> => {
   const items: Record<string, Mapping.Item> = {};
   const issues: Errors.DataIssue[] = [];
@@ -428,15 +429,14 @@ export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
   const questionnaireDomainItemMapping =
     questionnaireFromConfig?.domainItemMapping;
   const globalScoreLinkIds = questionnaireFromConfig?.globalScores;
-  const domainScoreLinkId = questionnaireDomainItemMapping?.domainScore;
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
     const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
       dim.questions.map((question: any) => question.itemId).includes(linkId),
     );
-    const dimension = domainItemMapping?.questions.find(
+    const dimension = domainItemMapping?.questions?.find(
       (question: any) => question.itemId === linkId,
     )?.dimension;
-    const isDimensionScore = domainItemMapping?.questions.find(
+    const isDimensionScore = domainItemMapping?.questions?.find(
       (question: any) => question.itemId === linkId,
     )?.isDimensionScore;
 
@@ -446,9 +446,6 @@ export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
     }
     if (isDimensionScore !== undefined && isDimensionScore) {
       items[linkId].isDimensionScore = true;
-    }
-    if (domainScoreLinkId !== undefined && linkId === domainScoreLinkId) {
-      (items[linkId] as Mapping.QuestionnaireScoreItem).isDomainScore = true;
     }
     if (
       globalScoreLinkIds !== undefined &&
@@ -466,7 +463,7 @@ export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
 export const addObservationItemsToQuestionnaireResponse = (
   questionnaireResponse: Mapping.QuestionnaireResponse,
   observations: Mapping.Observation[],
-  config: any,
+  config: Config.PromConfig,
 ): Mapping.QuestionnaireResponse => {
   const response = questionnaireResponse;
   // find observations for response
@@ -488,7 +485,7 @@ export const addObservationItemsToQuestionnaireResponse = (
         .map((question: any) => question.observationDefinition)
         .includes(observationDefinition),
     );
-    const linkId = domainItemMapping?.questions.find(
+    const linkId = domainItemMapping?.questions?.find(
       (question: any) =>
         question.observationDefinition === observationDefinition,
     )?.itemId;

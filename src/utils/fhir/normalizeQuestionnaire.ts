@@ -103,9 +103,9 @@ export const normalizeQuestionnaire = (
   } => {
     const referenceQuestionnaireItems: string[] = [];
     let scoreExpression: string | undefined = undefined;
-    let calculationFormula = item.extension?.find((ext: any) => {
-      return ext.valueExpression?.expression !== undefined;
-    })?.valueExpression.expression;
+    let calculationFormula = item.extension?.find((ext: any) => 
+      ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+    )?.valueExpression?.expression;
 
     if (calculationFormula !== undefined) {
       // check if calculationFormula is only a reference
@@ -142,10 +142,10 @@ export const normalizeQuestionnaire = (
 
   const extractRange = (item: any): [number, number] | undefined => {
     const extensionMinVal = item.extension?.find((ext: any) =>
-      ext.url?.includes("minValue"),
+      ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
     );
     const extensionMaxVal = item.extension?.find((ext: any) =>
-      ext.url?.includes("maxValue"),
+      ext.url === "http://hl7.org/fhir/StructureDefinition/maxValue",
     );
 
     if (extensionMinVal === undefined || extensionMaxVal === undefined) {
