@@ -1,10 +1,10 @@
-# PRO Viewer
+# PROM Viewer
 
 > ⚠️ **Work in progress.** This README reflects the current state of development only. Sections may be incomplete or change as the project evolves.
 
 ## Description / Overview
 
-PRO Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses (FHIR `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition`) for a patient in a clear, chart-based interface.
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses (FHIR `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition`) for a patient in a clear, chart-based interface.
 
 Currently, the app does not connect to a real FHIR server. It runs against mock FHIR resources and configuration files served as static JSON from the `public/` folder.
 
