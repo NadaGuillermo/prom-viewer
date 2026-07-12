@@ -22,7 +22,10 @@
       "scoreHealthCorrelation": "increase",
       "referenceRange": [{
         "range": [20,80],
-        "name": "Schlecht"
+        "name": "Range Example"
+      }, {
+        "range": [86],
+        "name": "Standard Line"
       }]
     },
     {
