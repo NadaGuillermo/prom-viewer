@@ -1657,7 +1657,15 @@ function App() {
                       dimensionScoresDataSeriesByDomain[domain] && dimensionScoresDataSeriesByDomain[domain].length > 0 && (
                         <React.Fragment key={domain}>
                           <h3>{domain}</h3>
-                          <LineChartGroup name={domain}>
+                          <LineChartGroup
+                            name={domain}
+                            hasReferenceValues={dimensionScoresDataSeriesByDomain[
+                              domain
+                            ].some(
+                              (series) =>
+                                (series.referenceValues?.length ?? 0) > 0,
+                            )}
+                          >
                           <div className="tw:overflow-x-auto">
                             <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
                               {dimensionScoresDataSeriesByDomain[domain].map(
@@ -1737,6 +1745,12 @@ function App() {
                                         }
                                         lineOption={
                                           groupedLineChartOptions.series
+                                        }
+                                        markAreaOptions={
+                                          groupedLineChartOptions.markArea
+                                        }
+                                        markLineOptions={
+                                          groupedLineChartOptions.markLine
                                         }
                                       />
                                     </div>
@@ -1945,7 +1959,16 @@ function App() {
                                               key={domain + "-" + dimension}
                                             >
                                               <h5>{dimension}</h5>
-                                              <LineChartGroup name={domain + "-" + dimension}>
+                                              <LineChartGroup
+                                                name={domain + "-" + dimension}
+                                                hasReferenceValues={itemDataSeriesByDomainAndDimension[
+                                                  domain
+                                                ][dimension].some(
+                                                  (series) =>
+                                                    (series.referenceValues
+                                                      ?.length ?? 0) > 0,
+                                                )}
+                                              >
                                               <div
                                                 className={`tw:w-full tw:overflow-x-auto tw:max-w-5xl`}
                                               >
@@ -2038,6 +2061,12 @@ function App() {
                                                             }
                                                             lineOption={
                                                               groupedLineChartOptions.series
+                                                            }
+                                                            markAreaOptions={
+                                                              groupedLineChartOptions.markArea
+                                                            }
+                                                            markLineOptions={
+                                                              groupedLineChartOptions.markLine
                                                             }
                                                             displayNameInTooltip={false}
                                                           />

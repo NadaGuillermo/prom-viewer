@@ -17,6 +17,11 @@ export const colorPalette: string[] = [
   ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes.okabeIto,
 ];
 
+export const referenceColors: Colors.ReferenceColors = {
+  ...DEFAULT_COLOR_CONFIG.charts.reference,
+  box: { ...DEFAULT_COLOR_CONFIG.charts.reference.box },
+};
+
 export function applyChartColorConfig(config: Colors.ColorConfig): void {
   Object.assign(chartColorRecord, buildChartColorRecord(config.theme));
   mutedColorPalette.splice(
@@ -29,4 +34,7 @@ export function applyChartColorConfig(config: Colors.ColorConfig): void {
     colorPalette.length,
     ...config.charts.categoricalPalettes.okabeIto,
   );
+  referenceColors.line = config.charts.reference.line;
+  referenceColors.box.color = config.charts.reference.box.color;
+  referenceColors.box.opacities = [...config.charts.reference.box.opacities];
 }

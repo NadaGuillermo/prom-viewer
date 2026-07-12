@@ -58,10 +58,19 @@ export const DEFAULT_CATEGORICAL_PALETTES: Colors.CategoricalPalettes = {
   okabeIto: DEFAULT_OKABE_ITO_PALETTE,
 };
 
+export const DEFAULT_REFERENCE_COLORS: Colors.ReferenceColors = {
+  line: "#6B7280",
+  box: {
+    color: "#6B7280",
+    opacities: [0.3, 0.2, 0.12],
+  },
+};
+
 export const DEFAULT_COLOR_CONFIG: Colors.ColorConfig = {
   theme: DEFAULT_THEME_COLORS,
   charts: {
     categoricalPalettes: DEFAULT_CATEGORICAL_PALETTES,
+    reference: DEFAULT_REFERENCE_COLORS,
   },
 };
 

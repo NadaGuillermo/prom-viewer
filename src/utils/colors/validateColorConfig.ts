@@ -20,6 +20,14 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(isNonEmptyString);
 }
 
+function isNonEmptyNumberArray(value: unknown): value is number[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((entry) => typeof entry === "number" && !Number.isNaN(entry))
+  );
+}
+
 // Drops unknown or malformed fields instead of rejecting the whole config,
 // so a partially-broken colors.json still improves on the defaults.
 function validateThemeColors(
@@ -50,6 +58,34 @@ function validateCategoricalPalettes(
   return palettes;
 }
 
+type PartialReferenceColors = NonNullable<
+  Colors.PartialColorConfig["charts"]
+>["reference"];
+type PartialReferenceBoxColors = NonNullable<PartialReferenceColors>["box"];
+
+function validateReferenceColors(
+  value: unknown,
+): PartialReferenceColors | undefined {
+  if (!isRecord(value)) return undefined;
+  const reference: PartialReferenceColors = {};
+  if (isNonEmptyString(value.line)) {
+    reference.line = value.line;
+  }
+  if (isRecord(value.box)) {
+    const box: PartialReferenceBoxColors = {};
+    if (isNonEmptyString(value.box.color)) {
+      box.color = value.box.color;
+    }
+    if (isNonEmptyNumberArray(value.box.opacities)) {
+      box.opacities = value.box.opacities;
+    }
+    if (Object.keys(box).length > 0) {
+      reference.box = box;
+    }
+  }
+  return Object.keys(reference).length > 0 ? reference : undefined;
+}
+
 export function validateColorConfig(input: unknown): Colors.PartialColorConfig {
   if (!isRecord(input)) return {};
 
@@ -57,9 +93,17 @@ export function validateColorConfig(input: unknown): Colors.PartialColorConfig {
   const categoricalPalettes = isRecord(input.charts)
     ? validateCategoricalPalettes(input.charts.categoricalPalettes)
     : undefined;
+  const reference = isRecord(input.charts)
+    ? validateReferenceColors(input.charts.reference)
+    : undefined;
 
   return {
     ...(theme && { theme }),
-    ...(categoricalPalettes && { charts: { categoricalPalettes } }),
+    ...((categoricalPalettes || reference) && {
+      charts: {
+        ...(categoricalPalettes && { categoricalPalettes }),
+        ...(reference && { reference }),
+      },
+    }),
   };
 }

@@ -26,6 +26,8 @@ import {
   TitleComponent,
   DataZoomComponent,
   MatrixComponent,
+  MarkLineComponent,
+  MarkAreaComponent,
 } from "echarts/components";
 
 import DownloadImageButton from "@components/DownloadImageButton";
@@ -52,6 +54,8 @@ use([
   DataZoomComponent,
   CanvasRenderer,
   SankeyChart,
+  MarkLineComponent,
+  MarkAreaComponent,
 ]);
 
 interface Props {

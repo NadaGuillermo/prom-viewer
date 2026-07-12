@@ -21,18 +21,15 @@
       "range": [0, 100],
       "scoreHealthCorrelation": "increase",
       "referenceRange": [{
-        "range": [2,8],
+        "range": [20,80],
         "name": "Schlecht"
       }]
     },
     {
       "id": "eortc-symptom",
       "range": [0, 100],
-      "scoreHealthCorrelation": "decrease",
-      "referenceRange": [{
-        "range": [40,50],
-        "name": "blabla"
-      }]
+      "scoreHealthCorrelation": "decrease"
+      
     }
   ],
   "questionnaires": [

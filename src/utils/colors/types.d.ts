@@ -30,8 +30,19 @@ export namespace Colors {
     okabeIto: string[];
   }
 
+  export interface ReferenceBoxColors {
+    color: string;
+    opacities: number[];
+  }
+
+  export interface ReferenceColors {
+    line: string;
+    box: ReferenceBoxColors;
+  }
+
   export interface ChartColorConfig {
     categoricalPalettes: CategoricalPalettes;
+    reference: ReferenceColors;
   }
 
   export interface ColorConfig {
@@ -45,6 +56,10 @@ export namespace Colors {
     theme?: PartialThemeColors;
     charts?: {
       categoricalPalettes?: Partial<CategoricalPalettes>;
+      reference?: {
+        line?: string;
+        box?: Partial<ReferenceBoxColors>;
+      };
     };
   };
 }

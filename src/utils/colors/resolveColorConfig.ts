@@ -17,6 +17,14 @@ export function resolveColorConfig(input: unknown): Colors.ColorConfig {
         ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes,
         ...partial.charts?.categoricalPalettes,
       },
+      reference: {
+        ...DEFAULT_COLOR_CONFIG.charts.reference,
+        ...partial.charts?.reference,
+        box: {
+          ...DEFAULT_COLOR_CONFIG.charts.reference.box,
+          ...partial.charts?.reference?.box,
+        },
+      },
     },
   };
 }

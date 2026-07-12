@@ -8,9 +8,21 @@ import type {
   TooltipComponentOption,
   RadarSeriesOption,
   RadarComponentOption,
+  MarkLineComponentOption,
+  MarkAreaComponentOption,
 } from "echarts";
 
 import { chartColorRecord } from "./chartColors";
+
+const markAreaOption: MarkAreaComponentOption = {
+  silent: false,
+  z: 1,
+  animation: false,
+}
+
+const markLineOption: MarkLineComponentOption = {
+
+}
 
 const lineChartSeriesOption: LineSeriesOption = {
   connectNulls: true,
@@ -185,6 +197,8 @@ export const singleLineChartOptions = {
   yAxis: singleLineChartYAxisOption,
   tooltip: singleLineChartTooltipOption,
   series: lineChartSeriesOption,
+  markArea: markAreaOption,
+  markLine: markLineOption,
 }
 
 const justYAxisLineChartTitleOption: TitleComponentOption = {
@@ -302,6 +316,8 @@ export const groupedLineChartOptions = {
   yAxis: groupedLineChartYAxisOption,
   tooltip: groupedLineChartTooltipOption,
   series: groupedLineChartSeriesOption,
+  markArea: markAreaOption,
+  markLine: markLineOption,
 }
 
 const emptyLineChartTitleOption: TitleComponentOption = {

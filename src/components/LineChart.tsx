@@ -1,5 +1,7 @@
+import { useContext } from "react";
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import { type Charts, mutedColorPalette } from "@utils/charts";
+import { ShowReferenceValuesContext } from "@components/LineChartGroup";
+import { type Charts, mutedColorPalette, referenceColors } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
@@ -15,6 +17,8 @@ import type {
   YAXisComponentOption,
   TooltipComponentOption,
   LineSeriesOption,
+  MarkAreaComponentOption,
+  MarkLineComponentOption,
 } from "echarts";
 
 interface Props {
@@ -29,6 +33,8 @@ interface Props {
   xAxisOptions?: XAXisComponentOption;
   yAxisOptions?: YAXisComponentOption;
   tooltipOptions?: TooltipComponentOption;
+  markAreaOptions?: MarkAreaComponentOption;
+  markLineOptions?: MarkLineComponentOption;
   minMaxYLabels?: [string, string];
   minMaxYValues?: [number, number];
   minMaxYValuesPosition?: [number, number];
@@ -37,7 +43,10 @@ interface Props {
   displayNameInTooltip?: boolean;
   enableExport?: boolean;
   exportFileName?: string;
+  showReferenceValues?: boolean;
 }
+
+
 
 const LineChart = ({
   title,
@@ -51,6 +60,8 @@ const LineChart = ({
   xAxisOptions,
   yAxisOptions,
   tooltipOptions,
+  markAreaOptions,
+  markLineOptions,
   minMaxYLabels,
   minMaxYValues = [0, 1],
   minMaxYValuesPosition,
@@ -59,20 +70,90 @@ const LineChart = ({
   displayNameInTooltip = true,
   enableExport = false,
   exportFileName,
+  showReferenceValues,
 }: Props) => {
   const { xData, yData } = data;
+  const groupShowReferenceValues = useContext(ShowReferenceValuesContext);
+  const shouldShowReferenceValues =
+    showReferenceValues ?? groupShowReferenceValues;
 
   console.log("Line Chart xData: ", xData);
   console.log("Line Chart yData: ", yData);
 
+  const formatReferenceValue = (value: Visualization.NumberOrTuple): string =>
+  Array.isArray(value) ? `${value[0]} - ${value[1]}` : `${value}`;
+
+const buildReferenceMarkLine = (
+  referenceValues: Visualization.ReferenceRange[],
+) => {
+  const data = referenceValues
+    .filter((ref) => typeof ref.normalizedValue === "number")
+    .map((ref) => ({
+      yAxis: ref.normalizedValue as number,
+      name: ref.name,
+      referenceDescription: ref.description,
+      referenceValueLabel: formatReferenceValue(ref.value),
+      lineStyle: { color: referenceColors.line },
+      label: { show: false },
+    }));
+  if (data.length === 0) return undefined;
+  return {
+    ...markLineOptions,
+    silent: false,
+    symbol: ["none", "none"] as [string, string],
+    z: 1,
+    animation: false,
+    data,
+  };
+};
+
+const buildReferenceMarkArea = (
+  referenceValues: Visualization.ReferenceRange[],
+) => {
+  const ranges = referenceValues.filter((ref) =>
+    Array.isArray(ref.normalizedValue),
+  );
+  const data = ranges.map((ref, index) => {
+    const [min, max] = ref.normalizedValue as [number, number];
+    const opacity =
+      referenceColors.box.opacities[
+        Math.min(index, referenceColors.box.opacities.length - 1)
+      ];
+    const point = {
+      name: ref.name,
+      referenceDescription: ref.description,
+      referenceValueLabel: formatReferenceValue(ref.value),
+      itemStyle: { color: referenceColors.box.color, opacity },
+      label: { show: false },
+    };
+    return [
+      { ...point, yAxis: min },
+      { ...point, yAxis: max },
+    ];
+  });
+  if (data.length === 0) return undefined;
+  return {
+    ...markAreaOptions,
+    data,
+  };
+};
+
   const generateSeriesList = () => {
     const seriesList: any[] = [];
     yData.forEach((dataseries) => {
+      const referenceValues =
+        shouldShowReferenceValues && dataseries.referenceValues
+          ? dataseries.referenceValues
+          : [];
+      const markLine = buildReferenceMarkLine(referenceValues);
+      const markArea = buildReferenceMarkArea(referenceValues);
       const series = {
         ...lineOption,
         name: dataseries.shortName,
         type: "line",
         data: dataseries.data,
+        ...(markLine && { markLine }),
+        ...(markArea && { markArea }),
       };
       seriesList.push(series);
     });
@@ -105,7 +186,26 @@ const LineChart = ({
     `;
   };
 
+  const referenceTooltipFormatter = (params: any) => {
+    const { name, data } = params;
+    const description = data?.referenceDescription;
+    const valueLabel = data?.referenceValueLabel;
+    return `
+      <div class="tooltip-content">
+        ${echarts.format.encodeHTML(name ?? "")}
+        ${description ? `<br/>${echarts.format.encodeHTML(description)}` : ""}
+        <br/><b>${echarts.format.encodeHTML(valueLabel ?? "")}</b>
+      </div>
+    `;
+  };
+
   const tooltipFormatter = (params: any) => {
+    if (
+      params.componentType === "markLine" ||
+      params.componentType === "markArea"
+    ) {
+      return referenceTooltipFormatter(params);
+    }
     const { seriesName, value, name } = params;
     console.log("Tooltip Params: ", params);
     console.log("Tooltip Series Name: ", seriesName);
