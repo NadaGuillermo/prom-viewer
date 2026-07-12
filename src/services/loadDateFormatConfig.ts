@@ -3,7 +3,7 @@ import { resolveDateFormatConfig } from "@utils/dateFormat/resolveDateFormatConf
 import { DEFAULT_DATE_FORMAT_CONFIG } from "@utils/dateFormat/defaultDateFormat";
 import { fetchJsonConfig } from "./fetchJsonConfig";
 
-const DATE_FORMAT_CONFIG_URL = "/config/dateFormat.json";
+const DATE_FORMAT_CONFIG_URL = `${import.meta.env.BASE_URL}config/dateFormat.json`;
 
 // Never throws: any fetch/parse/validation failure falls back to
 // DEFAULT_DATE_FORMAT_CONFIG (ISO, YYYY-MM-DD).

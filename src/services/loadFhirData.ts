@@ -52,7 +52,7 @@ const OBSERVATION_NAMES: string[] = [];
 export async function loadFhirQuestionnaires(): Promise<any[]> {
   const results: any[] = [];
   for (const name of QUESTIONNAIRE_NAMES) {
-    const result = await fetch(`/questionnaires/${name}.json`);
+    const result = await fetch(`${import.meta.env.BASE_URL}questionnaires/${name}.json`);
     // console.log("Q Fetched", result)
     const questionnaire = await result.json();
     results.push(questionnaire);
@@ -64,7 +64,7 @@ export async function loadFhirQuestionnaires(): Promise<any[]> {
 export async function loadFhirQuestionnaireResponses(): Promise<any[]> {
   const results: any[] = [];
   for (const name of RESPONSE_NAMES) {
-    const result = await fetch(`/responses/${name}.json`);
+    const result = await fetch(`${import.meta.env.BASE_URL}responses/${name}.json`);
     const questionnaireResponse = await result.json();
     results.push(questionnaireResponse);
   }
@@ -74,7 +74,7 @@ export async function loadFhirQuestionnaireResponses(): Promise<any[]> {
 export async function loadFhirBundles(): Promise<any[]> {
   const results: any[] = [];
   for (const name of BUNDLE_NAMES) {
-    const result = await fetch(`/bundles/${name}.json`);
+    const result = await fetch(`${import.meta.env.BASE_URL}bundles/${name}.json`);
     const bundle = await result.json();
     results.push(bundle);
   }
@@ -84,7 +84,7 @@ export async function loadFhirBundles(): Promise<any[]> {
 export async function loadFhirObservationDefinitions(): Promise<any[]> {
   const results: any[] = [];
   for (const name of OBSERVATION_DEFINITION_NAMES) {
-    const result = await fetch(`/observationDefinitions/${name}.json`);
+    const result = await fetch(`${import.meta.env.BASE_URL}observationDefinitions/${name}.json`);
     const observationDefinition = await result.json();
     results.push(observationDefinition);
   }
@@ -94,7 +94,7 @@ export async function loadFhirObservationDefinitions(): Promise<any[]> {
 export async function loadFhirObservations(): Promise<any[]> {
   const results: any[] = [];
   for (const name of OBSERVATION_NAMES) {
-    const result = await fetch(`/observations/${name}.json`);
+    const result = await fetch(`${import.meta.env.BASE_URL}observations/${name}.json`);
     const observation = await result.json();
     results.push(observation);
   }
