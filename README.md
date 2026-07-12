@@ -10,10 +10,10 @@ Currently, the app does not connect to a real FHIR server. It runs against mock 
 
 ## Demo
 
-Not set up yet.
+🔗 <a href="https://nadaguillermo.github.io/prom-viewer/" target="_blank"> PROM Viewer Demo </a>
 
 <!-- Screenshot placeholder -->
-![Screenshot placeholder](docs/screenshot-placeholder.png)
+<!--![Screenshot placeholder](docs/screenshot-placeholder.png)-->
 
 ## Installation
 
