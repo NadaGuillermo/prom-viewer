@@ -216,8 +216,8 @@ const buildReferenceMarkArea = (
       value,
       seriesName,
     );
-    const longName = getDataSeriesNameFromShortName(yData, seriesName);
-    const displayName = longName.length > 0 ? longName : seriesName;
+    // const longName = getDataSeriesNameFromShortName(yData, seriesName);
+    // const displayName = longName.length > 0 ? longName : seriesName;
 
     if (originalValue !== null) {
       if (displayNameInTooltip) {

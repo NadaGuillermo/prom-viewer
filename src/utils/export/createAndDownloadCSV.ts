@@ -1,4 +1,5 @@
 import type { Visualization } from "@utils/visualization";
+import type { Mapping } from "@utils/mapping";
 import * as _ from "lodash-es";
 
 export const createAndDownloadCSV = (
@@ -9,9 +10,9 @@ export const createAndDownloadCSV = (
   xData.unshift("Item");
   const yValues = _.cloneDeep(data.yData.map((series) => series.originalData));
   const rowNames = _.cloneDeep(data.yData.map((series) => series.name));
-  const csvArray = [xData];
+  const csvArray: (string | Mapping.Answer)[][] = [xData];
   rowNames.forEach((name, i) => {
-    const row = yValues[i];
+    const row: (string | Mapping.Answer)[] = yValues[i];
     row.unshift(name);
     csvArray.push(row);
   });

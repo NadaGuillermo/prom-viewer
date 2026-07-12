@@ -555,7 +555,6 @@ export const extractDimensionScoresDataSeries = (
 
 export const extractItemsDataSeries = (
     domainData: Visualization.DataSeries[],
-    domainScoresDataSeries: Visualization.DataSeries[],
     dimensionScoresDataSeries: Visualization.DataSeries[],
     questionnaires: Mapping.Questionnaire[],
   ): Record<string, Visualization.DataSeries[]> => {

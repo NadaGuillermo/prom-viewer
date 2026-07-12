@@ -79,17 +79,21 @@ const RadarChart = ({
       if (questionnaireDomains.includes(domain)) {
         const domainSeries = series.filter((item) => item.questionnaireName === questionnaireName);
         const domainSeriesWithMaxValue = domainSeries.reduce((maxItem, item) => {
-          if (item.data[indexOfMostRecentResponse] !== null) {
-            return item.data[indexOfMostRecentResponse] > maxItem.data[indexOfMostRecentResponse] ? item : maxItem;
+          const itemValue = item.data[indexOfMostRecentResponse];
+          const maxItemValue = maxItem.data[indexOfMostRecentResponse];
+          if (itemValue !== null && (maxItemValue === null || itemValue > maxItemValue)) {
+            return item;
           } else {
             return maxItem;
           }
         });
         maxValue = domainSeriesWithMaxValue.data[indexOfMostRecentResponse];
         const domainSeriesWithMinValue = domainSeries.reduce((minItem, item) => {
-          if (item.data[indexOfMostRecentResponse] !== null) {
-            return item.data[indexOfMostRecentResponse] < minItem.data[indexOfMostRecentResponse] ? item : minItem;
-            } else {
+          const itemValue = item.data[indexOfMostRecentResponse];
+          const minItemValue = minItem.data[indexOfMostRecentResponse];
+          if (itemValue !== null && (minItemValue === null || itemValue < minItemValue)) {
+            return item;
+          } else {
             return minItem;
           }
         });

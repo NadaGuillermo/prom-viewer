@@ -76,7 +76,6 @@ import {
   createChartData,
   // calculatePeriodOfObservations,
   sortDomains,
-  addUnspecifiedDimensionToDomains,
   createDateQuestionnaireNamesRecord,
   createTableData,
   createDomainQuestionnaireNamesDimensionsRecord,
@@ -144,9 +143,6 @@ function App() {
   const [dataIssuesForUser, setDataIssuesForUser] = useState<
     Errors.DataIssue[]
   >([]);
-  const [globalHealthDimensions, setGlobalHealthDimensions] = useState<
-    string[]
-  >([]);
   const [domains, setDomains] = useState<string[]>([]);
   const [showItemsForDomain, setShowItemsForDomain] = useState<
     Record<string, boolean>
@@ -189,8 +185,6 @@ function App() {
   const [globalScoresDataSeries, setGlobalScoresDataSeries] = useState<
     Visualization.DataSeries[]
   >([]);
-  const [domainScoresDataSeriesByDomain, setDomainScoresDataSeriesByDomain] =
-    useState<Record<string, Visualization.DataSeries[]>>({});
   const [
     dimensionScoresDataSeriesByDomain,
     setDimensionScoresDataSeriesByDomain,
@@ -207,31 +201,12 @@ function App() {
   const [dimensionsByDomain, setDimensionsByDomain] = useState<
     Record<string, string[]>
   >({});
-  const [domainsSankeyData, setDomainsSankeyData] = useState<
-    Record<string, Record<string, string[]>>
-  >({});
-  const [globalScoresLineChartData, setGlobalScoresLineChartData] =
-    useState<Visualization.ChartData>();
-  const [radarChartData, setRadarChartData] = useState<
-    Record<string, string[]>
-  >({});
   const [
     lengthOfLongestQuestionnaireName,
     setLengthOfLongestQuestionnaireName,
   ] = useState<number>(0);
   const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
     useState<Record<string, Errors.DataIssue[]>>({});
-  const [idsOfResourcesWithIssues, setIdsOfResourcesWithIssues] = useState<
-    string[]
-  >([]);
-  const [
-    domainQuestionnaireDimensionRecord,
-    setDomainQuestionnaireDimensionRecord,
-  ] = useState<Record<string, Record<string, string[]>>>({});
-  const [
-    domainDimensionQuestionnaireTuples,
-    setDomainDimensionQuestionnaireTuples,
-  ] = useState<[string, string, string][]>([]);
   const [
     allDatesOfQuestionnaireResponses,
     setAllDatesOfQuestionnaireResponses,
@@ -240,19 +215,13 @@ function App() {
     string[]
   >([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [selectedQuestionnaireResponses, setSelectedQuestionnaireResponses] =
-    useState<string[]>([]);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
   const [selectedDimensionsByDomain, setSelectedDimensionsByDomain] = useState<
     Record<string, string[]>
   >({});
   // const [displayedQuestionnaires, setDisplayedQuestionnaires] = useState<Mapping.Questionnaire[]>([]);
   const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
-  const [modalShown, setModalShown] = useState(false);
-  const [allDomainsSelected, setAllDomainsSelected] = useState(false);
-  const [showFilterOptions, setShowFilterOptions] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
 
   const [dateValue, setDateValue] = useState<string>("");
@@ -865,7 +834,6 @@ function App() {
         );
       domainDimensionItemsDataSeriesRecord[domain] = extractItemsDataSeries(
         chartDataSeriesByDomain[domain],
-        domainScoresDataSeriesByDomain[domain],
         dimensionScoresDataSeriesByDomain[domain],
         questionnairesForChart,
       );
@@ -933,11 +901,6 @@ function App() {
     // );
     // const lengthOfLongestQuestionnaireName = longestQuestionnaireName.length;
 
-    // Global Scores Line Chart
-    const globalScoresLineChartData: Visualization.ChartData = {
-      xData: chartData.xData,
-      yData: globalScoresDataSeries,
-    };
     // const scoreChartSubTitle = Array.from(
     //   new Set(
     //     Object.values(questionnaireResponsesForChart).map(
@@ -955,10 +918,6 @@ function App() {
     // console.log("Radar data: ", mostRecentDomainScoresRadarData)
 
     // Domain Dimension Mapping Sankey
-    const domainsSankeyData = createDomainQuestionnaireNamesDimensionsRecord(
-      dimensionScoresDataSeriesByDomain,
-    );
-
     const domainQuestionnaireDimensionRecord =
       createDomainQuestionnaireNamesDimensionsRecord(
         dimensionScoresDataSeriesByDomain,
@@ -1030,21 +989,16 @@ function App() {
     setDimensionsByDomain(dimensionsByDomain);
     setChartXData(chartData.xData);
     setGlobalScoresDataSeries(globalScoresDataSeries);
-    setDomainScoresDataSeriesByDomain(domainScoresDataSeriesByDomain);
     setDimensionScoresDataSeriesByDomain(dimensionScoresDataSeriesByDomain);
     setItemDataSeriesByDomainAndDimension(domainDimensionItemsDataSeriesRecord);
     setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
-    setGlobalScoresLineChartData(globalScoresLineChartData);
     setQuestionnaireNamesByDate(questionnaireNamesByDate);
     setHeatmapDataByDomain(heatmapDataByDomain);
     setTableDataByQuestionnaire(tableDataByQuestionnaire);
     setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
     setQuestionnaireCardData(questionnaireCardData);
-    setDomainsSankeyData(domainsSankeyData);
     setSelectedDimensionsByDomain(selectedDimensionsByDomain);
     setShowItemsForDomain(showItemsFlagByDomain);
-    setDomainDimensionQuestionnaireTuples(domainDimensionQuestionnaireTuples);
-    setDomainQuestionnaireDimensionRecord(domainQuestionnaireDimensionRecord);
     setDimensionsWithQuestionnaireByDomain(
       domainDimensionWithQuestionnaireRecord,
     );
@@ -1055,12 +1009,10 @@ function App() {
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
     // setIdsOfResourcesWithIssues(resourceIdsWithIssues);
-    setModalShown(true);
   }, [
     questionnaires,
     questionnaireResponses,
     dataIssues,
-    // globalHealthDimensions,
     questionnairesReady,
     domains,
     selectedQuestionnaires,
@@ -1078,10 +1030,6 @@ function App() {
 
   // Handlers
 
-  const handleContinue = () => {
-    setIsModalOpen(false);
-  };
-
   const toggleShowItemsForDomain = (domain: string) => {
     setShowItemsForDomain((prev) => {
       return {
@@ -1090,11 +1038,6 @@ function App() {
       };
     });
     console.log("Toggled showItemsFlagByDomain: ", showItemsForDomain);
-  };
-
-  const toggleErrorDetails = () => {
-    setShowErrors((prev) => !prev);
-    console.log("Toggled showErrors: ", showErrors);
   };
 
   const selectAllDomains = (domains: string[]) => {
@@ -1192,10 +1135,6 @@ function App() {
       }
     });
     console.log("Selected Dimensions by Domain: ", selectedDimensionsByDomain);
-  };
-
-  const toggleShowFilterOptions = () => {
-    setShowFilterOptions((prev) => !prev);
   };
 
   const toggleShowErrors = () => {
