@@ -88,21 +88,26 @@ const buildReferenceMarkLine = (
 ) => {
   const data = referenceValues
     .filter((ref) => typeof ref.normalizedValue === "number")
-    .map((ref) => ({
-      yAxis: ref.normalizedValue as number,
-      name: ref.name,
-      referenceDescription: ref.description,
-      referenceValueLabel: formatReferenceValue(ref.value),
-      lineStyle: { color: referenceColors.line },
-      label: { show: false },
-    }));
+    .map((ref) => {
+      const yVal = ref.normalizedValue as number;
+      const point = {
+        name: ref.name,
+        referenceDescription: ref.description,
+        referenceValueLabel: formatReferenceValue(ref.value),
+        lineStyle: { color: referenceColors.line },
+        label: { show: false },
+      }
+      return [
+        { ...point, yAxis: yVal, x: "3%" },
+        { yAxis: yVal, x: "97%" },
+      ];
+    }
+  );
+  
   if (data.length === 0) return undefined;
   return {
     ...markLineOptions,
-    silent: false,
     symbol: ["none", "none"] as [string, string],
-    z: 1,
-    animation: false,
     data,
   };
 };
@@ -127,8 +132,8 @@ const buildReferenceMarkArea = (
       label: { show: false },
     };
     return [
-      { ...point, yAxis: min },
-      { ...point, yAxis: max },
+      { ...point, yAxis: min, x: "95%" },
+      { ...point, yAxis: max, x: "5%" },
     ];
   });
   if (data.length === 0) return undefined;

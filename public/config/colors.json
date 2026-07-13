@@ -49,10 +49,10 @@
       ]
     },
     "reference": {
-      "line": "#6B7280",
+      "line": "#808080",
       "box": {
-        "color": "#6B7280",
-        "opacities": [0.3, 0.2, 0.12]
+        "color": "#bbbbbb",
+        "opacities": [0.35, 0.2, 0.12]
       }
     }
   }

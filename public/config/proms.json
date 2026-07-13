@@ -4,7 +4,12 @@
     {
       "id": "eq5d-index",
       "range": [0, 1],
-      "scoreHealthCorrelation": "increase"
+      "scoreHealthCorrelation": "increase",
+      "referenceRange": [{
+        "range": [0.78],
+        "name": "Reference Line",
+        "description": "Average score of general pupulation"
+      }]   
     },
     {
       "id": "eq5d-vas",
@@ -22,9 +27,9 @@
       "scoreHealthCorrelation": "increase",
       "referenceRange": [{
         "range": [20,80],
-        "name": "Range Example"
+        "name": "Standard Range"
       }, {
-        "range": [86],
+        "range": [66],
         "name": "Standard Line"
       }]
     },

@@ -18,10 +18,25 @@ const markAreaOption: MarkAreaComponentOption = {
   silent: false,
   z: 1,
   animation: false,
+  emphasis: {
+    itemStyle: {
+      opacity: 0.8,
+    }
+  }
 }
 
 const markLineOption: MarkLineComponentOption = {
-
+  silent: false,
+  z: 1,
+  animation: false,
+  lineStyle: {
+    width: 1
+  },
+  emphasis: {
+    lineStyle: {
+      width: 3
+    }
+  }
 }
 
 const lineChartSeriesOption: LineSeriesOption = {
