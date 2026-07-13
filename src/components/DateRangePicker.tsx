@@ -1,4 +1,6 @@
 import "cally";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { type IconProp } from "@fortawesome/fontawesome-svg-core";
 import type { Visualization } from "@utils/visualization";
 interface Props {
   rangeHandler: (event: Event) => void;
@@ -30,8 +32,20 @@ const DateRangePicker = (
       <div popover="auto" id="rdp-popover" className="tw:dropdown" style={{ positionAnchor: "--rdp" } as React.CSSProperties}>
        
         <calendar-range value={dateValue} onchange={rangeHandler} className="tw:cally tw:bg-base-100 tw:border border-medium tw:rounded-box border-rounded">
-          <svg aria-label="Previous" className="tw:fill-current tw:size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg>
-          <svg aria-label="Next" className="tw:fill-current tw:size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg>
+          <FontAwesomeIcon
+                  aria-label="Previous"
+                  className="tw:fill-current tw:size-4"
+                  slot="previous"
+                  icon={["fas", "caret-left"] as IconProp}
+                />
+          {/* <svg aria-label="Previous" className="tw:fill-current tw:size-4" slot="previous" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M15.75 19.5 8.25 12l7.5-7.5"></path></svg> */}
+          {/* <svg aria-label="Next" className="tw:fill-current tw:size-4" slot="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m8.25 4.5 7.5 7.5-7.5 7.5"></path></svg> */}
+          <FontAwesomeIcon
+                  aria-label="Next"
+                  className="tw:fill-current tw:size-4"
+                  slot="next"
+                  icon={["fas", "caret-right"] as IconProp}
+                />
         <calendar-month></calendar-month>
         </calendar-range>
         

@@ -25,6 +25,7 @@ import DataTable from "@components/DataTable";
 import NoData from "@components/NoData";
 import LineChartGroup from "@components/LineChartGroup";
 import DownloadImageButton from "@components/DownloadImageButton";
+import DateSlider from "@components/DateSlider";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -76,7 +77,7 @@ import {
   createChartData,
   // calculatePeriodOfObservations,
   sortDomains,
-  createDateQuestionnaireNamesRecord,
+  groupQuestionnaireNamesByDate,
   createTableData,
   createDomainQuestionnaireNamesDimensionsRecord,
   extractGlobalScoresDataSeries,
@@ -84,7 +85,7 @@ import {
   extractDimensionScoresDataSeries,
   extractDomainDataSeries,
   extractItemsDataSeries,
-  createQuestionnaireMostRecentResponseDateRecord,
+  // createQuestionnaireMostRecentResponseDateRecord,
   createDomainDimensionsRecord,
   filterQuestionnaireResponsesThatAreWithinDates,
   filterQuestionnaireResponsesThatAreOnSingleDates,
@@ -94,6 +95,8 @@ import {
   createDomainDimensionQuestionnaireTupleArray,
   createDimensionWithQuestionnaireByDomainRecord,
   truncateAtWord,
+  sortDates,
+  createQuestionnaireDatesRecord,
 } from "@utils/visualization";
 
 // Config
@@ -177,10 +180,10 @@ function App() {
   const [questionnaireCardData, setQuestionnaireCardData] = useState<
     Record<string, [string, string[]]>
   >({});
-  const [
-    questionnairesWithMostRecentResponseDate,
-    setQuestionnairesWithMostRecentResponseDate,
-  ] = useState<Record<string, string>>({});
+  // const [
+  //   questionnairesWithMostRecentResponseDate,
+  //   setQuestionnairesWithMostRecentResponseDate,
+  // ] = useState<Record<string, string>>({});
   const [chartXData, setChartXData] = useState<string[]>([]);
   const [globalScoresDataSeries, setGlobalScoresDataSeries] = useState<
     Visualization.DataSeries[]
@@ -211,6 +214,7 @@ function App() {
     allDatesOfQuestionnaireResponses,
     setAllDatesOfQuestionnaireResponses,
   ] = useState<string[]>([]);
+  // const [datesOfSelectedQuestionnaires, setDatesOfSelectedQuestionnaires] = useState<string[]>([]);
   const [selectedQuestionnaires, setSelectedQuestionnaires] = useState<
     string[]
   >([]);
@@ -230,6 +234,10 @@ function App() {
     end: "",
   });
   const [isFilterActive, setIsFilterActive] = useState(false);
+  const [radarChartDate, setRadarChartDate] = useState<string>("");
+  const [radarChartDates, setRadarChartDates] = useState<string[]>([]);
+
+  // const [questionnaireDatesRecord, setQuestionnaireDatesRecord] = useState<Record<string, string[]>>({});
 
   // Load data
   useEffect(() => {
@@ -684,6 +692,7 @@ function App() {
     );
     setAllDatesOfQuestionnaireResponses(allResponseDates);
     setSelectedDates(allResponseDates);
+    setRadarChartDates(allResponseDates);
     // setDisplayedQuestionnaires(questionnaires);
     // setDisplayedQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
   }, [
@@ -786,9 +795,9 @@ function App() {
     );
     console.log("Domains for Chart: ", domainsForChart);
     const questionnaireNamesByDate: Record<string, string[]> =
-      createDateQuestionnaireNamesRecord(questionnaireResponses);
-    const questionnaireMostRecentResponseDateRecord: Record<string, string> =
-      createQuestionnaireMostRecentResponseDateRecord(questionnaireNamesByDate);
+      groupQuestionnaireNamesByDate(questionnaireResponses);
+    // const questionnaireMostRecentResponseDateRecord: Record<string, string> =
+    //   createQuestionnaireMostRecentResponseDateRecord(questionnaireNamesByDate);
 
     // Chart Data
     const chartData = createChartData(questionnaireResponsesForChart);
@@ -982,6 +991,14 @@ function App() {
     //   questionnaireResponses,
     // );
 
+    const datesByQuestionnaire = createQuestionnaireDatesRecord(questionnaireResponses);
+    const datesOfSelectedQuestionnaires = _.uniq(Object.entries(datesByQuestionnaire).filter(([qId, _]) => 
+      selectedQuestionnaires.includes(qId)
+    ).flatMap(([_, dates]) => dates));
+
+    const datesForRadarChart = _.intersection(datesOfSelectedQuestionnaires, selectedDates).sort((a, b) => sortDates(a, b, "ascending"));
+    const dateForRadarChart = datesForRadarChart.includes(radarChartDate) ? radarChartDate : datesForRadarChart[selectedDates.length - 1];
+
     // set variables
     // setDisplayedQuestionnaires(questionnairesForChart);
     setDisplayedQuestionnaireResponses(questionnaireResponsesForChart);
@@ -1002,9 +1019,13 @@ function App() {
     setDimensionsWithQuestionnaireByDomain(
       domainDimensionWithQuestionnaireRecord,
     );
-    setQuestionnairesWithMostRecentResponseDate(
-      questionnaireMostRecentResponseDateRecord,
-    );
+    // setQuestionnairesWithMostRecentResponseDate(
+    //   questionnaireMostRecentResponseDateRecord,
+    // );
+    setRadarChartDates(datesForRadarChart);
+    setRadarChartDate(dateForRadarChart);
+    // setDatesOfSelectedQuestionnaires(datesOfSelectedQuestionnaires);
+    // setQuestionnaireDatesRecord(datesByQuestionnaire);
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
@@ -1076,10 +1097,12 @@ function App() {
     const allDates = extractDatesOfQuestionnaireResponses(
       questionnaireResponses,
     );
+    const dateForRadarChart = allDates[allDates.length - 1];
     setSelectedQuestionnaires(questionnaireIds);
     setSelectedDates(allDates);
     setDateRange({ start: "", end: "" });
     setDateValue("");
+    setRadarChartDate(dateForRadarChart);
   };
 
   const handleQuestionnaireSelection = (questionnaireId: string) => {
@@ -1098,7 +1121,7 @@ function App() {
     setSelectedDates((prev) => {
       const index = prev.indexOf(date);
       if (index === -1) {
-        return [...prev, date];
+        return [...prev, date].sort((a, b,) => sortDates(a, b, "ascending"));
       } else {
         return prev.filter((d) => d !== date);
       }
@@ -1159,6 +1182,33 @@ function App() {
     });
     setDateValue(target.value);
   };
+
+  const selectDateForRadarChart = (date: string, dates: string[], direction: "previous" | "next") => {
+  console.log("in selectDate: ", date, direction)
+  let newDate: string = "";
+  if (direction === "previous") {
+    const index = dates.indexOf(date);
+    if (index > -1) {
+      if (index === 0) {
+        newDate = dates[index];
+      } else {
+        newDate = dates[index - 1];
+      }
+    }
+  } else {
+    const index = dates.indexOf(date);
+    if (index > - 1 ) {
+      if (index === dates.length - 1) {
+        newDate = dates[index];
+      } else {
+        newDate = dates[index + 1];
+      }
+    }
+  }
+  console.log("new Date: ", newDate)
+  setRadarChartDate(newDate);
+}
+
 
   const toggleShowSidebar = () => {
     setShowSidebar((prev) => !prev);
@@ -1366,9 +1416,9 @@ function App() {
                   <h1>Global Health</h1>
                   <div className="tw:grid tw:grid-cols-1 tw:lg:grid-cols-7 tw:2xl:grid-cols-5">
                     <div className="tw:row-start-1 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                      <h2>Current Health Indication</h2>
+                      <h2>Health Indication</h2>
                     </div>
-                    <div className="tw:row-start-4 tw:lg:row-start-1 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-start-3 tw:2xl:col-span-3">
+                    <div className="tw:row-start-5 tw:lg:row-start-1 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-start-3 tw:2xl:col-span-3">
                       <h2>Normalized Global Health Scores</h2>
                     </div>
                     <div className="tw:row-start-2 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
@@ -1389,12 +1439,8 @@ function App() {
                                         dimensionsWithQuestionnaireByDomain,
                                       ).length
                                     }{" "}
-                                    domains, using only the{" "}
-                                    <span className="tw:font-semibold">
-                                      most recent response
-                                    </span>{" "}
-                                    from each questionnaire. Each axis
-                                    represents one domain.
+                                    domains per response date. Each axis
+                                    represents one domain. Use the arrows below to switch between dates.
                                   </p>
                                   <p className="h5">The Polygons</p>
                                   <p>
@@ -1465,7 +1511,7 @@ function App() {
                         </div>
                       )}
                     </div>
-                    <div className="tw:row-start-5 tw:lg:row-start-2 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:flex tw:justify-start tw:lg:justify-center">
+                    <div className="tw:row-start-6 tw:lg:row-start-2 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:flex tw:justify-start tw:lg:justify-center">
                       <div className="tw:md:px-8 tw:lg:px-0">
                         <div data-tooltip-id="global-scores-explanation">
                                 <div className="text-tooltip-basic tw:text-md">
@@ -1490,16 +1536,35 @@ function App() {
                               </Portal> 
                       </div>
                     </div>
-                    <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                      {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
+                    
+                      
+                          <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
+                            {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
                       displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 && 
-                        questionnairesWithMostRecentResponseDate ? (
+                      radarChartDates.length > 0 && radarChartDate.length > 0 && (
+                          <div className="tw:flex tw:justify-center tw:pt-4">
+                            <DateSlider
+                            dates={radarChartDates}
+                            selectedDate={radarChartDate}
+                            changeDate={selectDateForRadarChart}
+                            />
+                          </div>
+                          )
+                          }
+                          </div>
+                        
+                          
+                    <div className="tw:row-start-4 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
+                      {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
+                      displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 &&
+                      radarChartDate.length > 0
+                         ? (
+                          <>
                           <div className="tw:flex tw:justify-center">
                             <RadarChart
                               data={dimensionScoresDataSeriesByDomain}
-                              mostRecentResponses={
-                                questionnairesWithMostRecentResponseDate
-                              }
+                              dates={chartXData}
+                              date={radarChartDate}
                               titleOptions={radarChartOptions.title}
                               legendOptions={radarChartOptions.legend}
                               gridOptions={radarChartOptions.grid}
@@ -1510,6 +1575,7 @@ function App() {
                               exportFileName="Domains Radar"
                             />
                           </div>
+                          </>
                         ) : 
                         <NoData 
                           title="No Data Found"
@@ -1520,7 +1586,7 @@ function App() {
                           
                         }
                     </div>
-                    <div className="tw:row-start-6 tw:lg:row-start-3 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
+                    <div className="tw:row-start-7 tw:lg:row-start-4 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
                       {globalScoresDataSeries.length > 0 ? (
                         <>
                           <div className="tw:flex tw:justify-center">

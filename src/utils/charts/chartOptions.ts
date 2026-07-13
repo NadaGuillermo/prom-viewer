@@ -418,6 +418,9 @@ const radarLegendOption: LegendComponentOption = {
   ...legendOption,
   padding: 4,
   itemGap: 8,
+  type: "scroll",
+  orient: 'vertical',
+  bottom: 4,
 }
 
 const radarGridOption: GridComponentOption = {

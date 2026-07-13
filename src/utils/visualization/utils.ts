@@ -147,7 +147,7 @@ export const getMinAndMaxAnswerOptionValueForItem = (
   return [minValue, maxValue];
 };
 
-const sortDates = (a: string, b:string, order: "ascending" | "descending" = "ascending", dateFormatPattern?: string) => {
+export const sortDates = (a: string, b:string, order: "ascending" | "descending" = "ascending", dateFormatPattern?: string) => {
   const pattern = dateFormatPattern ?? getDateFormatPattern();
   const aDateString = parseFormattedDate(a, pattern);
   const bDateString = parseFormattedDate(b, pattern);
@@ -262,7 +262,24 @@ export const calculatePeriodOfObservations = (
   }
 };
 
-export const createDateQuestionnaireNamesRecord = (
+export const createQuestionnaireDatesRecord = (
+   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
+) => {
+  const questionnaireDatesRecord: Record<string, string[]> = {};
+  Object.values(questionnaireResponses).forEach((questionnaireResponse) => {
+    const questionnaireId = questionnaireResponse.questionnaire.id;
+    const date = questionnaireResponse.authored;
+    if (!questionnaireDatesRecord[questionnaireId]) {
+      questionnaireDatesRecord[questionnaireId] = [];
+    }
+    if (!questionnaireDatesRecord[questionnaireId].includes(date)) {
+      questionnaireDatesRecord[questionnaireId].push(date);
+    }
+  });
+  return questionnaireDatesRecord;
+}
+
+export const groupQuestionnaireNamesByDate = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
   order : "ascending" | "descending" = "ascending",
 ) => {
@@ -695,14 +712,14 @@ export const filterQuestionnaireResponsesByQuestionnaireIds = (
   return questionnaireResponsesFilteredBySelectedQuestionnaires;
 }
 
-export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>) => {
+export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, sortOrder: "ascending" | "descending" = "ascending") => {
   const dates = Object.values(questionnaireResponses).map((questionnaireResponse) => {
     return questionnaireResponse.authored;
   });
   const uniqueDates = _.uniq(dates);
   // sort dates
   const sortedDates = uniqueDates.sort((a, b) => {
-    return sortDates(a, b);
+    return sortDates(a, b, sortOrder);
   })
   return sortedDates;
 }

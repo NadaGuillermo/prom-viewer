@@ -15,10 +15,11 @@ import type {
 } from "echarts";
 
 interface Props {
+  data: Record<string, Visualization.DataSeries[]>;
+  dates: string[];
+  date: string;
   title?: string;
   subtitle?: string;
-  data: Record<string, Visualization.DataSeries[]>;
-  mostRecentResponses: Record<string, string>;
   height?: number;
   colors?: string[];
   titleOptions?: TitleComponentOption;
@@ -33,10 +34,11 @@ interface Props {
 }
 
 const RadarChart = ({
+  data,
+  dates,
+  date,
   title,
   subtitle,
-  data,
-  mostRecentResponses,
   height = 400,
   colors = mutedColorPalette,
   titleOptions,
@@ -51,7 +53,7 @@ const RadarChart = ({
 }: Props) => {
   
   const questionnaireNames = _.uniq(Object.values(data).flatMap((series) => series.map((item) => item.questionnaireName)))
-    
+
   const radarIndicators = Object.entries(data).filter(([_, series]) => series.length > 0).map(([domain, _]) => ({
     name: domain,
     max: 1,
@@ -60,18 +62,12 @@ const RadarChart = ({
   const chartData: Record<string, Record<string, [GlobalTypes.NumberOrNull, GlobalTypes.NumberOrNull]>> = {};
 
   questionnaireNames.forEach((questionnaireName) => {
-    const questionnaireSeries = Object.values(data).flatMap((series) => series.filter((item) => item.questionnaireName === questionnaireName));
+    // const questionnaireSeries = Object.values(data).flatMap((series) => series.filter((item) => item.questionnaireName === questionnaireName));
     const questionnaireDomains = Object.entries(data).filter(([_, series]) => series.some((item) => item.questionnaireName === questionnaireName)).map(([domain, _]) => domain);
-    let indexOfMostRecentResponse = 0;
-    const numberOfDates = questionnaireSeries[0].data.length;
-    for (let i = numberOfDates - 1; i >= 0; i--) {
-      if (questionnaireSeries.some((series) => series.data[i] !== null)) {
-        indexOfMostRecentResponse = i;
-        break;
-      }
-    }
+    const indexOfDate = dates.indexOf(date);
+
     chartData[questionnaireName] = {};
- 
+    if (indexOfDate > -1) {
     Object.entries(data).filter(([_, series]) => series.length > 0).forEach(([domain, series]) => {
       let maxValue: GlobalTypes.NumberOrNull = null;
       let minValue: GlobalTypes.NumberOrNull = null;
@@ -79,33 +75,43 @@ const RadarChart = ({
       if (questionnaireDomains.includes(domain)) {
         const domainSeries = series.filter((item) => item.questionnaireName === questionnaireName);
         const domainSeriesWithMaxValue = domainSeries.reduce((maxItem, item) => {
-          const itemValue = item.data[indexOfMostRecentResponse];
-          const maxItemValue = maxItem.data[indexOfMostRecentResponse];
+          const itemValue = item.data[indexOfDate];
+          const maxItemValue = maxItem.data[indexOfDate];
           if (itemValue !== null && (maxItemValue === null || itemValue > maxItemValue)) {
             return item;
           } else {
             return maxItem;
           }
         });
-        maxValue = domainSeriesWithMaxValue.data[indexOfMostRecentResponse];
+        maxValue = domainSeriesWithMaxValue.data[indexOfDate];
         const domainSeriesWithMinValue = domainSeries.reduce((minItem, item) => {
-          const itemValue = item.data[indexOfMostRecentResponse];
-          const minItemValue = minItem.data[indexOfMostRecentResponse];
+          const itemValue = item.data[indexOfDate];
+          const minItemValue = minItem.data[indexOfDate];
           if (itemValue !== null && (minItemValue === null || itemValue < minItemValue)) {
             return item;
           } else {
             return minItem;
           }
         });
-        minValue = domainSeriesWithMinValue.data[indexOfMostRecentResponse];
+        minValue = domainSeriesWithMinValue.data[indexOfDate];
         chartData[questionnaireName][domain] = [minValue, maxValue];
       }
     })
+  }
   });
+
+  const filteredChartData:Record<string, Record<string, [GlobalTypes.NumberOrNull, GlobalTypes.NumberOrNull]>> = {};
+  Object.entries(chartData).forEach(([name, domainData]) => {
+    if (Object.values(domainData).some((valueTuple) => {
+      return valueTuple[0] !== null && valueTuple[1] !== null;
+    })) {
+      filteredChartData[name] = domainData;
+    }
+  })
 
   const transformedData: Record<string, [[string, GlobalTypes.NumberOrNull][], [string, GlobalTypes.NumberOrNull][]]> = {};
 
-  Object.entries(chartData).forEach(([questionnaireName, domainData]) => {
+  Object.entries(filteredChartData).forEach(([questionnaireName, domainData]) => {
     const minValues: [string, GlobalTypes.NumberOrNull][] = [];
     const maxValues: [string, GlobalTypes.NumberOrNull][] = [];
     Object.entries(domainData).forEach(([domain, values]) => {
@@ -117,26 +123,28 @@ const RadarChart = ({
 
   console.log("transformedData", transformedData);
 
+  
+
   const tooltipFormatter = (params: any) => {
     console.log("params: ", params)
     const { seriesName } = params;
     console.log("seriesName: ", seriesName)
    
-    const mostRecentDate = mostRecentResponses[seriesName];
-    console.log("mostRecentDate: ", mostRecentDate)
-    if (mostRecentDate !== undefined) {
+    // const mostRecentDate = mostRecentResponses[seriesName];
+    // console.log("mostRecentDate: ", mostRecentDate)
+    // if (mostRecentDate !== undefined) {
        return `
           <div class="tooltip-content">
             ${echarts.format.encodeHTML(seriesName)}<br/>
-            <b>${echarts.format.encodeHTML(mostRecentDate)}</b>
+            <b>${echarts.format.encodeHTML(date)}</b>
           </div>
           `;
-    }
-     return `
-          <div class="tooltip-content">
-            ${echarts.format.encodeHTML(seriesName)}
-          </div>
-          `;
+    // }
+    //  return `
+    //       <div class="tooltip-content">
+    //         ${echarts.format.encodeHTML(seriesName)}
+    //       </div>
+    //       `;
     
   }
 
@@ -247,10 +255,7 @@ const RadarChart = ({
         confine: true,
         position: "top",
       },
-      type: "scroll",
-      orient: 'vertical',
-      bottom: 4,
-      selectedMode: 'single',
+      selectedMode: 'multiple',
     },
     radar: {
       ...radarOptions,
@@ -279,6 +284,10 @@ const RadarChart = ({
     },
     series: generateSeriesList(),
   };
+
+  if (Object.values(transformedData).every((value) => value[0].length === 0 && value[1].length === 0)) {
+    return;
+  }
 
   return (
     <>

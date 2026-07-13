@@ -1,4 +1,4 @@
-import type { Mapping } from "@utils/mapping";
+import type { GlobalTypes } from "@customTypes/globalTypes";
 import React from "react";
 import type { Errors } from "@utils/errors";
 import { ITEM_TYPES } from "@utils/mapping";
@@ -19,8 +19,8 @@ export namespace Visualization {
     id: string; // linkId
     name: string;
     shortName: string;
-    data: Mapping.Answer[];
-    originalData: Mapping.Answer[];
+    data: GlobalTypes.NumberOrNull[];
+    originalData: GlobalTypes.NumberOrNull[];
     dataLabels: string[];
     seriesType: ItemType;
     // originalReferenceValues?: ReferenceRange[];
