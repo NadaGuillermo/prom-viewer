@@ -11,7 +11,7 @@ Currently, the app does not connect to a real FHIR server. It runs against mock 
 ## Demo
 
 There is a demo showing the current state of the app (mock data with no clinical meaning):
-🔗 <a href="https://nadaguillermo.github.io/prom-viewer/" target="_blank"> PROM Viewer Demo </a>
+🔗 [PROM Viewer Demo](https://nadaguillermo.github.io/prom-viewer/)
 
 ## Installation
 
