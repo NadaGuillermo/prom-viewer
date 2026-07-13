@@ -4,12 +4,13 @@
 
 ## Description / Overview
 
-PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses (FHIR `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition`) for a patient in a clear, chart-based interface.
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by the [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction) project.
 
 Currently, the app does not connect to a real FHIR server. It runs against mock FHIR resources and configuration files served as static JSON from the `public/` folder.
 
 ## Demo
 
+There is a demo showing the current state of the app (mock data with no clinical meaning):
 🔗 <a href="https://nadaguillermo.github.io/prom-viewer/" target="_blank"> PROM Viewer Demo </a>
 
 ## Installation
@@ -17,7 +18,7 @@ Currently, the app does not connect to a real FHIR server. It runs against mock 
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/NadaGuillermo/prom-viewer.git
    cd prom-viewer
    ```
 
@@ -47,19 +48,19 @@ Other available commands:
 | `yarn format`    | Format code with Prettier            |
 | `yarn typecheck` | Run TypeScript type checking         |
 
-If the `yarn dev` command was successful, the console output should look similar to this one:
+If the `yarn dev` command was executed successfully, the console output should look similar to this one:
 
 <img src="docs/images/dev-server-start.png" alt="Dev server start successful" width="500">
 
 ## Features
 
 - Visualizes FHIR questionnaire responses (mock data for now)
-- Charting via ECharts
+- Domain centered approach: questionnaire scores are grouped into domains to facilitate better cross-questionnaire comparability
+- View responses of multiple different questionnaires simultaneously
 - Export charts as PNG and table data as CSV
-- Date range filtering
+- Date and questionnaire filtering
+- Display reference values in charts
 - Configurable colors and date formats via config files
-
-More features are planned as the project develops.
 
 ## Tech Stack / Built With
 
