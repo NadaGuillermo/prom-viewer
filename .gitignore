@@ -30,4 +30,3 @@ dist-ssr
 !.yarn/plugins
 !.yarn/skds
 .pnp.*
-CLAUDE.md
