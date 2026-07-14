@@ -30,6 +30,23 @@ export const getLabelFromOriginalValueAndDataSeriesName = (
     : "";
 };
 
+export const getLabelFromValueAndDataSeriesName = (
+  yData: Visualization.DataSeries[],
+  value: number,
+  name: string
+) => {
+  const dataSeries = yData.find((series) => series.shortName === name);
+  if(dataSeries) {
+    const index = dataSeries.data.indexOf(value);
+    if (index > -1) {
+      const label = dataSeries.dataLabels[index];
+      return label;
+    }
+    return "";
+  }
+  return "";
+}
+
 // ok
 export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],

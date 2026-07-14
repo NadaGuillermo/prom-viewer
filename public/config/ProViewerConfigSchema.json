@@ -60,7 +60,7 @@
                         "minItems": 1                   
                     }
                 },
-                "required": ["id", "range", "scoreHealthCorrelation"]
+                "required": ["id"]
             }
         }
     },

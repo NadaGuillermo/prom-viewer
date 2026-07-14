@@ -18,5 +18,11 @@ export const isQuestionnaireItem = (
 export const isScoreItem = (
     item: Mapping.Item,
   ): item is Mapping.QuestionnaireScoreItem => {
-    return (item as Mapping.QuestionnaireScoreItem).range !== undefined;
+    return (item as Mapping.QuestionnaireScoreItem).range !== undefined && (item as Mapping.QuestionnaireScoreItem).scoreHealthCorrelation !== undefined;
   };
+
+export const isDimensionScore = (
+  item: Mapping.Item
+) => {
+  return item.isDimensionScore !== undefined && item.isDimensionScore === true;
+}

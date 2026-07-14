@@ -7,4 +7,4 @@ export const SCORE_HEALTH_CORRELATIONS = {increase: "increase", decrease: "decre
 
 // export const DIMENSIONS = [globalDimension, "Physical Function", "Symptoms", "Emotional Well-being", "Social Function", otherDimension] as const;
 
-export const ITEM_TYPES = {item: "item", score: "score"};
+export const ITEM_TYPES = {item: "item", score: "score", dimensionScore: "dimensionScore"};

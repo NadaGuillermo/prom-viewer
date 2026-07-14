@@ -13,7 +13,7 @@ export namespace NormalizedFHIR {
     text: string;
     answerOptions?: AnswerOption[];
     referenceQuestionnaireItems?: string[];
-    range?: [number, number]; // unused
+    range?: [number, number];
     // observationCode?: string; // from Observation
     observationDefinition?: string; // id for ObservationDefinition
     // scoreHealthCorrelation?: string; // from ObservationDefinition

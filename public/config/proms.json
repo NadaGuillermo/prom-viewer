@@ -3,7 +3,6 @@
   "scoreDefinitions": [
     {
       "id": "eq5d-index",
-      "range": [0, 1],
       "scoreHealthCorrelation": "increase",
       "referenceRange": [{
         "range": [0.78],
@@ -20,6 +19,10 @@
       "id": "eortc-global-health",
       "range": [0, 100],
       "scoreHealthCorrelation": "increase"
+    },
+    {
+      "id": "eq5d-dim",
+      "scoreHealthCorrelation": "decrease"
     },
     {
       "id": "eortc-functional",
@@ -50,7 +53,8 @@
             {
               "itemId": "euroqol-eq5d5l-q01-MO",
               "shortName": "Mobility",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
             }
           ]
         },
@@ -60,7 +64,8 @@
             {
               "itemId": "euroqol-eq5d5l-q02-SC",
               "shortName": "Self-Care",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
             }
           ]
         },
@@ -70,7 +75,8 @@
             {
               "itemId": "euroqol-eq5d5l-q03-UA",
               "shortName": "Usual Activities",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
             }
           ]
         },
@@ -80,7 +86,8 @@
             {
               "itemId": "euroqol-eq5d5l-q04-PD",
               "shortName": "Pain/Discomfort",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
             }
           ]
         },
@@ -90,7 +97,8 @@
             {
               "itemId": "euroqol-eq5d5l-q05-AD",
               "shortName": "Anxiety/Depression",
-              "isDimensionScore": true
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
             }
           ]
         },

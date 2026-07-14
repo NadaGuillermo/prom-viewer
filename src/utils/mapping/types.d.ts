@@ -29,6 +29,8 @@ export namespace Mapping {
 
   interface QuestionnaireItem extends BaseItem {
     answerOptions: AnswerOption[];
+    range?: [number, number];
+    scoreHealthCorrelation?: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
   }
 
   interface QuestionnaireScoreItem extends BaseItem {

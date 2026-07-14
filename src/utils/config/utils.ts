@@ -208,128 +208,139 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
   );
 
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
-    let range: [number, number] | undefined = undefined;
-    let scoreHealthCorrelation: string | undefined = undefined;
+    let rangeRaw: [number, number] | undefined = undefined;
+    let scoreHealthCorrelationRaw: string | undefined = undefined;
 
-    // check if ObservationDefinition exists for this item
+    let observationDefinitionRange: [number, number] | undefined = undefined;
+    let observationDefinitionScoreHealthCorrelation: string | undefined = undefined;
+
+    let configRange: [number, number] | undefined = undefined;
+    let configScoreHealthCorrelation: string | undefined = undefined;
+
+    let correspondingObservationDefinition: Mapping.ObservationDefinition | undefined = undefined;
+
     const domainItemMapping = questionnaireDomainItemMapping?.find((dim: any) =>
       dim.questions.map((question: any) => question.itemId).includes(linkId),
     );
+
+    // ObservationDefinition
     const observationDefinitionUrl = domainItemMapping?.questions?.find(
       (question: any) => question.itemId === linkId,
     )?.observationDefinition;
     if (observationDefinitionUrl !== undefined) {
-      const correspondingObservationDefinition =
+      correspondingObservationDefinition = 
         correspondingObservationDefinitions?.find(
           (observationDefinition) =>
             observationDefinition.url === observationDefinitionUrl,
         );
+        // Extract values from ObservationDefinition
       if (correspondingObservationDefinition !== undefined) {
-        range = correspondingObservationDefinition.range ?? undefined;
-        scoreHealthCorrelation =
-          correspondingObservationDefinition.scoreHealthCorrelation ??
-          undefined;
+        observationDefinitionRange = correspondingObservationDefinition.range;
+        observationDefinitionScoreHealthCorrelation =
+          correspondingObservationDefinition.scoreHealthCorrelation;
       }
+    }
 
-      // config
-      const scoreDefinitionId = domainItemMapping?.questions?.find(
-        (question: any) => question.itemId === linkId,
-      )?.scoreDefinitionId;
-      const scoreDefinition = config.scoreDefinitions.find(
-        (scoreDefinition: any) => scoreDefinition.id === scoreDefinitionId,
-      );
+    // config
+    const scoreDefinitionId = domainItemMapping?.questions?.find(
+      (question: any) => question.itemId === linkId,
+    )?.scoreDefinitionId;
+    const scoreDefinition = config.scoreDefinitions.find(
+      (scoreDefinition: any) => scoreDefinition.id === scoreDefinitionId,
+    );
 
-      // config overwrited ObservationDefinition
+    // Extract values from Config file
       if (scoreDefinition !== undefined) {
-        const configRange: [number, number] = [
+        if (scoreDefinition.range !== undefined) {
+          configRange = [
           Number(scoreDefinition.range[0]),
           Number(scoreDefinition.range[1]),
         ];
-        const configScoreHealthCorrelation: string =
-          scoreDefinition.scoreHealthCorrelation;
-        if (correspondingObservationDefinition !== undefined) {
-          if (
-            range !== undefined &&
-            (range[0] !== configRange[0] || range[1] !== configRange[1])
-          ) {
-            issues.push(
-              issueFactories.observationDefinition.contradictingRangeInConfig(
-                correspondingObservationDefinition,
-              ),
-            );
-          }
-          if (
-            scoreHealthCorrelation !== undefined &&
-            scoreHealthCorrelation !== configScoreHealthCorrelation
-          ) {
-            issues.push(
-              issueFactories.observationDefinition.contradictingScoreHealthCorrelationInConfig(
-                correspondingObservationDefinition,
-              ),
-            );
-          }
         }
-        // overwrite values
-        range = configRange;
-        scoreHealthCorrelation = configScoreHealthCorrelation;
+        configScoreHealthCorrelation =
+          scoreDefinition.scoreHealthCorrelation;
+      }
 
-        items[linkId] = item as Mapping.QuestionnaireScoreItem;
-        // add range
-        if (
-          range !== undefined &&
-          !isNaN(range[0]) &&
-          !isNaN(range[1])
-          // && range[0] <= range[1]
-        ) {
-          items[linkId].range = [range[0], range[1]];
-        } else {
-          if (correspondingObservationDefinition !== undefined) {
-            if (range === undefined) {
+      // Range
+      rangeRaw = configRange ?? observationDefinitionRange;
+
+      if (observationDefinitionRange !== undefined && configRange !== undefined && 
+        (observationDefinitionRange[0] !== configRange[0] || observationDefinitionRange[1] !== configRange[1]) &&
+        correspondingObservationDefinition !== undefined) {
+        // warning          
+        issues.push(
+            issueFactories.observationDefinition.contradictingRangeInConfig(
+              correspondingObservationDefinition,
+            ),
+          );
+      }
+
+      // ScoreHealthCorrelation
+      scoreHealthCorrelationRaw = configScoreHealthCorrelation ?? observationDefinitionScoreHealthCorrelation;
+
+      if (observationDefinitionScoreHealthCorrelation !== undefined && configScoreHealthCorrelation !== undefined &&
+        observationDefinitionScoreHealthCorrelation !== configScoreHealthCorrelation &&
+        correspondingObservationDefinition !== undefined
+      ) {        
+        // warning      
+        issues.push(
+          issueFactories.observationDefinition.contradictingScoreHealthCorrelationInConfig(
+            correspondingObservationDefinition,
+          ),
+        );        
+      }
+
+      const isRangeValid = rangeRaw !== undefined  && !isNaN(rangeRaw[0]) && !isNaN(rangeRaw[1]);
+      const isScoreHealthCorrelationValid = scoreHealthCorrelationRaw !== undefined && scoreHealthCorrelationRaw in SCORE_HEALTH_CORRELATIONS;
+
+      if (!isRangeValid && correspondingObservationDefinition) {
+        rangeRaw !== undefined ?
+        issues.push(
+                issueFactories.observationDefinition.invalidRange(
+                  correspondingObservationDefinition,
+                ),
+              ) : 
               issues.push(
                 issueFactories.observationDefinition.missingRange(
                   correspondingObservationDefinition,
                 ),
               );
-            } else if (
-              isNaN(range[0]) ||
-              isNaN(range[1]) ||
-              range[0] > range[1]
-            ) {
-              issues.push(
-                issueFactories.observationDefinition.invalidRange(
-                  correspondingObservationDefinition,
-                ),
-              );
-            }
-          }
-        }
-        // add scoreHealthCorrelation
-        if (
-          scoreHealthCorrelation !== undefined &&
-          scoreHealthCorrelation in SCORE_HEALTH_CORRELATIONS
-        ) {
-          items[linkId].scoreHealthCorrelation = scoreHealthCorrelation;
-        } else {
-          if (correspondingObservationDefinition !== undefined) {
-            if (scoreHealthCorrelation === undefined) {
-              issues.push(
-                issueFactories.observationDefinition.missingScoreHealthCorrelation(
-                  correspondingObservationDefinition,
-                ),
-              );
-            } else {
-              issues.push(
+      }
+      if (!isScoreHealthCorrelationValid && correspondingObservationDefinition) {
+        scoreHealthCorrelationRaw !== undefined ?
+           issues.push(
                 issueFactories.observationDefinition.invalidScoreHealthCorrelation(
                   correspondingObservationDefinition,
                 ),
-              );
-            }
-          }
-        }
+              ) :
+            issues.push(
+                issueFactories.observationDefinition.missingScoreHealthCorrelation(
+                  correspondingObservationDefinition,
+                ),
+              );       
       }
-    } else {
-      items[linkId] = item;
-    }
+
+      // Check if real range and scoreHealthCorrelation
+      const range = isRangeValid ? rangeRaw : undefined;
+      const scoreHealthCorrelation = isScoreHealthCorrelationValid ? scoreHealthCorrelationRaw : undefined;
+
+      if (range !== undefined && scoreHealthCorrelation !== undefined) {
+        // Score
+        const scoreItem = item as Mapping.QuestionnaireScoreItem;
+        scoreItem.range = range;
+        scoreItem.scoreHealthCorrelation = scoreHealthCorrelation;
+        items[linkId] = scoreItem;
+      } else if (scoreHealthCorrelation !== undefined) {
+        const questionnaireItem = item as Mapping.QuestionnaireItem;
+        questionnaireItem.scoreHealthCorrelation = scoreHealthCorrelation;
+        items[linkId] = questionnaireItem;
+      } else if (range !== undefined) {
+        const questionnaireItem = item as Mapping.QuestionnaireItem;
+        questionnaireItem.range = range;
+        items[linkId] = questionnaireItem;
+      } else {
+        items[linkId] = item;
+      }
   });
   return {
     data: items,
