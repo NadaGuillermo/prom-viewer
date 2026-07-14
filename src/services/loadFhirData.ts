@@ -1,19 +1,21 @@
 const BUNDLE_NAMES: string[] = [
-  "mii-exa-pro-eortc-qlq-c30-bundle",
-  "mii-exa-pro-phq-9-bundle",
+  "mii-exa-pro-eortc-qlq-c30-bundle-1",
+  // "mii-exa-pro-phq-9-bundle",
   // "mii-exa-pro-promis-29-bundle", // Questionnaire fehlt
 ];
 
 const QUESTIONNAIRE_NAMES: string[] = [
   "mii-qst-pro-euroqol-eq5d5l-collectable",
-  "mii-qst-pro-promis-29",
+  // "mii-qst-pro-promis-29",
 ];
 
 const RESPONSE_NAMES: string[] = [
-  "mii-exa-pro-euroqol-eq5d5l-response",
-  "mii-exa-pro-euroqol-eq5d5l-response copy",
-  "mii-exa-pro-euroqol-eq5d5l-response copy 2",
-  "mii-exa-pro-euroqol-eq5d5l-response copy 3",
+  "mii-exa-pro-euroqol-eq5d5l-response-1",
+  "mii-exa-pro-euroqol-eq5d5l-response-2",
+  "mii-exa-pro-euroqol-eq5d5l-response-3",
+  "mii-exa-pro-euroqol-eq5d5l-response-4",
+  "mii-exa-pro-euroqol-eq5d5l-response-5",
+  "mii-exa-pro-euroqol-eq5d5l-response-6",
   "mii-exa-pro-promis-29-response",
 ];
 
