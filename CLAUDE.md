@@ -21,11 +21,11 @@ Mock config is fetched from `public/` alongside FHIR data:
 - **Package manager:** yarn
 - **Build tool:** Vite
 - **Styling:** Tailwind
-- **State management:** none yet
+- **State management:** React useState
 
 ## Project Structure
 
-```
+```text
 src/
   assets/       # empty folder
   components/   # Reusable UI components
