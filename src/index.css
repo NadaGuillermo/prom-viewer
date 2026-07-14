@@ -222,6 +222,10 @@ body,
   color: var(--color-base-content-light);
 }
 
+.tooltip-content {
+  @apply tw:text-sm/5;
+}
+
 @media print {
     #sidebar-toggle { display: none; }
 }

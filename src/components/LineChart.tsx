@@ -5,6 +5,7 @@ import { type Charts, mutedColorPalette, referenceColors } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
+  getLabelFromValueAndDataSeriesName,
   getDataSeriesNameFromShortName,
   type Visualization,
 } from "@utils/visualization";
@@ -221,32 +222,31 @@ const buildReferenceMarkArea = (
       value,
       seriesName,
     );
+    const label = getLabelFromValueAndDataSeriesName(yData, value, seriesName);
     // const longName = getDataSeriesNameFromShortName(yData, seriesName);
     // const displayName = longName.length > 0 ? longName : seriesName;
 
     if (originalValue !== null) {
       if (displayNameInTooltip) {
-        return `
+        
+          return `
       <div class="tooltip-content">
         ${echarts.format.encodeHTML(seriesName)}<br/>
         ${echarts.format.encodeHTML(name)}:
-        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
+        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>${label.length > 0 ? " (" + echarts.format.encodeHTML(label) + ")" : ""}
       </div>
       `;
       }
-      return `
+      
+        return `
       <div class="tooltip-content">
         ${echarts.format.encodeHTML(name)}:
-        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>
+        &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>${label.length > 0 ? " (" + echarts.format.encodeHTML(label) + ")" : ""}
       </div>
       `;
     }
 
-    return `
-    <div class="tooltip-content">
-      ${echarts.format.encodeHTML(value)}
-    </div>
-    `;
+    return "";
   };
 
   const options: Charts.EChartsOption = {

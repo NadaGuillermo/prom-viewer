@@ -1589,7 +1589,7 @@ function App() {
                     <div className="tw:row-start-7 tw:lg:row-start-4 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
                       {globalScoresDataSeries.length > 0 ? (
                         <>
-                          <div className="tw:flex tw:justify-center">
+                          <div className="tw:flex tw:justify-center tw:overflow-visible">
                             <LineChart
                               height={400}
                               data={{
@@ -1671,7 +1671,7 @@ function App() {
                                 (series.referenceValues?.length ?? 0) > 0,
                             )}
                           >
-                          <div className="tw:overflow-x-auto">
+                          <div className="tw:overflow-visible">
                             <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
                               {dimensionScoresDataSeriesByDomain[domain].map(
                                 (dataSeries, index) => (
@@ -1975,7 +1975,7 @@ function App() {
                                                 )}
                                               >
                                               <div
-                                                className={`tw:w-full tw:overflow-x-auto tw:max-w-5xl`}
+                                                className={`tw:w-full tw:overflow-visible tw:max-w-5xl`}
                                               >
                                                 <div className="tw:grid tw:grid-cols-3 tw:xl:grid-cols-4 tw:2xl:grid-cols-5 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
                                                   {itemDataSeriesByDomainAndDimension[
