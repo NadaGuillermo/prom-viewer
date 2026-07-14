@@ -112,7 +112,20 @@ const gridOption: GridComponentOption = {
   bottom: 60,
 };
 
+/**
+ * Shared tooltip overflow behavior: renders the tooltip in an element
+ * appended to <body> instead of the (often small) chart container, so
+ * "confine" then clamps its position to the browser viewport instead of
+ * the container's bounding box. Prevents tooltip clipping in small charts.
+ */
+const tooltipOverflowOption: Pick<TooltipComponentOption, "renderMode" | "appendTo" | "confine"> = {
+  renderMode: "html",
+  appendTo: "body",
+  confine: true,
+};
+
 const tooltipOption: TooltipComponentOption = {
+  ...tooltipOverflowOption,
   showDelay: 0,
   hideDelay: 100,
   transitionDuration: 0.4,
@@ -271,7 +284,7 @@ const justYAxisLineChartYAxisOption: YAXisComponentOption = {
 }
 
 const justYAxisLineChartTooltipOption: TooltipComponentOption = {
-
+  ...tooltipOverflowOption,
 }
 
 export const justYAxisLineChartOptions = {
@@ -360,7 +373,7 @@ const emptyLineChartYAxisOption: YAXisComponentOption = {
 }
 
 const emptyLineChartTooltipOption: TooltipComponentOption = {
-
+  ...tooltipOverflowOption,
 }
 
 export const emptyLineChartOptions = {
@@ -411,7 +424,7 @@ const justXAxisLineChartYAxisOption: YAXisComponentOption = {
 }
 
 const justXAxisLineChartTooltipOption: TooltipComponentOption = {
-
+  ...tooltipOverflowOption,
 }
 
 export const justXAxisLineChartOptions = {

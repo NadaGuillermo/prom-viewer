@@ -261,18 +261,11 @@ const buildReferenceMarkArea = (
       tooltip: {
         ...tooltipOptions,
         show: showLegendTooltip,
-        // @ts-ignore
-        renderMode: "html",
-        // className: "echarts-tooltip",
-        confine: true,
         formatter: (params: any) => legendTooltipFormatter(params),
       },
     },
     tooltip: {
       ...tooltipOptions,
-      renderMode: "html",
-      // className: "echarts-tooltip",
-      confine: true,
       formatter: (params: any) => tooltipFormatter(params),
     },
     // @ts-ignore

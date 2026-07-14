@@ -234,7 +234,6 @@ const RadarChart = ({
     tooltip: {
       ...tooltipOptions,
       show: true,
-      confine: true,
       formatter: (params) => tooltipFormatter(params)
     },
     legend: {
@@ -252,7 +251,6 @@ const RadarChart = ({
       tooltip: {
         ...tooltipOptions,
         show: showLegendTooltip,
-        confine: true,
         position: "top",
       },
       selectedMode: 'multiple',
