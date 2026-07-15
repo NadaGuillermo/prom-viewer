@@ -19,8 +19,6 @@ const DataTable = ({
   const yData = data.yData;
   console.log("simple table data yData: ", yData);
 
-  const columns = xData.length + 2;
-
    return (
     <div
       className={`tw:w-full tw:overflow-x-auto tw:overflow-y-auto`}
@@ -28,15 +26,15 @@ const DataTable = ({
     >
       <div
         className={`tw:grid tw:gap-0 tw:min-w-xs`}
-        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `minmax(10rem, 18rem) repeat(${xData.length}, minmax(6rem, max-content))` }}
       >
-        <div className="tw:col-span-2 tw:border-b tw:py-2 border-medium" />
+        <div className="tw:border-b border-medium tw:bg-base-100 tw:sticky tw:top-0 tw:left-0 tw:z-14" />
         {xData.map((date) => (
           <div
             key={date}
-            className="tw:col-span-1 tw:border-b tw:py-2 border-medium"
+            className="tw:border-b tw:py-2 tw:px-2 border-medium tw:bg-base-100 tw:sticky tw:top-0 tw:z-12"
           >
-            <div className="tw:text-sm tw:font-bold tw:text-center tw:whitespace-pre-wrap tw:px-2 text-light"
+            <div className="tw:text-sm tw:font-bold tw:select-none tw:text-center tw:whitespace-nowrap tw:px-2 text-light"
             >
               {date}
             </div>
@@ -45,7 +43,7 @@ const DataTable = ({
         {yData.map((row) => (
           <React.Fragment key={row.id}>
             <div
-              className={`tw:col-span-2 tw:border-b border-light
+              className={`tw:sticky tw:left-0 tw:z-10 tw:border-b border-light tw:bg-base-100
             tw:py-2 tw:px-2`}
             >
               <div className={`tw:text-sm tw:whitespace-pre-wrap tw:break-normal ${row.seriesType === ITEM_TYPES.score ? "tw:font-bold" : "tw:font-normal"}`}>
@@ -81,7 +79,7 @@ const DataTable = ({
             {xData.map((date, index) => (
               <div
                 key={`${date}:${row.id}`}
-                className={`tw:col-span-1 tw:flex tw:justify-center 
+                className={`tw:flex tw:justify-center 
               tw:items-center tw:border-b border-light
               tw:py-2 `}
               >

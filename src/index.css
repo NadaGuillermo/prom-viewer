@@ -217,6 +217,10 @@ body,
   color: var(--color-base-content-light);
 }
 
+.background-border-medium {
+  background-color: var(--color-border-medium);
+}
+
 .text-tooltip-basic {
   @apply tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal;
   color: var(--color-base-content-light);

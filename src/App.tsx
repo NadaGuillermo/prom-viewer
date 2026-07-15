@@ -245,7 +245,7 @@ function App() {
   const [radarChartDates, setRadarChartDates] = useState<string[]>([]);
 
   const [dateFormatPattern, setDateFormatPattern] = useState<string>("");
-  const [datesByQuestionnaireId, setDatesByQuestionnaireId] = useState<Record<string, string[]>>({});
+  // const [datesByQuestionnaireId, setDatesByQuestionnaireId] = useState<Record<string, string[]>>({});
 
   // Load data
   useEffect(() => {
@@ -1045,7 +1045,7 @@ function App() {
     setRadarChartDates(datesForRadarChart);
     setRadarChartDate(dateForRadarChart);
     // setDatesOfSelectedQuestionnaires(datesOfSelectedQuestionnaires);
-    setDatesByQuestionnaireId(datesByQuestionnaire);
+    // setDatesByQuestionnaireId(datesByQuestionnaire);
     setFilteredSelectedDates(filteredSelectedDates);
     setFilteredSelectedQuestionnaires(filteredSelectedQuestionnaires);
     setInactiveDates(inactiveDates);
@@ -1335,7 +1335,6 @@ function App() {
                     {questionnaireNamesByDate && (
                       <GridTable
                         data={questionnaireNamesByDate}
-                        constrainWidth={true}
                       />
                     )}
                   </div>
