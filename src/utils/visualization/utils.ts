@@ -769,6 +769,32 @@ export const createPseudoDataSeries = (length: number): Visualization.DataSeries
   return dataSeries;
 }
 
+export const filterDataSeriesDataAndDatesForCommonNullValues = (dataSeries: Visualization.DataSeries[], xData: string[]) => {
+  const filteredXDataIndices: number[] = [];
+  const filteredXData: string[] = [];
+  xData.forEach((x, i) => {
+  if (dataSeries.some((series) => series.data[i] !== null)) {
+    filteredXDataIndices.push(i);
+    filteredXData.push(x);
+  }
+  });
+  const filteredDataSeries: Visualization.DataSeries[] = dataSeries.map((series) => {
+    const filteredData = series.data.filter((_, i) => filteredXDataIndices.includes(i));
+    const filteredOriginalData = series.originalData.filter((_, i) => filteredXDataIndices.includes(i));
+    const filteredDataLables = series.dataLabels.filter((_, i) => filteredXDataIndices.includes(i));
+    return {
+      ...series,
+      data: filteredData,
+      originalData: filteredOriginalData,
+      dataLabels: filteredDataLables,
+    }
+  })
+  return {
+    dataSeries: filteredDataSeries,
+    xData: filteredXData,
+  }                                                  
+}
+
 
 export const truncateAtWord = (str: string, maxLength:number = 80) => {
   if (str.length <= maxLength) {
