@@ -97,6 +97,7 @@ import {
   truncateAtWord,
   sortDates,
   createQuestionnaireDatesRecord,
+  getDatesWithinRange,
 } from "@utils/visualization";
 
 // Config
@@ -114,6 +115,7 @@ import {
   buildExportFileName,
   createAndDownloadCSV,
 } from "@utils/export";
+import { getDateFormatPattern } from "@utils/dateFormat";
 
 function App() {
   // React states
@@ -233,11 +235,16 @@ function App() {
     start: "",
     end: "",
   });
+  const [filteredSelectedQuestionnaires, setFilteredSelectedQuestionnaires] = useState<string[]>([]);
+  const [filteredSelectedDates, setFilteredSelectedDates] = useState<string[]>([]);
+  const [inactiveQuestionnaires, setInactiveQuestionnaires] = useState<string[]>([]);
+  const [inactiveDates, setInactiveDates] = useState<string[]>([]);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [radarChartDate, setRadarChartDate] = useState<string>("");
   const [radarChartDates, setRadarChartDates] = useState<string[]>([]);
 
-  // const [questionnaireDatesRecord, setQuestionnaireDatesRecord] = useState<Record<string, string[]>>({});
+  const [dateFormatPattern, setDateFormatPattern] = useState<string>("");
+  const [datesByQuestionnaireId, setDatesByQuestionnaireId] = useState<Record<string, string[]>>({});
 
   // Load data
   useEffect(() => {
@@ -679,6 +686,8 @@ function App() {
       questionnaireResponsesWithFilteredItems,
     );
 
+    const dateFormat = getDateFormatPattern();
+
     // Set variables
     setQuestionnaires(questionnaires);
     setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
@@ -693,6 +702,7 @@ function App() {
     setAllDatesOfQuestionnaireResponses(allResponseDates);
     setSelectedDates(allResponseDates);
     setRadarChartDates(allResponseDates);
+    setDateFormatPattern(dateFormat);
     // setDisplayedQuestionnaires(questionnaires);
     // setDisplayedQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
   }, [
@@ -992,12 +1002,21 @@ function App() {
     // );
 
     const datesByQuestionnaire = createQuestionnaireDatesRecord(questionnaireResponses);
-    const datesOfSelectedQuestionnaires = _.uniq(Object.entries(datesByQuestionnaire).filter(([qId, _]) => 
-      selectedQuestionnaires.includes(qId)
-    ).flatMap(([_, dates]) => dates));
 
-    const datesForRadarChart = _.intersection(datesOfSelectedQuestionnaires, selectedDates).sort((a, b) => sortDates(a, b, "ascending"));
-    const dateForRadarChart = datesForRadarChart.includes(radarChartDate) ? radarChartDate : datesForRadarChart[selectedDates.length - 1];
+    const filteredDates = dateRange.start !== "" && dateRange.end !== "" ? getDatesWithinRange(selectedDates, [dateRange.start, dateRange.end]) : selectedDates;
+    const filteredQuestionnaires = Object.entries(datesByQuestionnaire).filter(([_, dates]) => 
+      dates.some((d) => filteredDates.includes(d))
+      ).map(([qId, _]) => qId);
+    const filteredSelectedQuestionnaires = _.intersection(selectedQuestionnaires, filteredQuestionnaires);
+    const filteredSelectedDates = filteredDates.filter((d) => filteredSelectedQuestionnaires.some((q) => datesByQuestionnaire[q].includes(d)));
+    const inactiveDates = _.difference(selectedDates, filteredSelectedDates);
+    const inactiveQuestionnaires = _.difference(selectedQuestionnaires, filteredSelectedQuestionnaires);
+    
+    const datesOfSelectedQuestionnaires = _.uniq(Object.entries(datesByQuestionnaire).filter(([qId, _]) => 
+      filteredSelectedQuestionnaires.includes(qId)
+    ).flatMap(([_, dates]) => dates));
+    const datesForRadarChart = _.intersection(datesOfSelectedQuestionnaires, filteredSelectedDates).sort((a, b) => sortDates(a, b, "ascending"));
+    const dateForRadarChart = datesForRadarChart.includes(radarChartDate) ? radarChartDate : datesForRadarChart[datesForRadarChart.length - 1];
 
     // set variables
     // setDisplayedQuestionnaires(questionnairesForChart);
@@ -1025,7 +1044,11 @@ function App() {
     setRadarChartDates(datesForRadarChart);
     setRadarChartDate(dateForRadarChart);
     // setDatesOfSelectedQuestionnaires(datesOfSelectedQuestionnaires);
-    // setQuestionnaireDatesRecord(datesByQuestionnaire);
+    setDatesByQuestionnaireId(datesByQuestionnaire);
+    setFilteredSelectedDates(filteredSelectedDates);
+    setFilteredSelectedQuestionnaires(filteredSelectedQuestionnaires);
+    setInactiveDates(inactiveDates);
+    setInactiveQuestionnaires(inactiveQuestionnaires);
     // setRadarChartData(radarData);
     // setPeriodOfObservations(periodOfObservations);
     // setScoreChartSubTitle(scoreChartSubTitle);
@@ -1541,7 +1564,7 @@ function App() {
                           <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
                             {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
                       displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 && 
-                      radarChartDates.length > 0 && radarChartDate.length > 0 && (
+                      radarChartDates.length > 0 && radarChartDate && radarChartDate.length > 0 && (
                           <div className="tw:flex tw:justify-center tw:pt-4">
                             <DateSlider
                             dates={radarChartDates}
@@ -1557,7 +1580,7 @@ function App() {
                     <div className="tw:row-start-4 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
                       {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
                       displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 &&
-                      radarChartDate.length > 0
+                      radarChartDate && radarChartDate.length > 0
                          ? (
                           <>
                           <div className="tw:flex tw:justify-center">
@@ -2207,6 +2230,11 @@ function App() {
                 datePickerRange={dateRange}
                 rangeSelectionHandler={handleRangeChange}
                 resetHandler={resetFilters}
+                filteredSelectedDates={filteredSelectedDates}
+                filteredSelectedQuestionnaires={filteredSelectedQuestionnaires}
+                inactiveDates={inactiveDates}
+                inactiveQuestionnaires={inactiveQuestionnaires}
+                dateFormat={dateFormatPattern}
               />
             </ul>
           </div>

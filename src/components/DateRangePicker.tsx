@@ -2,22 +2,27 @@ import "cally";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconProp } from "@fortawesome/fontawesome-svg-core";
 import type { Visualization } from "@utils/visualization";
+import { formatDate } from "@utils/dateFormat";
 interface Props {
   rangeHandler: (event: Event) => void;
   dateValue: string;
   range: Visualization.RangeState;
+  dateFormat: string;
 }
 
 const DateRangePicker = (
-  { rangeHandler, dateValue, range }: Props
+  { rangeHandler, dateValue, range, dateFormat }: Props
 ) => {
+
+  const startDateFormatted = formatDate(range.start, dateFormat);
+  const endDateFormatted = formatDate(range.end, dateFormat)
 
     return (
       <div className="tw:mt-2 tw:mr-2">
       <button 
       popoverTarget="rdp-popover" 
       className="tw:input tw:input-border border-medium tw:bg-base-100 border-rounded" style={{ anchorName: "--rdp" } as React.CSSProperties}>
-        {range.start && range.end ? `${range.start} \u2013 ${range.end}` : `Pick start and end date`}
+        {range.start && range.end ? `${startDateFormatted} \u2013 ${endDateFormatted}` : `Pick start and end date`}
       </button>
       {/* <div className="tw:flex tw:justify-end tw:self-end"> */}
       <div className="tw:mt-2">

@@ -173,6 +173,16 @@ export const sortDates = (a: string, b:string, order: "ascending" | "descending"
   return order === "ascending" ? aDate - bDate : bDate - aDate;
 }
 
+export const getDatesWithinRange = (dates: string[], range: [string, string], dateFormatPattern?: string): string[] => {
+  const pattern = dateFormatPattern ?? getDateFormatPattern();
+  // convert to ISO YYYY-MM-DD strings
+  const datesAsDates = dates.map((d) => new Date(parseFormattedDate(d, pattern)));
+  const rangeAsDates = range.map((r) => new Date(parseFormattedDate(r, pattern)));
+
+  const filteredDates = datesAsDates.filter((d) => d >= rangeAsDates[0] && d <= rangeAsDates[1]).map((d) => d.toISOString().split("T")[0]);
+  return filteredDates;
+}
+
 // ok
 export const sortQuestionnaireResponsesByDate = (
   questionnaireResponses: Mapping.QuestionnaireResponse[],
