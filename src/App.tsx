@@ -98,6 +98,7 @@ import {
   sortDates,
   createQuestionnaireDatesRecord,
   getDatesWithinRange,
+  filterDataSeriesDataAndDatesForCommonNullValues,
 } from "@utils/visualization";
 
 // Config
@@ -1702,7 +1703,8 @@ function App() {
                                     {/* cell with y axis */}
                                     <div
                                       className={`tw:col-span-1 
-                              ${index % 2 === 1 ? "tw:md:hidden" : ""}`}
+                              ${index % 2 === 1 ? "tw:md:hidden" : ""}
+                              tw:h-25`}
                                     >
                                       <LineChart
                                         data={{
@@ -1740,6 +1742,7 @@ function App() {
                                       ${index % 2 === 0 && dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:md:border-r-0" : ""}
                                       ${index < 1 ? "tw:border-t" : ""} 
                                       ${index === 1 ? "tw:md:border-t" : ""} 
+                                      tw:h-25
                                     `}
                                     >
                                       {/* cell with dimension score */}
@@ -1794,7 +1797,8 @@ function App() {
                                   <div
                                     className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
                                     ${dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:border tw:border-b tw:border-l tw:border-r border-light" : ""} 
-                                    tw:hidden tw:md:block`}
+                                    tw:hidden tw:md:block
+                                    tw:h-25`}
                                   >
                                     {/* empty data cell if number of dimensions is odd */}
                                     <LineChart
@@ -1820,7 +1824,9 @@ function App() {
                                     />
                                   </div>
                                 )}
-                              <div className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2">
+                              <div className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 
+                              tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2
+                              tw:h-7.5">
                                 {/* left cell with x axis*/}
                                 <LineChart
                                   data={{
@@ -1845,7 +1851,9 @@ function App() {
                               {dimensionScoresDataSeriesByDomain[domain]
                                 .length > 1 && (
                                 <div
-                                  className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 tw:hidden tw:md:block`}
+                                  className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 
+                                    tw:hidden tw:md:block
+                                    tw:h-7.5`}
                                 >
                                   {/* right cell with x axis */}
                                   <LineChart
@@ -2008,7 +2016,7 @@ function App() {
                                                       <React.Fragment
                                                         key={dataSeries.id}
                                                       >
-                                                        <div className="tw:col-span-1 tw:flex tw:items-center tw:justify-start tw:border-b tw:first:border-t tw:md:border-none border-light">
+                                                        <div className="tw:col-span-1 tw:flex tw:h-12 tw:items-center tw:justify-start tw:border-b tw:first:border-t tw:md:border-none border-light">
                                                           {dataSeries.name !== truncateAtWord(dataSeries.name, 80) ? (   
                                                             <>
                                                               <div data-tooltip-id={`${dataSeries.id}`} className="tw:text-xs tw:break-normal tw:mr-4">
@@ -2046,10 +2054,11 @@ function App() {
                                                         </div>
                                                         <div
                                                           className={`tw:col-span-2 tw:xl:col-span-3 tw:2xl:col-span-4 tw:col-start-2
-                                                tw:border-b tw:border-l tw:border-r border-light
-                                                ${index < 1 ? "tw:border-t" : ""} 
-                                              `}
-                                                        >
+                                                            tw:border-b tw:border-l tw:border-r border-light
+                                                            ${index < 1 ? "tw:border-t" : ""}
+                                                            tw:h-12
+                                                          `}
+                                                          >
                                                           {/* cell with dimension score */}
                                                           <LineChart
                                                             key={
@@ -2058,15 +2067,19 @@ function App() {
                                                               dataSeries.id
                                                             }
                                                             data={{
-                                                              xData: chartXData,
+                                                              xData: filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
+                                                    domain
+                                                  ][dimension], chartXData).xData, // filter
                                                               yData: [
-                                                                dataSeries,
+                                                                filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
+                                                    domain
+                                                  ][dimension], chartXData).dataSeries[index],
                                                               ],
                                                             }}
                                                             // title={domain}
-                                                            height={40}
+                                                            height={48}
                                                             minMaxYValues={[
-                                                              -0.12, 1.12,
+                                                              -0.2, 1.2,
                                                             ]}
                                                             //minMaxYValuesPosition={[0, 1]}
                                                             titleOptions={
@@ -2102,14 +2115,19 @@ function App() {
                                                       </React.Fragment>
                                                     ),
                                                   )}
-                                                  <div className="tw:col-span-2 tw:col-start-2 tw:xl:col-span-3 tw:2xl:col-span-4 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2">
+                                                  <div className="tw:col-span-2 tw:col-start-2 tw:xl:col-span-3 tw:2xl:col-span-4 
+                                                  tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2 tw:h-7.5">
                                                     {/* left cell with x axis*/}
                                                     <LineChart
                                                       data={{
-                                                        xData: chartXData,
+                                                        xData: filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
+                                                    domain
+                                                  ][dimension], chartXData).xData, // filter
                                                         yData: [
                                                           createPseudoDataSeries(
-                                                            chartXData.length,
+                                                            filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
+                                                    domain
+                                                  ][dimension], chartXData).xData.length,
                                                           ),
                                                         ],
                                                       }}

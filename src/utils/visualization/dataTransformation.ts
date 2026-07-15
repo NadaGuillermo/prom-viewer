@@ -117,6 +117,18 @@ export const createChartData = (
                 return answerOption.value === responseItem.answer;
               })?.label ?? "",
             );
+          } else {
+            // items
+            const [min, max] =
+              getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
+            data.push(
+              Number(normalizeValue(responseItem.answer, min, max).toFixed(3)),
+            );
+            dataLabels.push(
+              questionnaireItem.answerOptions.find((answerOption) => {
+                return answerOption.value === responseItem.answer;
+              })?.label ?? "",
+            );
           }
         } else {
           // do not normalize null values

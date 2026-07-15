@@ -333,7 +333,7 @@ const groupedLineChartYAxisOption: YAXisComponentOption = {
 }
 
 const groupedLineChartTooltipOption: TooltipComponentOption = {
-  ...singleLineChartTooltipOption
+  ...tooltipOption
 };
 
 export const groupedLineChartOptions = {
