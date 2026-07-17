@@ -4,21 +4,42 @@
     {
       "id": "eq5d-index",
       "scoreHealthCorrelation": "increase",
-      "referenceRange": [{
-        "range": [0.78],
-        "name": "Reference Line",
-        "description": "Average score of general pupulation"
-      }]   
+      "referenceRange": [
+        {
+          "range": [0.88],
+          "name": "Population Mean",
+          "description": "Average EQ Index of the general population"
+        }
+      ]
     },
     {
       "id": "eq5d-vas",
       "range": [0, 100],
-      "scoreHealthCorrelation": "increase"
+      "scoreHealthCorrelation": "increase",
+      "referenceRange": [
+        {
+          "range": [71.59],
+          "name": "Population Mean",
+          "description": "Average VAS score of the general pupulation"
+        }
+      ]
     },
     {
       "id": "eortc-global-health",
       "range": [0, 100],
-      "scoreHealthCorrelation": "increase"
+      "scoreHealthCorrelation": "increase",
+      "referenceRange": [
+        {
+          "range": [41.7, 75],
+          "name": "Interquartile Range",
+          "description": "Ovarian Cancer stage III-IV, EORTC Reference Manual"
+        },
+        {
+          "range": [56.3],
+          "name": "Mean",
+          "description": "Ovarian Cancer stage III-IV, EORTC Reference Manual"
+        }
+      ]
     },
     {
       "id": "eq5d-dim",
@@ -27,20 +48,12 @@
     {
       "id": "eortc-functional",
       "range": [0, 100],
-      "scoreHealthCorrelation": "increase",
-      "referenceRange": [{
-        "range": [20,80],
-        "name": "Standard Range"
-      }, {
-        "range": [66],
-        "name": "Standard Line"
-      }]
+      "scoreHealthCorrelation": "increase"
     },
     {
       "id": "eortc-symptom",
       "range": [0, 100],
       "scoreHealthCorrelation": "decrease"
-      
     }
   ],
   "questionnaires": [
@@ -48,41 +61,14 @@
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable",
       "domainItemMapping": [
         {
-          "domain": "Physical Behavior",
+          "domain": "Physical Health",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q01-MO",
               "shortName": "Mobility",
               "isDimensionScore": true,
               "scoreDefinitionId": "eq5d-dim"
-            }
-          ]
-        },
-        {
-          "domain": "Social Role",
-          "questions": [
-            {
-              "itemId": "euroqol-eq5d5l-q02-SC",
-              "shortName": "Self-Care",
-              "isDimensionScore": true,
-              "scoreDefinitionId": "eq5d-dim"
-            }
-          ]
-        },
-        {
-          "domain": "Social Role",
-          "questions": [
-            {
-              "itemId": "euroqol-eq5d5l-q03-UA",
-              "shortName": "Usual Activities",
-              "isDimensionScore": true,
-              "scoreDefinitionId": "eq5d-dim"
-            }
-          ]
-        },
-        {
-          "domain": "Emotional Behavior",
-          "questions": [
+            },
             {
               "itemId": "euroqol-eq5d5l-q04-PD",
               "shortName": "Pain/Discomfort",
@@ -92,7 +78,24 @@
           ]
         },
         {
-          "domain": "Emotional Behavior",
+          "domain": "Role Function",
+          "questions": [
+            {
+              "itemId": "euroqol-eq5d5l-q02-SC",
+              "shortName": "Self-Care",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
+            },
+            {
+              "itemId": "euroqol-eq5d5l-q03-UA",
+              "shortName": "Usual Activities",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-dim"
+            }
+          ]
+        },
+        {
+          "domain": "Mental Health",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-q05-AD",
@@ -103,7 +106,7 @@
           ]
         },
         {
-          "domain": "Global Health",
+          "domain": "Quality of Life",
           "questions": [
             {
               "itemId": "euroqol-eq5d5l-vas",
@@ -112,10 +115,10 @@
               "scoreDefinitionId": "eq5d-vas"
             },
             {
-                "itemId": "euroqol-eq5d5l-score-index",
-                "shortName": "EQ Index",
-                "isDimensionScore": true,
-                "scoreDefinitionId": "eq5d-index"
+              "itemId": "euroqol-eq5d5l-score-index",
+              "shortName": "EQ Index",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "eq5d-index"
             }
           ]
         }
@@ -126,11 +129,11 @@
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
       "domainItemMapping": [
         {
-          "domain": "Global Health",
+          "domain": "Quality of Life",
           "questions": [
             {
               "itemId": "qlq-c30-q29"
-            }, 
+            },
             {
               "itemId": "qlq-c30-q30"
             },
@@ -139,12 +142,12 @@
               "shortName": "QoL",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-qlq-c30-ql",
               "scoreDefinitionId": "eortc-global-health",
-              "isDimensionScore": true       
+              "isDimensionScore": true
             }
           ]
         },
         {
-          "domain": "Social Role",
+          "domain": "Role Function",
           "questions": [
             {
               "itemId": "qlq-c30-q06"
@@ -153,16 +156,16 @@
               "itemId": "qlq-c30-q07"
             },
             {
-                "itemId": "score-rf",
-                "shortName": "Role Funcion",
-                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-rf",
-                "scoreDefinitionId": "eortc-functional",
-                "isDimensionScore": true
+              "itemId": "score-rf",
+              "shortName": "Role Function",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-rf",
+              "scoreDefinitionId": "eortc-functional",
+              "isDimensionScore": true
             }
           ]
         },
         {
-          "domain": "Physical Behavior",
+          "domain": "Physical Health",
           "questions": [
             {
               "itemId": "qlq-c30-q01"
@@ -180,16 +183,16 @@
               "itemId": "qlq-c30-q05"
             },
             {
-                "itemId": "score-pf",
-                "shortName": "Physical Function",
-                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pf",
-                "scoreDefinitionId": "eortc-functional",
-                "isDimensionScore": true
+              "itemId": "score-pf",
+              "shortName": "Physical Function",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pf",
+              "scoreDefinitionId": "eortc-functional",
+              "isDimensionScore": true
             }
           ]
         },
         {
-          "domain": "Emotional Behavior",
+          "domain": "Mental Health",
           "questions": [
             {
               "itemId": "qlq-c30-q21"
@@ -213,12 +216,12 @@
           ]
         },
         {
-          "domain": "Cognitive Function",
+          "domain": "Cognitive Health",
           "questions": [
-             {
+            {
               "itemId": "qlq-c30-q20"
             },
-              {
+            {
               "itemId": "qlq-c30-q25"
             },
             {
@@ -231,7 +234,7 @@
           ]
         },
         {
-          "domain": "Social Role",
+          "domain": "Social Health",
           "questions": [
             {
               "itemId": "qlq-c30-q26"
@@ -239,7 +242,7 @@
             {
               "itemId": "qlq-c30-q27"
             },
-             {
+            {
               "itemId": "score-sf",
               "shortName": "Social Function",
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-sf",
@@ -255,13 +258,7 @@
               "itemId": "qlq-c30-q09"
             },
             {
-              "itemId": "qlq-c30-q10"
-            },
-            {
               "itemId": "qlq-c30-q11"
-            },
-            {
-              "itemId": "qlq-c30-q12"
             },
             {
               "itemId": "qlq-c30-q13"
@@ -279,10 +276,23 @@
               "itemId": "qlq-c30-q17"
             },
             {
+              "itemId": "qlq-c30-q10"
+            },
+            {
+              "itemId": "qlq-c30-q12"
+            },
+            {
               "itemId": "qlq-c30-q18"
             },
             {
               "itemId": "qlq-c30-q19"
+            },
+            {
+              "itemId": "score-fa",
+              "shortName": "Fatigue",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fa",
+              "scoreDefinitionId": "eortc-symptom",
+              "isDimensionScore": true
             },
             {
               "itemId": "score-pa",
@@ -290,13 +300,6 @@
               "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-pa",
               "scoreDefinitionId": "eortc-symptom",
               "isDimensionScore": true
-            },
-            {
-                "itemId": "score-fa",
-                "shortName": "Fatigue",
-                "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fa",
-                "scoreDefinitionId": "eortc-symptom",
-                "isDimensionScore": true
             },
             {
               "itemId": "score-nv",
@@ -343,19 +346,19 @@
           ]
         },
         {
-            "domain": "Financial Difficulties",
-            "questions": [
-                {
-                    "itemId": "qlq-c30-q28"
-                },
-                {
-                    "itemId": "score-fi",
-                    "shortName": "Financial Difficulties",
-                    "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fi",
-                    "scoreDefinitionId": "eortc-symptom",
-                    "isDimensionScore": true
-                }
-            ]
+          "domain": "Personal Circumstances",
+          "questions": [
+            {
+              "itemId": "qlq-c30-q28"
+            },
+            {
+              "itemId": "score-fi",
+              "shortName": "Financial Difficulties",
+              "observationDefinition": "https://example.com/fhir/ObservationDefinition/eortc-fi",
+              "scoreDefinitionId": "eortc-symptom",
+              "isDimensionScore": true
+            }
+          ]
         }
       ],
       "globalScores": ["score-ql"]

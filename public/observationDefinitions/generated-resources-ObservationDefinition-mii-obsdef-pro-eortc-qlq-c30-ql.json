@@ -36,10 +36,10 @@
   },
   "qualifiedInterval": [
     {
-      "category": "reference",
+      "category": "",
       "range": {
-        "low": 25,
-        "high": 68
+        "low": 0,
+        "high": 23
       },
       "context": "normal"
     }
