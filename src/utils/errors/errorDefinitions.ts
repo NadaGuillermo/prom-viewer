@@ -336,7 +336,7 @@ export const issueFactories = {
           code: DataIssueCode.DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG,
           level: "warning",
 
-          message: "There are reference values defined in both the ObservationDefinition and the configuration file. Only thos in the latter are used.",
+          message: "There are reference values defined in both the ObservationDefinition and the configuration file. All will be displayed.",
 
           resourceType: "ObservationDefinition",
 

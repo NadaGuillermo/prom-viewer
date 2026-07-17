@@ -92,6 +92,43 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
         (correspondingObservationDefinition !== undefined &&
           correspondingObservationDefinition.referenceRange !== undefined)
       ) {
+        const referenceRange: Mapping.ReferenceRange[] = [];
+        // reference range from config
+        if (
+          scoreDefinitionInConfig !== undefined &&
+          scoreDefinitionInConfig.referenceRange !== undefined
+        ) {
+          const referenceRangeInConfig: Config.ReferenceRange[] =
+            scoreDefinitionInConfig.referenceRange;
+          const scoreItemReferenceRange: Mapping.ReferenceRange[] = [];
+          referenceRangeInConfig.forEach((refRange) => {
+            if (refRange.range.length === 1) {
+              scoreItemReferenceRange.push({
+                range: refRange.range[0],
+                name: refRange.name,
+                ...(refRange.description && {
+                  description: refRange.description,
+                }),
+              });
+            }
+            if (refRange.range.length === 2) {
+              scoreItemReferenceRange.push({
+                range: [refRange.range[0], refRange.range[1]],
+                name: refRange.name,
+                ...(refRange.description && {
+                  description: refRange.description,
+                }),
+              });
+            }
+          });
+          if (scoreItemReferenceRange.length > 0) {
+            for (let range of scoreItemReferenceRange) {
+              referenceRange.push(range);
+            }
+            // scoreItem.referenceRange = scoreItemReferenceRange;
+          }
+        }
+
         // reference range from observation definition
         if (
           correspondingObservationDefinition !== undefined &&
@@ -123,41 +160,16 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
               }
             });
             if (scoreItemReferenceRange.length > 0) {
-              scoreItem.referenceRange = scoreItemReferenceRange;
+              for (let range of scoreItemReferenceRange) {
+                referenceRange.push(range);
+              }
+              // scoreItem.referenceRange = scoreItemReferenceRange;
             }
           }
         }
-        // reference range from config
-        if (
-          scoreDefinitionInConfig !== undefined &&
-          scoreDefinitionInConfig.referenceRange !== undefined
-        ) {
-          const referenceRangeInConfig: Config.ReferenceRange[] =
-            scoreDefinitionInConfig.referenceRange;
-          const scoreItemReferenceRange: Mapping.ReferenceRange[] = [];
-          referenceRangeInConfig.forEach((refRange) => {
-            if (refRange.range.length === 1) {
-              scoreItemReferenceRange.push({
-                range: refRange.range[0],
-                name: refRange.name,
-                ...(refRange.description && {
-                  description: refRange.description,
-                }),
-              });
-            }
-            if (refRange.range.length === 2) {
-              scoreItemReferenceRange.push({
-                range: [refRange.range[0], refRange.range[1]],
-                name: refRange.name,
-                ...(refRange.description && {
-                  description: refRange.description,
-                }),
-              });
-            }
-          });
-          if (scoreItemReferenceRange.length > 0) {
-            scoreItem.referenceRange = scoreItemReferenceRange;
-          }
+
+        if (referenceRange.length > 0) {
+          scoreItem.referenceRange = referenceRange;
         }
 
         // reference ranges defined in config and observation definition
