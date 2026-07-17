@@ -121,11 +121,55 @@ const gridOption: GridComponentOption = {
 const tooltipOverflowOption: Pick<TooltipComponentOption, "renderMode" | "appendTo" | "confine"> = {
   renderMode: "html",
   appendTo: "body",
-  confine: true,
+  confine: false,
+};
+
+/**
+ * input: point (mouse position relative to the viewport, since the tooltip
+ *   is rendered via appendTo: "body"), size (contains contentSize, the
+ *   rendered tooltip dom's [width, height])
+ * output: [x, y] absolute pixel position for the tooltip
+ * description: Positions the tooltip to the right and below the cursor by
+ *   default. Flips to the left and/or above the cursor when the default
+ *   placement would overflow the viewport, and clamps the result to the
+ *   viewport bounds so the tooltip is never clipped (confine stays false).
+ */
+const tooltipPosition: NonNullable<TooltipComponentOption["position"]> = (
+  point,
+  _params,
+  _dom,
+  _rect,
+  size
+) => {
+  const OFFSET = 12;
+  const [pointX, pointY] = point as [number, number]; // within container (0/0 is left upper corner of container)
+  const [contentWidth, contentHeight] = size.contentSize; // size of tooltip
+  console.log("Point (x,y): ", pointX, pointY)
+  console.log("Content Width: ", contentWidth)
+  console.log("Content Heigth: ", contentHeight)
+  const [containerWidth, containerHeight] = size.viewSize;
+  console.log("Container size (x,y): ", containerWidth, containerHeight)
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  let x = pointX + OFFSET;
+  if (x + contentWidth > containerWidth) {
+    x = pointX - OFFSET - contentWidth;
+  }
+  x = Math.min(Math.max(x, 0), Math.max(viewportWidth - contentWidth, 0));
+
+  let y = pointY + OFFSET;
+  if (y + contentHeight > viewportHeight) {
+    y = pointY - OFFSET - contentHeight;
+  }
+  y = Math.min(Math.max(y, 0), Math.max(viewportHeight - contentHeight, 0));
+
+  return [x, y];
 };
 
 const tooltipOption: TooltipComponentOption = {
   ...tooltipOverflowOption,
+  position: tooltipPosition,
   showDelay: 0,
   hideDelay: 100,
   transitionDuration: 0.4,

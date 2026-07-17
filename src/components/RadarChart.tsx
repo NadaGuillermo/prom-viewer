@@ -262,7 +262,7 @@ const RadarChart = ({
         let indicatorName = "";
         for(let word of words) {
           indicatorName += word;
-          if (indicatorName.length > 6 && word.length > 4) {
+          if (indicatorName.length > 3 && word.length > 3) {
             indicatorName += "\n";
           }
           else {
