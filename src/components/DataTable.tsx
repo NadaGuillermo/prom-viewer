@@ -34,7 +34,7 @@ const DataTable = ({
             key={date}
             className="tw:border-b tw:py-2 tw:px-2 border-medium tw:bg-base-100 tw:sticky tw:top-0 tw:z-12"
           >
-            <div className="tw:text-sm tw:font-bold tw:select-none tw:text-center tw:whitespace-nowrap tw:px-2 text-light"
+            <div className="tw:text-sm tw:font-bold tw:select-none tw:text-center tw:whitespace-nowrap tw:px-2 tw:text-neutral"
             >
               {date}
             </div>
@@ -55,7 +55,7 @@ const DataTable = ({
                       }
                     </div>
                     <Portal>
-                      <Tooltip id={`${row.id}`} place="top" opacity={1} className="custom-tooltip tooltip-neutral">
+                      <Tooltip id={`${row.id}`} place="top" opacity={1} className="custom-tooltip tooltip-base">
                         <div className="tw:w-52">
                           <div className="tw:text-left tw:text-sm tw:whitespace-pre-wrap tw:break-normal">
                             {

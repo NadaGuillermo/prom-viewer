@@ -12,24 +12,23 @@
   prefersdark: false; /* set as default dark mode (prefers-color-scheme:dark) */
   color-scheme: light; /* color of browser-provided UI */
 
-  --color-base-100: oklch(99.5% 0.002 240);        /* white */
+  --color-base-100: oklch(99.5% 0.002 240); /* white */
   --color-base-200: oklch(98.4% 0.003 247.858); /* slate-50 */
   --color-base-300: oklch(96.8% 0.007 247.896); /* slate-100 */
 
   --color-base-content: oklch(27.9% 0.041 260.031); /* slate-800 */
-  --color-base-content-light: oklch(55.4% 0.046 257.417); /* slate-500 */
 
-  --color-primary: oklch(54.6% 0.245 262.881); /* oklch(62.3% 0.214 259.815); /* blue-500 */
-  --color-primary-content:  oklch(99.5% 0.002 240); /* white */
+  --color-primary: oklch(54.6% 0.245 262.881); /* blue-600 */
+  --color-primary-content: oklch(99.5% 0.002 240); /* white */
 
   --color-secondary: oklch(69.6% 0.17 162.48); /* emerald-500 */
-  --color-secondary-content: oklch(99.5% 0.002 240);        /* white */
+  --color-secondary-content: oklch(99.5% 0.002 240); /* white */
 
   --color-accent: oklch(54.1% 0.281 293.009); /* oklch(60.6% 0.25 292.717); /* violet-500 */
   --color-accent-content: oklch(99.5% 0.002 240); /* white */
 
-  --color-neutral: oklch(55.4% 0.046 257.417); /* oklch(44.6% 0.043 257.281); /* oklch(55.4% 0.046 257.417); /* oklch(44.6% 0.043 257.281); /* slate-600 */
-  --color-neutral-content: oklch(99.5% 0.002 240); /* oklch(96.8% 0.007 247.896); /* slate-100 */
+  --color-neutral: oklch(55.4% 0.046 257.417); /* slate-500 */
+  --color-neutral-content: oklch(99.5% 0.002 240); /* white */
 
   --color-info: oklch(68.5% 0.169 237.323); /* sky-500 */
   --color-info-content: oklch(99.5% 0.002 240); /* white */
@@ -99,15 +98,7 @@ body,
   @apply tw:pt-4 tw:pb-8;
 }
 
-.border-rounded,
-.button-primary,
-.button-secondary,
-.button-accent,
-.button-neutral,
-.button-info,
-.button-success,
-.button-warning,
-.button-error,
+.custom-tooltip.tooltip-base,
 .custom-tooltip.tooltip-neutral,
 .custom-tooltip.tooltip-info,
 .custom-tooltip.tooltip-accent,
@@ -117,13 +108,41 @@ body,
 .custom-tooltip.tooltip-warning,
 .custom-tooltip.tooltip-success,
 
-.custom-tooltip.tooltip-basic
+.custom-tooltip.tooltip-light {
+  @apply tw:z-300
+}
+
+.border-rounded,
+.button-primary,
+.button-secondary,
+.button-accent,
+.button-neutral,
+.button-info,
+.button-success,
+.button-warning,
+.button-error,
+.custom-tooltip.tooltip-base,
+.custom-tooltip.tooltip-neutral,
+.custom-tooltip.tooltip-info,
+.custom-tooltip.tooltip-accent,
+.custom-tooltip.tooltip-error,
+.custom-tooltip.tooltip-primary,
+.custom-tooltip.tooltip-secondary,
+.custom-tooltip.tooltip-warning,
+.custom-tooltip.tooltip-success,
+
+.custom-tooltip.tooltip-light
 {
   @apply tw:rounded-lg; 
 }
 
 .border-rounded-prominent {
   @apply tw:rounded-xl; 
+}
+
+.custom-tooltip.tooltip-base {
+  @apply tw:bg-base-content;
+  @apply tw:text-base-100;
 }
 
 .custom-tooltip.tooltip-neutral {
@@ -165,7 +184,7 @@ body,
   @apply tw:bg-warning;
   @apply tw:text-warning-content;
 }
-.custom-tooltip.tooltip-basic {
+.custom-tooltip.tooltip-light {
   @apply tw:bg-base-300;
   @apply tw:text-base-content;
 }
@@ -213,17 +232,9 @@ body,
   background-color: var(--color-base-100);
   border: 1px solid var(--color-border-light);
 }
-.text-light {
-  color: var(--color-base-content-light);
-}
 
 .background-border-medium {
   background-color: var(--color-border-medium);
-}
-
-.text-tooltip-basic {
-  @apply tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal;
-  color: var(--color-base-content-light);
 }
 
 .tooltip-content {

@@ -31,7 +31,7 @@ const NoData = ({
       <h4>
         {title}
       </h4>
-      <p className="tw:text-sm tw:max-w-md tw:leading-relaxed text-light">
+      <p className="tw:text-sm tw:max-w-md tw:leading-relaxed tw:text-neutral">
         {message}
       </p>
 

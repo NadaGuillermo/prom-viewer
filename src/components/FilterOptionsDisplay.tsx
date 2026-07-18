@@ -46,7 +46,7 @@ const FilterOptionsDisplay = ({
       </div>
       <div className="tw:flex tw:flex-wrap tw:gap-x-4 tw:gap-y-2 tw:justify-start">
         {questionnaires.map((questionnaire) => (
-          <label key={questionnaire.id} className={`tw:label ${filteredSelectedQuestionnaires.includes(questionnaire.id) ? "tw:text-base-content" : "tw:text-base-content-light"}`}>
+          <label key={questionnaire.id} className={`tw:label ${filteredSelectedQuestionnaires.includes(questionnaire.id) ? "tw:text-base-content" : "tw:text-neutral"}`}>
             <input
               type="checkbox"
               disabled={inactiveQuestionnaires.includes(questionnaire.id)}
@@ -68,7 +68,7 @@ const FilterOptionsDisplay = ({
       </div>
       <div className="tw:flex tw:flex-wrap tw:gap-x-4 tw:gap-y-2 tw:justify-start">
         {dates.map((date) => (
-          <label key={date} className={`tw:label ${filteredSelectedDates.includes(date) ? "tw:text-base-content" : "tw:text-base-content-light"}`}>
+          <label key={date} className={`tw:label ${filteredSelectedDates.includes(date) ? "tw:text-base-content" : "tw:text-neutral"}`}>
             <input
               type="checkbox"
               disabled={inactiveDates.includes(date)}

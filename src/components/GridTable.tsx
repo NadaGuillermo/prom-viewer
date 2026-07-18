@@ -62,7 +62,7 @@ const GridTable = ({ data }: Props) => {
                         xmlns="http://www.w3.org/2000/svg"
                       >
                         <circle
-                          className="tw:fill-accent tw:rounded-full"
+                          className="tw:fill-primary tw:rounded-full"
                           cx="10"
                           cy="10"
                           r="6"

@@ -1297,7 +1297,7 @@ function App() {
                 <Tooltip
                   id="filters"
                   opacity={1}
-                  className="custom-tooltip tooltip-basic tw:z-10"
+                  className="custom-tooltip tooltip-light tw:z-10"
                   place="left"
                   positionStrategy="fixed"
                 >
@@ -1385,13 +1385,13 @@ function App() {
                             <div className="tw:flex tw:justify-start tw:pb-4">                              
                               <div data-tooltip-id="mapping-info">
                                 <div
-                                className="tw:text-sm text-tooltip-basic"                                
+                                className="tw:text-sm tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral"                                
                                 >
                                   About this Diagram
                                 </div>
                               </div>
                               <Portal>                    
-                              <Tooltip id="mapping-info" opacity={1} className="custom-tooltip tooltip-neutral"> 
+                              <Tooltip id="mapping-info" opacity={1} className="custom-tooltip tooltip-base"> 
                                 <div className="tw:w-64">
                                   <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
                                     <p>
@@ -1537,12 +1537,12 @@ function App() {
                     <div className="tw:row-start-6 tw:lg:row-start-2 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:flex tw:justify-start tw:lg:justify-center">
                       <div className="tw:md:px-8 tw:lg:px-0">
                         <div data-tooltip-id="global-scores-explanation">
-                                <div className="text-tooltip-basic tw:text-md">
+                                <div className="tw:text-md tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral">
                                   About this Diagram
                                 </div>
                               </div>
                               <Portal>                                              
-                              <Tooltip id="global-scores-explanation" opacity={1} className="custom-tooltip tooltip-neutral"> 
+                              <Tooltip id="global-scores-explanation" opacity={1} className="custom-tooltip tooltip-base"> 
                                 <div className="tw:w-64">
                                   <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
                                     <p>
@@ -1658,7 +1658,7 @@ function App() {
                       (domain) =>
                         dimensionScoresDataSeriesByDomain[domain] && dimensionScoresDataSeriesByDomain[domain].length >
                           0 && (
-                          <label key={domain} className={`tw:label ${selectedDomains.includes(domain) ? "tw:text-base-content" : "tw:text-base-content-light"}`}>
+                          <label key={domain} className={`tw:label ${selectedDomains.includes(domain) ? "tw:text-base-content" : "tw:text-neutral"}`}>
                             <input
                               type="checkbox"
                               checked={selectedDomains.includes(domain)}
@@ -1946,7 +1946,7 @@ function App() {
                                               <label
                                                 key={domain + "-" + dimension}
                                                 className={`tw:label 
-                                                  ${selectedDimensionsByDomain[domain].includes(dimension) ? "tw:text-base-content" : "tw:text-base-content-light"}`}
+                                                  ${selectedDimensionsByDomain[domain].includes(dimension) ? "tw:text-base-content" : "tw:text-neutral"}`}
                                               >
                                                 <input
                                                   type="checkbox"
@@ -2024,7 +2024,7 @@ function App() {
                                                                 }
                                                               </div>
                                                               <Portal>
-                                                              <Tooltip id={`${dataSeries.id}`} place="top" opacity={1} className="custom-tooltip tooltip-neutral">
+                                                              <Tooltip id={`${dataSeries.id}`} place="top" opacity={1} className="custom-tooltip tooltip-base">
                                                                 
                                                                 <div className="tw:w-52">
                                                                    <div className="tw:text-left tw:text-xs tw:whitespace-pre-wrap tw:break-normal">

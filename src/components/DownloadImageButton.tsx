@@ -39,7 +39,7 @@ const DownloadImageButton = ({
         <Tooltip
           id={id}
           opacity={1}
-          className="custom-tooltip tooltip-basic tw:z-10"
+          className="custom-tooltip tooltip-light tw:z-10"
         >
           <div className="tw:w-24">
             <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">

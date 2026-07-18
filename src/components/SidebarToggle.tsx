@@ -42,7 +42,7 @@ const SidebarToggle = ({ showSidebar, toggleShowSidebar, isFilterActive, resetFi
       <Tooltip
         id="sidebar-toggle-tooltip"
         opacity={1}
-        className="custom-tooltip tooltip-basic tw:z-50"
+        className="custom-tooltip tooltip-light tw:z-50"
         place="left"
         positionStrategy="fixed"
       >
@@ -91,7 +91,7 @@ const SidebarToggle = ({ showSidebar, toggleShowSidebar, isFilterActive, resetFi
       <Tooltip
         id="filter-status-tooltip"
         opacity={1}
-        className="custom-tooltip tooltip-basic tw:z-50"
+        className="custom-tooltip tooltip-light tw:z-50"
         place="left"
         positionStrategy="fixed"
       >
