@@ -21,7 +21,7 @@ Mock config is fetched from `public/` alongside FHIR data:
 - **Package manager:** yarn
 - **Build tool:** Vite
 - **Styling:** Tailwind
-- **State management:** React useState
+- **State management:** React Hooks
 
 ## Project Structure
 

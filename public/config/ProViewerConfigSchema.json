@@ -1,8 +1,8 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://example.com/example.json",
-    "title": "PRO Viewer Configuration",
-    "description": "Configuration settings for PRO Viewer: defines questionnaires; maps questionnaire items with domains & scores with observation definitions; defines score ranges and score health correlations; defines global health dimensions",
+    "title": "PROM Viewer Configuration",
+    "description": "Configuration settings for PROM Viewer: defines questionnaires; maps questionnaire items with domains & scores with observation definitions; defines score ranges and score health correlations; defines global health dimensions",
     "type": "object",
     "$definitions": {
         "scoreDefinitions": {
