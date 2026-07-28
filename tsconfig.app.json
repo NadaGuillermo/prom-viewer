@@ -11,15 +11,14 @@
     "esModuleInterop": true,
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": ".",
     "paths": {
-      "@assets/*": ["src/assets/*"],
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@utils/*": ["src/utils/*"],
-      "@customTypes/*": ["src/types/*"],
-      "@styles/*": ["src/styles/*"],
-      "@services/*": ["src/services/*"]
+      "@assets/*": ["./src/assets/*"],
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@customTypes/*": ["./src/types/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@services/*": ["./src/services/*"]
     },
 
     /* Bundler mode */
