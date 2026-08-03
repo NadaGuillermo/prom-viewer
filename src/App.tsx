@@ -7,6 +7,8 @@ library.add(fas);
 // React packages
 import React, { useState, useEffect } from "react";
 import * as _ from "lodash-es";
+import FHIR from "fhirclient";
+import type Client from "fhirclient/lib/Client";
 
 // Components
 import LineChart from "@components/LineChart";
@@ -45,13 +47,7 @@ import {
 
 // Services
 import { loadConfig } from "@services/loadConfig";
-import {
-  loadFhirQuestionnaires,
-  loadFhirQuestionnaireResponses,
-  loadFhirBundles,
-  loadFhirObservationDefinitions,
-  loadFhirObservations,
-} from "@services/loadFhirData";
+import { getFhirDataSource, loadFhirData } from "@services/fhir";
 
 // Helper functions
 
@@ -126,6 +122,10 @@ function App() {
     fhirData: false,
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
+  const [smartPatient, setSmartPatient] = useState<any>();
+  const [smartLaunchError, setSmartLaunchError] = useState<string | null>(
+    null,
+  );
   const [config, setConfig] = useState<Config.PromConfig>();
   const [configError, setConfigError] = useState<string | null>(null);
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
@@ -253,56 +253,42 @@ function App() {
     const fetchConfig = async () => {
       try {
         const result = await loadConfig();
-       
+
         setConfig(result);
         setDataLoaded((prev) => ({ ...prev, config: true }));
-        
+
       } catch (error) {
         console.error("Error fetching config file:", error);
         setConfigError("Error fetching config file: " + error);
       }
     };
 
-    // FHIR Data
-    const loadFhirData = async () => {
+    // FHIR Data: in "smart" mode, complete the SMART launch first and use the
+    // authenticated client + patient id to drive a patient-scoped fetch; in
+    // "mock" mode, load fixtures directly with no SMART round-trip.
+    const fetchFhirData = async () => {
       try {
-        const questionnaires = await loadFhirQuestionnaires();
-        const responses = await loadFhirQuestionnaireResponses();
-        const bundles = await loadFhirBundles();
-        const observationDefinitions = await loadFhirObservationDefinitions();
-        const observations = await loadFhirObservations();
+        let client: Client | undefined;
+        let patientId: string | undefined;
+        if (import.meta.env.VITE_DATA_SOURCE === "smart") {
+          try {
+            client = await FHIR.oauth2.ready();
+            const patient = await client.patient.read();
+            setSmartPatient(patient);
+            patientId = client.patient.id ?? undefined;
+          } catch (error) {
+            console.error("SMART launch error: ", error);
+            setSmartLaunchError(String(error));
+            throw error;
+          }
+        }
 
-        // extract bundles and add to questionnaires and responses
-        let bundleQuestionnaires: any[] = [];
-        let bundleResponses: any[] = [];
-        let bundleObservations: any[] = [];
-        bundles.forEach((bundle) => {
-          const questionnaireEntries = bundle.entry.filter(
-            (entry: any) => entry.resource.resourceType === "Questionnaire",
-          );
-          const responseEntries = bundle.entry.filter(
-            (entry: any) =>
-              entry.resource.resourceType === "QuestionnaireResponse",
-          );
-          const observationEntries = bundle.entry.filter(
-            (entry: any) => entry.resource.resourceType === "Observation",
-          );
-          bundleQuestionnaires.push(
-            ...questionnaireEntries.map((entry: any) => entry.resource),
-          );
-          bundleResponses.push(
-            ...responseEntries.map((entry: any) => entry.resource),
-          );
-          bundleObservations.push(
-            ...observationEntries.map((entry: any) => entry.resource),
-          );
-        });
-
-        // set variables
-        setFhirQuestionnaires([...questionnaires, ...bundleQuestionnaires]);
-        setFhirQuestionnaireResponses([...responses, ...bundleResponses]);
-        setFhirObservations([...observations, ...bundleObservations]);
-        setFhirObservationDefinitions([...observationDefinitions]);
+        const dataSource = getFhirDataSource(client);
+        const result = await loadFhirData(dataSource, patientId);
+        setFhirQuestionnaires(result.questionnaires);
+        setFhirQuestionnaireResponses(result.responses);
+        setFhirObservations(result.observations);
+        setFhirObservationDefinitions(result.observationDefinitions);
         setDataLoaded((prev) => ({ ...prev, fhirData: true }));
       } catch (error) {
         console.error("Error loading FHIR data: ", error);
@@ -311,7 +297,7 @@ function App() {
     };
 
     fetchConfig();
-    loadFhirData();
+    fetchFhirData();
   }, []);
 
   // Process data through pipeline
@@ -1331,6 +1317,21 @@ function App() {
               <div className="layout tw:flex tw:flex-col tw:items-center tw:justify-center tw:text-base-content tw:min-h-screen">
                 <div className="section">
                   <h1>Overview</h1>
+                  {smartLaunchError !== null && (
+                    <div className="tw:px-4 tw:py-4">
+                      <div
+                        role="alert"
+                        className="tw:alert tw:alert-error tw:alert-soft tw:max-w-md border-rounded"
+                      >
+                        <span>SMART launch failed: {smartLaunchError}</span>
+                      </div>
+                    </div>
+                  )}
+                  {smartPatient !== undefined && (
+                    <div className="tw:px-4 tw:py-4">
+                      <pre>{JSON.stringify(smartPatient, null, 2)}</pre>
+                    </div>
+                  )}
                   <div className="tw:flex tw:justify-start">
                     {questionnaireNamesByDate && (
                       <GridTable

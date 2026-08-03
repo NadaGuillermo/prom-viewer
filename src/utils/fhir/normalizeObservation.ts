@@ -1,6 +1,9 @@
 import type { NormalizedFHIR } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
-import { getQuestionnaireResponseIdFromObservationReferenceAttribute } from "./utils";
+import {
+  getQuestionnaireResponseIdFromObservationReferenceAttribute,
+  getObservationDefinitionCanonicalUrlFromObservation,
+} from "./utils";
 
 export const normalizeObservation = (
   resource: any,
@@ -9,9 +12,8 @@ export const normalizeObservation = (
 
   const questionnaireResponse =
     getQuestionnaireResponseIdFromObservationReferenceAttribute(resource);
-  const observationDefinition = resource.extension?.find(
-    (ext: any) => ext.url === "http://hl7.org/fhir/StructureDefinition/workflow-instantiatesCanonical"
-  )?.valueCanonical; // url
+  const observationDefinition =
+    getObservationDefinitionCanonicalUrlFromObservation(resource); // url
   // const observationText = resource.code?.coding?.find((cod: any) => cod.display !== undefined && cod.code !== undefined)?.display;
   const observationValue = resource.valueQuantity
     ? resource.valueQuantity.value

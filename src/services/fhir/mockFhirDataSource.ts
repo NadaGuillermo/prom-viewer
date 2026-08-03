@@ -1,3 +1,6 @@
+import type { FhirDataSource } from "./types";
+import { extractResourcesFromBundles } from "./bundleUtils";
+
 const BUNDLE_NAMES: string[] = [
   "mii-exa-pro-eortc-qlq-c30-bundle-1",
   // "mii-exa-pro-phq-9-bundle",
@@ -51,54 +54,56 @@ const OBSERVATION_DEFINITION_NAMES: string[] = [
 
 const OBSERVATION_NAMES: string[] = [];
 
-export async function loadFhirQuestionnaires(): Promise<any[]> {
+async function fetchMockResourcesByName(
+  folder: string,
+  names: string[],
+): Promise<any[]> {
   const results: any[] = [];
-  for (const name of QUESTIONNAIRE_NAMES) {
-    const result = await fetch(`${import.meta.env.BASE_URL}questionnaires/${name}.json`);
-    // console.log("Q Fetched", result)
-    const questionnaire = await result.json();
-    results.push(questionnaire);
-  }
-  // console.log("Q Results", results)
-  return results;
-}
-
-export async function loadFhirQuestionnaireResponses(): Promise<any[]> {
-  const results: any[] = [];
-  for (const name of RESPONSE_NAMES) {
-    const result = await fetch(`${import.meta.env.BASE_URL}responses/${name}.json`);
-    const questionnaireResponse = await result.json();
-    results.push(questionnaireResponse);
+  for (const name of names) {
+    const result = await fetch(`${import.meta.env.BASE_URL}${folder}/${name}.json`);
+    results.push(await result.json());
   }
   return results;
 }
 
-export async function loadFhirBundles(): Promise<any[]> {
-  const results: any[] = [];
-  for (const name of BUNDLE_NAMES) {
-    const result = await fetch(`${import.meta.env.BASE_URL}bundles/${name}.json`);
-    const bundle = await result.json();
-    results.push(bundle);
+/**
+ * Loads FHIR resources from the static JSON fixtures in public/ instead of a
+ * real FHIR server. Questionnaire/ObservationDefinition are still resolved by
+ * matching each fixture's own `url` field against the requested canonical
+ * urls, so the mock exercises the same reference-driven filtering as
+ * SmartFhirDataSource, just against a fixed, pre-loaded catalog.
+ */
+export class MockFhirDataSource implements FhirDataSource {
+  async fetchPatientQuestionnaireResponses(): Promise<any[]> {
+    const responses = await fetchMockResourcesByName("responses", RESPONSE_NAMES);
+    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
+    const bundleResponses = extractResourcesFromBundles(bundles, "QuestionnaireResponse");
+    return [...responses, ...bundleResponses];
   }
-  return results;
-}
 
-export async function loadFhirObservationDefinitions(): Promise<any[]> {
-  const results: any[] = [];
-  for (const name of OBSERVATION_DEFINITION_NAMES) {
-    const result = await fetch(`${import.meta.env.BASE_URL}observationDefinitions/${name}.json`);
-    const observationDefinition = await result.json();
-    results.push(observationDefinition);
+  async fetchPatientObservations(): Promise<any[]> {
+    const observations = await fetchMockResourcesByName("observations", OBSERVATION_NAMES);
+    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
+    const bundleObservations = extractResourcesFromBundles(bundles, "Observation");
+    return [...observations, ...bundleObservations];
   }
-  return results;
-}
 
-export async function loadFhirObservations(): Promise<any[]> {
-  const results: any[] = [];
-  for (const name of OBSERVATION_NAMES) {
-    const result = await fetch(`${import.meta.env.BASE_URL}observations/${name}.json`);
-    const observation = await result.json();
-    results.push(observation);
+  async fetchQuestionnairesByUrls(urls: string[]): Promise<any[]> {
+    const questionnaires = await fetchMockResourcesByName("questionnaires", QUESTIONNAIRE_NAMES);
+    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
+    const bundleQuestionnaires = extractResourcesFromBundles(bundles, "Questionnaire");
+    return [...questionnaires, ...bundleQuestionnaires].filter((questionnaire) =>
+      urls.includes(questionnaire.url),
+    );
   }
-  return results;
+
+  async fetchObservationDefinitionsByUrls(urls: string[]): Promise<any[]> {
+    const observationDefinitions = await fetchMockResourcesByName(
+      "observationDefinitions",
+      OBSERVATION_DEFINITION_NAMES,
+    );
+    return observationDefinitions.filter((observationDefinition) =>
+      urls.includes(observationDefinition.url),
+    );
+  }
 }
