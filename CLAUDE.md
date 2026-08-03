@@ -4,7 +4,7 @@ This file gives Claude Code context about this project. Keep it updated as the p
 
 ## Project Overview
 
-This is a React + TypeScript application using Tailwind CSS. In production, it is supposed to fetch FHIR data on a patient level (Questionnaire, QuestionnaireResponse, Observation, ObservationDefinition) and visualizes the questionnaire responses. Currently mock data in JSON format is used, fetched from the project's `public/` folder rather than a real server. Besides FHIR data, this includes configuration files. It is intended to be used by clinicians.
+This is a React + TypeScript application using Tailwind CSS. In production, it is supposed to fetch FHIR data on a patient level (Questionnaire, QuestionnaireResponse, Observation, ObservationDefinition) and visualizes the questionnaire responses. Currently mock data in JSON format is used, fetched from the project's `public/` folder rather than a real server. Besides FHIR data, this includes configuration files. The app is supposed to be launched as a SMART on Fhir app rather than a stand-alone web application. It is intended to be used by clinicians.
 
 ## Configuration Files
 
