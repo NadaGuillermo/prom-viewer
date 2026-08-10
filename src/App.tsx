@@ -1245,6 +1245,23 @@ function App() {
         onRetry={retryLoading}
       />
     );
+  if (import.meta.env.VITE_DATA_SOURCE === "smart" && smartLaunchError)
+    return (
+      <ErrorPage
+        error={smartLaunchError}
+        heading={"SMART launch failed"}
+        onRetry={retryLoading}
+      />
+    );
+  if (import.meta.env.VITE_DATA_SOURCE === "smart" && smartPatient === undefined)
+    return (
+      <ErrorPage
+        error={`Patient data could not be loaded. Patient was ${smartPatient}.`}
+        heading={"Failed to load SMART Patient"}
+        onRetry={retryLoading}
+      />
+    );
+
   if (!dataLoaded.config || !dataLoaded.fhirData)
     return <DataLoadingScreen message="Loading" animation="spinner" />;
 
@@ -1317,21 +1334,6 @@ function App() {
               <div className="layout tw:flex tw:flex-col tw:items-center tw:justify-center tw:text-base-content tw:min-h-screen">
                 <div className="section">
                   <h1>Overview</h1>
-                  {smartLaunchError !== null && (
-                    <div className="tw:px-4 tw:py-4">
-                      <div
-                        role="alert"
-                        className="tw:alert tw:alert-error tw:alert-soft tw:max-w-md border-rounded"
-                      >
-                        <span>SMART launch failed: {smartLaunchError}</span>
-                      </div>
-                    </div>
-                  )}
-                  {smartPatient !== undefined && (
-                    <div className="tw:px-4 tw:py-4">
-                      <pre>{JSON.stringify(smartPatient, null, 2)}</pre>
-                    </div>
-                  )}
                   <div className="tw:flex tw:justify-start">
                     {questionnaireNamesByDate && (
                       <GridTable
