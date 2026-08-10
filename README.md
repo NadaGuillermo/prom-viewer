@@ -6,7 +6,7 @@
 
 PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by the [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction) project.
 
-Currently, the app does not connect to a real FHIR server. It runs against mock FHIR resources and configuration files served as static JSON from the `public/` folder.
+Currently, the app does not connect to a real FHIR server. It runs against mock FHIR resources and configuration files served as static JSON from the `public/` folder. However, the app is designed to be launched as a SMART on FHIR application in production, where it will fetch real patient data from a FHIR server.
 
 ## Demo
 
@@ -70,7 +70,7 @@ If the `yarn dev` command was executed successfully, the console output should l
 - **Styling:** Tailwind CSS, daisyUI
 - **Charting:** ECharts
 - **Package manager:** Yarn
-- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash
+- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash, fhirclient
 
 ## License
 
