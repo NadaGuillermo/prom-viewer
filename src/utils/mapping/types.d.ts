@@ -54,7 +54,7 @@ export namespace Mapping {
 
   interface ObservationDefinition {
     id: string;
-    url: string;
+    // url: string;
     range?: [number, number];
     scoreHealthCorrelation?: string;
     referenceRange?: ReferenceRange[];
