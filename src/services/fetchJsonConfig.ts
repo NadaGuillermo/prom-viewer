@@ -8,3 +8,18 @@ export async function fetchJsonConfig(url: string): Promise<unknown> {
   }
   return response.json();
 }
+
+/**
+ * @param filename - config file name, e.g. "colors.json"
+ * @returns the url to fetch that config file from
+ * @description Resolves a config file url based on VITE_CONFIG_SOURCE: "remote"
+ * with VITE_CONFIG_SERVER_URL set fetches from that server, otherwise falls
+ * back to the local public/config folder.
+ */
+export function resolveConfigUrl(filename: string): string {
+  const { VITE_CONFIG_SOURCE, VITE_CONFIG_SERVER_URL } = import.meta.env;
+  if (VITE_CONFIG_SOURCE === "remote" && VITE_CONFIG_SERVER_URL !== undefined) {
+    return `${VITE_CONFIG_SERVER_URL}/${filename}`;
+  }
+  return `${import.meta.env.BASE_URL}config/${filename}`;
+}

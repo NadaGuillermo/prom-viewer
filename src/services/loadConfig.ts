@@ -1,8 +1,11 @@
+import { fetchJsonConfig, resolveConfigUrl } from "./fetchJsonConfig";
+
+/**
+ * @returns the PROMs metadata config
+ * @description Loads the PROMs config, always required for the app to run.
+ * Throws on failure so callers can surface a fatal config error; falls back
+ * to the local public/config file when remote mode has no server url set.
+ */
 export async function loadConfig(): Promise<any> {
-    const response = await fetch(`${import.meta.env.BASE_URL}config/proms.json`);
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const config = await response.json();
-    return config;
+  return fetchJsonConfig(resolveConfigUrl("proms.json"));
 }
