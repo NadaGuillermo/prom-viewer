@@ -469,11 +469,11 @@ function App() {
             observationDefinition,
           ),
         )
-        .filter((result) =>
-          promDataObservations
-            .map((observation) => observation.observationDefinition)
-            .includes(result.data.url),
-        );
+        // .filter((result) =>
+        //   promDataObservations
+        //     .map((observation) => observation.observationDefinition)
+        //     .includes(result.data.url),
+        // );
 
     const promDataObservationDefinitions =
       promDataObservationDefinitionsResult.map(
@@ -521,9 +521,9 @@ function App() {
     if (config !== undefined) {
     const promDataQuestionnairesWithConfigurationsAndErrorMessages =
       promDataQuestionnaires.map((questionnaire) => {
-        const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
-        const observations = promDataObservations.filter((obs) => responses.map((res) => res.id).includes(obs.questionnaireResponse));
-        const observationDefinitions = promDataObservationDefinitions.filter((obsDef) => observations.map((obs) => obs.observationDefinition).includes(obsDef.url));
+        // const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
+        // const observations = promDataObservations.filter((obs) => responses.map((res) => res.id).includes(obs.questionnaireResponse));
+        const observationDefinitions = promDataObservationDefinitions // .filter((obsDef) => observations.map((obs) => obs.observationDefinition).includes(obsDef.url));
         return addConfigurationsToQuestionnaire(
           questionnaire,
           observationDefinitions,
@@ -1250,14 +1250,6 @@ function App() {
       <ErrorPage
         error={smartLaunchError}
         heading={"SMART launch failed"}
-        onRetry={retryLoading}
-      />
-    );
-  if (import.meta.env.VITE_DATA_SOURCE === "smart" && smartPatient === undefined)
-    return (
-      <ErrorPage
-        error={`Patient data could not be loaded. Patient was ${smartPatient}.`}
-        heading={"Failed to load SMART Patient"}
         onRetry={retryLoading}
       />
     );
