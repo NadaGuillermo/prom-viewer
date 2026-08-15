@@ -126,6 +126,7 @@ function App() {
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
   const [smartPatient, setSmartPatient] = useState<any>(null);
+  const [mockPatient, setMockPatient] = useState<any>(undefined);
   const [smartLaunchError, setSmartLaunchError] = useState<string | null>(
     null,
   );
@@ -293,6 +294,7 @@ function App() {
         setFhirQuestionnaireResponses(result.responses);
         setFhirObservations(result.observations);
         setFhirObservationDefinitions(result.observationDefinitions);
+        setMockPatient(result.patient);
         setDataLoaded((prev) => ({ ...prev, fhirData: true }));
       } catch (error) {
         console.error("Error loading FHIR data: ", error);
@@ -317,8 +319,14 @@ function App() {
 
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Patient */
+    // SMART mode: smartPatient -> patient state. Mock mode: mockPatient (extracted from mock FHIR data) -> patient state.
     console.log("SMART Patient: ", smartPatient);
-    const normalizedFhirPatient = smartPatient !== null ? normalizePatient(smartPatient) : undefined;
+    console.log("Mock Patient: ", mockPatient);
+    const rawFhirPatient =
+      import.meta.env.VITE_DATA_SOURCE === "smart"
+        ? (smartPatient !== null ? smartPatient : undefined)
+        : mockPatient;
+    const normalizedFhirPatient = rawFhirPatient !== undefined ? normalizePatient(rawFhirPatient) : undefined;
     console.log("Normalized FHIR Patient: ", normalizedFhirPatient);
     /* Questionnaires */
     const normalizedFhirQuestionnairesResult = fhirQuestionnaires
@@ -716,6 +724,7 @@ function App() {
     fhirObservations,
     dataLoaded,
     smartPatient,
+    mockPatient,
   ]);
 
   // Data visualization

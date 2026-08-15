@@ -4645,14 +4645,14 @@
         "active": true,
         "name": [
           {
-            "family": "Example",
+            "family": "Musterperson",
             "given": [
-              "Patient"
+              "Kim"
             ]
           }
         ],
-        "gender": "other",
-        "birthDate": "1960-01-01"
+        "gender": "female",
+        "birthDate": "1956-03-14"
       },
       "request": {
         "method": "PUT",

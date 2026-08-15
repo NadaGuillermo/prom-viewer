@@ -33,4 +33,11 @@ export interface FhirDataSource {
    * @description Fetches ObservationDefinition definitions referenced by canonical url.
    */
   fetchObservationDefinitionsByUrls(urls: string[]): Promise<any[]>;
+
+  /**
+   * @param patientId - id of the patient in the SMART launch context (unused by mock sources)
+   * @returns the raw FHIR Patient resource, or undefined if none could be found
+   * @description Fetches the patient resource. Optional: SMART already obtains the patient directly through the launch context, so only sources without such a context (e.g. mock) need to implement this.
+   */
+  fetchPatient?(patientId?: string): Promise<any | undefined>;
 }

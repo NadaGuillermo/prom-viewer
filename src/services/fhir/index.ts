@@ -28,8 +28,8 @@ export function getFhirDataSource(client?: Client): FhirDataSource {
 /**
  * @param dataSource - the FhirDataSource to load resources from
  * @param patientId - id of the patient to load QuestionnaireResponse/Observation for (unused by mock sources)
- * @returns raw FHIR Questionnaire, QuestionnaireResponse, Observation and ObservationDefinition resources
- * @description Loads patient data first, then resolves referenced Questionnaire/ObservationDefinition definitions by the canonical urls found within it.
+ * @returns raw FHIR Questionnaire, QuestionnaireResponse, Observation, ObservationDefinition and (if the source provides one) Patient resources
+ * @description Loads patient data first, then resolves referenced Questionnaire/ObservationDefinition definitions by the canonical urls found within it. Patient is fetched from the source only when it implements fetchPatient (SMART obtains it separately through the launch context).
  */
 export async function loadFhirData(
   dataSource: FhirDataSource,
@@ -39,10 +39,12 @@ export async function loadFhirData(
   responses: any[];
   observations: any[];
   observationDefinitions: any[];
+  patient: any | undefined;
 }> {
-  const [responses, observations] = await Promise.all([
+  const [responses, observations, patient] = await Promise.all([
     dataSource.fetchPatientQuestionnaireResponses(patientId),
     dataSource.fetchPatientObservations(patientId),
+    dataSource.fetchPatient?.(patientId),
   ]);
 
   const questionnaireUrls = extractQuestionnaireCanonicalUrls(responses);
@@ -53,5 +55,5 @@ export async function loadFhirData(
     dataSource.fetchObservationDefinitionsByUrls(observationDefinitionUrls),
   ]);
 
-  return { questionnaires, responses, observations, observationDefinitions };
+  return { questionnaires, responses, observations, observationDefinitions, patient };
 }
