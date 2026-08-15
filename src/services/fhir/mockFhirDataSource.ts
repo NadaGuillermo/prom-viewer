@@ -1,11 +1,15 @@
 import type { FhirDataSource } from "./types";
-import { extractResourcesFromBundles } from "./bundleUtils";
+import { extractResourcesFromBundles, findPatientResource } from "./bundleUtils";
 
 const BUNDLE_NAMES: string[] = [
   "mii-exa-pro-eortc-qlq-c30-bundle-1",
   // "mii-exa-pro-phq-9-bundle",
   // "mii-exa-pro-promis-29-bundle", // Questionnaire fehlt
 ];
+
+// Standalone Patient fixtures (public/patients/<name>.json). Empty until such
+// a fixture is added; the bundle-contained Patient is picked up regardless.
+const PATIENT_NAMES: string[] = [];
 
 const QUESTIONNAIRE_NAMES: string[] = [
   "mii-qst-pro-euroqol-eq5d5l-collectable",
@@ -105,5 +109,21 @@ export class MockFhirDataSource implements FhirDataSource {
     return observationDefinitions.filter((observationDefinition) =>
       urls.includes(observationDefinition.url),
     );
+  }
+
+  /**
+   * @returns the raw FHIR Patient resource found among the mock fixtures, or undefined
+   * @description Looks for a standalone Patient fixture first, then falls back to any Patient contained in the mock bundles. Returns undefined if none is found.
+   */
+  async fetchPatient(): Promise<any | undefined> {
+    const patients = await fetchMockResourcesByName("patients", PATIENT_NAMES);
+    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
+    for (const candidate of [...patients, ...bundles]) {
+      const patient = findPatientResource(candidate);
+      if (patient !== undefined) {
+        return patient;
+      }
+    }
+    return undefined;
   }
 }

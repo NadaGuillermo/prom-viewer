@@ -28,3 +28,18 @@ export function extractResourcesFromBundles(
     extractResourcesFromBundle(bundle, resourceType),
   );
 }
+
+/**
+ * @param resource - a raw FHIR resource, either a standalone Patient or a Bundle
+ * @returns the Patient resource contained in it, or undefined if none is present
+ * @description Supports a standalone Patient resource as well as a Patient contained in a Bundle's entries. If a Bundle contains multiple Patient resources, the first one found is used.
+ */
+export function findPatientResource(resource: any): any | undefined {
+  if (resource?.resourceType === "Patient") {
+    return resource;
+  }
+  if (resource?.resourceType === "Bundle") {
+    return extractResourcesFromBundle(resource, "Patient")[0];
+  }
+  return undefined;
+}
