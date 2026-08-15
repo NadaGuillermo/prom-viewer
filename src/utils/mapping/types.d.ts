@@ -80,4 +80,12 @@ export namespace Mapping {
     questionnaireResponse: string; // QuestionnaireResponse.id
     observationDefinition: string; // ObservationDefinition.url
   }
+
+    interface Patient {
+    id: string;
+    familyName: string;
+    givenName: string;
+    gender?: string;
+    birthDate?: string;
+  }
 }

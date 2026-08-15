@@ -72,4 +72,14 @@ export namespace NormalizedFHIR {
     questionnaireResponse: QuestionnaireResponse | undefined;
     observations: Observation[] | undefined;
   }
+
+  /* Patient */
+
+  interface Patient {
+    id: string;
+    familyName: string | undefined;
+    givenName: string | undefined;
+    gender: string | undefined;
+    birthDate: string | undefined;
+  }
 }

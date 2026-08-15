@@ -11,6 +11,19 @@ const createIssue = (base: Omit<Errors.DataIssue, "id">): Errors.DataIssue => {
 }
 
 export const issueFactories = {
+  patient: {
+    missingName: (resource: NormalizedFHIR.Patient): Errors.DataIssue =>
+      createIssue({
+        code: DataIssueCode.MISSING_VALUE,
+        level: "warning",
+        message: `Patient ${resource.id} is missing a name.`,
+        userMessage: `Patient has no name.`,
+        showUser: true,
+        context: {
+          resourceId: resource.id
+        }
+      })
+  },
   questionnaireResponse: {
     unreferencedItem: (resource: Mapping.QuestionnaireResponse, linkId: string): Errors.DataIssue => 
       createIssue({

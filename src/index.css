@@ -24,7 +24,7 @@
   --color-secondary: oklch(69.6% 0.17 162.48); /* emerald-500 */
   --color-secondary-content: oklch(99.5% 0.002 240); /* white */
 
-  --color-accent: oklch(54.1% 0.281 293.009); /* oklch(60.6% 0.25 292.717); /* violet-500 */
+  --color-accent: oklch(54.1% 0.281 293.009); /* violet-500 */
   --color-accent-content: oklch(99.5% 0.002 240); /* white */
 
   --color-neutral: oklch(55.4% 0.046 257.417); /* slate-500 */
@@ -236,6 +236,10 @@ body,
 .background-border-medium {
   background-color: var(--color-border-medium);
 }
+
+/* .divider-border-medium {
+  --divider-color: var(--color-border-medium);
+} */
 
 .tooltip-content {
   @apply tw:text-sm/5;

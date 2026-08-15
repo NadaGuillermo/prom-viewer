@@ -28,6 +28,7 @@ import NoData from "@components/NoData";
 import LineChartGroup from "@components/LineChartGroup";
 import DownloadImageButton from "@components/DownloadImageButton";
 import DateSlider from "@components/DateSlider";
+import PatientInfo from "@components/PatientInfo";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -57,6 +58,7 @@ import {
   normalizeQuestionnaire,
   normalizeObservation,
   normalizeObservationDefinition,
+  normalizePatient,
   // normalizeBundle,
 } from "@utils/fhir";
 
@@ -66,6 +68,7 @@ import {
   mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse,
   mapNormalizedQuestionnaireToPromDataQuestionnaire,
   mapNormalizedObservationDefinitionToPromDataObservationDefinition,
+  mapPatient,
 } from "@utils/mapping";
 
 // Visualization
@@ -122,7 +125,7 @@ function App() {
     fhirData: false,
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
-  const [smartPatient, setSmartPatient] = useState<any>();
+  const [smartPatient, setSmartPatient] = useState<any>(null);
   const [smartLaunchError, setSmartLaunchError] = useState<string | null>(
     null,
   );
@@ -153,6 +156,7 @@ function App() {
   const [showItemsForDomain, setShowItemsForDomain] = useState<
     Record<string, boolean>
   >({});
+  const [patient, setPatient] = useState<Mapping.Patient | undefined>(undefined);
 
   // Data transformation
   const [questionnaireNamesByDate, setQuestionnaireNamesByDate] = useState<
@@ -312,6 +316,10 @@ function App() {
     const questionnairesInConfig: string[] = config !== undefined ? extractQuestionnairesFromConfig(config) : [];
 
     /* ----------------------- Normalize FHIR data ------------------------*/
+    /* Patient */
+    console.log("SMART Patient: ", smartPatient);
+    const normalizedFhirPatient = smartPatient !== null ? normalizePatient(smartPatient) : undefined;
+    console.log("Normalized FHIR Patient: ", normalizedFhirPatient);
     /* Questionnaires */
     const normalizedFhirQuestionnairesResult = fhirQuestionnaires
       .map((questionnaire) => normalizeQuestionnaire(questionnaire))
@@ -402,6 +410,14 @@ function App() {
     );
 
     /* ----------------------- Mapping ------------------------ */
+    /* Patient */
+    const promDataPatientResult = normalizedFhirPatient !== undefined ? mapPatient(normalizedFhirPatient) : undefined;
+    const promDataPatient = promDataPatientResult?.data;
+    const promDataPatientIssues = promDataPatientResult?.issues;
+    if (promDataPatientIssues !== undefined) {
+      errors.push(...promDataPatientIssues);
+    }
+    console.log("Mapping Patient: ", promDataPatient);
     /* Questionnaires */
     const promDataQuestionnairesResult = normalizedFhirQuestionnaires.map(
       (questionnaire) =>
@@ -690,6 +706,7 @@ function App() {
     setSelectedDates(allResponseDates);
     setRadarChartDates(allResponseDates);
     setDateFormatPattern(dateFormat);
+    setPatient(promDataPatient);
     // setDisplayedQuestionnaires(questionnaires);
     // setDisplayedQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
   }, [
@@ -698,6 +715,7 @@ function App() {
     fhirObservationDefinitions,
     fhirObservations,
     dataLoaded,
+    smartPatient,
   ]);
 
   // Data visualization
@@ -1324,6 +1342,14 @@ function App() {
             <section className="tw:bg-base-100">
               {/* <div className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6"> */}
               <div className="layout tw:flex tw:flex-col tw:items-center tw:justify-center tw:text-base-content tw:min-h-screen">
+                {patient !== undefined && (
+                  <>
+                <div className="section tw:pb-4! tw:border-b border-medium">
+                  <PatientInfo patient={patient} />
+                </div>
+                {/* <div className="tw:divider divider-border-medium tw:opacity-60 tw:m-0"></div> */}
+                </>
+                )}
                 <div className="section">
                   <h1>Overview</h1>
                   <div className="tw:flex tw:justify-start">
