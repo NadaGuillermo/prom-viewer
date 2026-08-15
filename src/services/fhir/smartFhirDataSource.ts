@@ -39,11 +39,13 @@ async function fetchDefinitionsByUrls(
  */
 export class SmartFhirDataSource implements FhirDataSource {
   private readonly client: Client;
-  private readonly definitionsBaseUrl: string;
+  private readonly questionnaireBaseUrl: string;
+  private readonly observationDefinitionBaseUrl: string;
 
-  constructor(client: Client, definitionsBaseUrl: string) {
+  constructor(client: Client, questionnaireBaseUrl: string, obsdefBaseUrl: string) {
     this.client = client;
-    this.definitionsBaseUrl = definitionsBaseUrl;
+    this.questionnaireBaseUrl = questionnaireBaseUrl;
+    this.observationDefinitionBaseUrl = obsdefBaseUrl;
   }
 
   async fetchPatientQuestionnaireResponses(): Promise<any[]> {
@@ -61,10 +63,10 @@ export class SmartFhirDataSource implements FhirDataSource {
   }
 
   async fetchQuestionnairesByUrls(urls: string[]): Promise<any[]> {
-    return fetchDefinitionsByUrls(this.definitionsBaseUrl, "Questionnaire", urls);
+    return fetchDefinitionsByUrls(this.questionnaireBaseUrl, "Questionnaire", urls);
   }
 
   async fetchObservationDefinitionsByUrls(urls: string[]): Promise<any[]> {
-    return fetchDefinitionsByUrls(this.definitionsBaseUrl, "ObservationDefinition", urls);
+    return fetchDefinitionsByUrls(this.observationDefinitionBaseUrl, "ObservationDefinition", urls);
   }
 }

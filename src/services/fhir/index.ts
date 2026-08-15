@@ -20,7 +20,7 @@ export function getFhirDataSource(client?: Client): FhirDataSource {
     if (client === undefined) {
       throw new Error("SmartFhirDataSource requires a ready SMART on FHIR client");
     }
-    return new SmartFhirDataSource(client, import.meta.env.VITE_FHIR_DEFINITIONS_BASE_URL);
+    return new SmartFhirDataSource(client, import.meta.env.VITE_FHIR_QUESTIONNAIRE_BASE_URL, import.meta.env.VITE_FHIR_OBSDEF_BASE_URL);
   }
   return new MockFhirDataSource();
 }
