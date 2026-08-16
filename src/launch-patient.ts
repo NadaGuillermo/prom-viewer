@@ -10,4 +10,5 @@ FHIR.oauth2.authorize({
   scope: "patient/Patient.rs patient/QuestionnaireResponse.rs patient/Observation.rs launch/patient online_access openid fhirUser",
   // Derived from BASE_URL so this doesn't silently break if the deployed base path changes.
   redirectUri: `${import.meta.env.BASE_URL}index.html`,
+  iss: `${import.meta.env.VITE_SMART_STANDALONE_SERVER_URL}`,
 });

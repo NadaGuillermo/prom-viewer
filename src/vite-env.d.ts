@@ -12,6 +12,8 @@ interface ImportMetaEnv {
   readonly VITE_CONFIG_SOURCE?: "local" | "remote";
   /** base url to fetch config files from when VITE_CONFIG_SOURCE=remote */
   readonly VITE_CONFIG_SERVER_URL?: string;
+  /** Server url for SMART on FHIR standalone launch */
+  readonly VITE_SMART_STANDALONE_SERVER_URL?: string;
 }
 
 interface ImportMeta {
