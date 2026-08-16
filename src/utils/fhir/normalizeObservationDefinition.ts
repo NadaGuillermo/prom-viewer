@@ -12,11 +12,11 @@ export const normalizeObservationDefinition = (
   const lowerBoundNumber = Number(lowerBoundary);
   const upperBoundNumber = Number(upperBoundary);
   const scoreHealthCorrelation: string | undefined = range?.extension
-    ?.find((ext: any) => ext.url === "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-ex-pro-score-score-health-correlation").text;
+    ?.find((ext: any) => ext.url === "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-ex-pro-score-score-health-correlation").valueString;
 
   
-  const referenceRangeObjects = resource.qualifiedInterval?.filter((interval: any) => interval.category !== undefined && (interval.category === "critical" || interval.category === "reference"));
-  const referenceRangeRaw: {range: [any, any], context: any}[] | undefined = referenceRangeObjects ? referenceRangeObjects.map((obj: any) => {return {range: [obj.range.low, obj.range.high], context: obj.context}}) : undefined;
+  const referenceIntervals = resource.qualifiedInterval?.filter((interval: any) => interval.category !== undefined && (interval.category === "critical" || interval.category === "reference"));
+  const referenceRangeRaw: {range: [any, any], context: any}[] | undefined = referenceIntervals ? referenceIntervals.map((interval: any) => {return {range: [interval.range?.low?.value, interval.range?.high?.value], context: interval.context.coding.find((coding: any) => coding.system ="http://terminology.hl7.org/CodeSystem/referencerange-meaning")?.code}}) : undefined;
   // implicitely assume healthScoreCorrelation same as for absolute interval
   let referenceRange: NormalizedFHIR.ReferenceRange[] = [];
   // let referenceValue: NormalizedFHIR.ReferenceRange[] = [];
