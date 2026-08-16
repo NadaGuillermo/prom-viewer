@@ -40,7 +40,7 @@ export const normalizeObservationDefinition = (
   return {
     data: {
       id: resource.id, // sollte immer gegeben sein
-      // url: resource.url, // immer gegeben
+      url: resource.url, // immer gegeben
       ...(!isNaN(lowerBoundNumber) &&
         !isNaN(upperBoundNumber) && {
           range: [lowerBoundNumber, upperBoundNumber],

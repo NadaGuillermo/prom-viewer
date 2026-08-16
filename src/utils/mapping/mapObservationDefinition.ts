@@ -23,7 +23,7 @@ export const mapNormalizedObservationDefinitionToPromDataObservationDefinition =
     return {
       data: {
         id: normalizedObservationDefinition.id,
-        // url: normalizedObservationDefinition.url,
+        url: normalizedObservationDefinition.url,
         ...(range && {range: range}),
         ...(scoreHealthCorrelation && {scoreHealthCorrelation: scoreHealthCorrelation}),
         ...(referenceRange && {referenceRange: referenceRange}),

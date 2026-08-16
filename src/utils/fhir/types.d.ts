@@ -36,7 +36,7 @@ export namespace NormalizedFHIR {
   /** Observation Definition */
   interface ObservationDefinition {
     id: string;
-    // url: string;
+    url: string;
     range?: [number, number];
     scoreHealthCorrelation?: string;
     // code: string;
