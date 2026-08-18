@@ -1,5 +1,5 @@
 import { SCORE_HEALTH_CORRELATIONS } from "./constants";
-import type { NormalizedFHIR } from "@utils/fhir";
+import type { NormalizedFHIR } from "@utils/normalization";
 
 export namespace Mapping {
   type Answer = number | null;
@@ -25,17 +25,21 @@ export namespace Mapping {
     range: [number, number] | number;
     name: string;
     description?: string;
-  }
+  };
 
   interface QuestionnaireItem extends BaseItem {
     answerOptions: AnswerOption[];
     range?: [number, number];
-    scoreHealthCorrelation?: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
+    scoreHealthCorrelation?:
+      | SCORE_HEALTH_CORRELATIONS.increase
+      | SCORE_HEALTH_CORRELATIONS.decrease;
   }
 
   interface QuestionnaireScoreItem extends BaseItem {
     range: [number, number];
-    scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
+    scoreHealthCorrelation:
+      | SCORE_HEALTH_CORRELATIONS.increase
+      | SCORE_HEALTH_CORRELATIONS.decrease;
     isDomainScore?: boolean;
     isGlobalScore?: boolean;
     referenceQuestionnaireItems?: string[]; // linkIds
@@ -81,7 +85,7 @@ export namespace Mapping {
     observationDefinition: string; // ObservationDefinition.url
   }
 
-    interface Patient {
+  interface Patient {
     id: string;
     familyName: string;
     givenName: string;

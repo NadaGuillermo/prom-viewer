@@ -1,14 +1,18 @@
 import type { Errors } from "./types";
-import { DataIssueCode, userMessageMissingResponse, userMessageMissingQuestionnaire } from "./constants";
+import {
+  DataIssueCode,
+  userMessageMissingResponse,
+  userMessageMissingQuestionnaire,
+} from "./constants";
 import type { Mapping } from "@utils/mapping";
-import type { NormalizedFHIR } from "@utils/fhir";
+import type { NormalizedFHIR } from "@utils/normalization";
 
 const createIssue = (base: Omit<Errors.DataIssue, "id">): Errors.DataIssue => {
-    return {
-        ...base,
-        id: `${crypto.randomUUID()}`
-    }
-}
+  return {
+    ...base,
+    id: `${crypto.randomUUID()}`,
+  };
+};
 
 export const issueFactories = {
   patient: {
@@ -20,30 +24,37 @@ export const issueFactories = {
         userMessage: `Patient has no name.`,
         showUser: true,
         context: {
-          resourceId: resource.id
-        }
-      })
+          resourceId: resource.id,
+        },
+      }),
   },
   questionnaireResponse: {
-    unreferencedItem: (resource: Mapping.QuestionnaireResponse, linkId: string): Errors.DataIssue => 
+    unreferencedItem: (
+      resource: Mapping.QuestionnaireResponse,
+      linkId: string,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_REFERENCE,
         level: "error",
 
         message: `Item ${linkId} does not exist in Questionnaire but in QuestionnaireResponse.`,
-        
+
         // resourceId: resource.id,
         resourceType: "QuestionnaireResponse",
-        
+
         showUser: false,
-        
+
         context: {
           resourceId: resource.id,
           relatedResourceIds: [resource.questionnaire.id],
           field: linkId,
-        }
+        },
       }),
-    invalidItemValueType: (resource: NormalizedFHIR.QuestionnaireResponse, linkId: string, value: NormalizedFHIR.Answer): Errors.DataIssue => 
+    invalidItemValueType: (
+      resource: NormalizedFHIR.QuestionnaireResponse,
+      linkId: string,
+      value: NormalizedFHIR.Answer,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
         level: "error",
@@ -52,7 +63,7 @@ export const issueFactories = {
 
         // resourceId: resource.id,
         resourceType: "QuestionnaireResponse",
-        
+
         showUser: false,
 
         context: {
@@ -60,15 +71,19 @@ export const issueFactories = {
           relatedResourceIds: [resource.questionnaire],
           field: linkId,
           value: value,
-        }
+        },
       }),
-    multipleItemValues: (resource: any, linkId: any, values: any[]): Errors.DataIssue => 
+    multipleItemValues: (
+      resource: any,
+      linkId: any,
+      values: any[],
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_NUMBER_OF_VALUES,
         level: "warning",
 
         message: `Item ${linkId} in QuestionnaireResponse has multiple values. Only the first one is used.`,
-        
+
         // resourceId: resource.id,
         resourceType: "QuestionnaireResponse",
 
@@ -78,9 +93,13 @@ export const issueFactories = {
           resourceId: resource.id,
           field: linkId,
           value: values,
-        }
+        },
       }),
-    invalidItemValue: (resource: NormalizedFHIR.QuestionnaireResponse, linkId: string, value: any): Errors.DataIssue => 
+    invalidItemValue: (
+      resource: NormalizedFHIR.QuestionnaireResponse,
+      linkId: string,
+      value: any,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE,
         level: "warning",
@@ -95,16 +114,18 @@ export const issueFactories = {
           resourceId: resource.id,
           field: linkId,
           value: value,
-        } 
+        },
       }),
-    missingItems: (resource: NormalizedFHIR.QuestionnaireResponse): Errors.DataIssue => 
+    missingItems: (
+      resource: NormalizedFHIR.QuestionnaireResponse,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.EMPTY_RESOURCE,
         level: "error",
 
         message: `QuestionnaireResponse has no items.`,
         userMessage: userMessageMissingResponse,
-        
+
         // resourceId: resource.id,
         resourceType: "QuestionnaireResponse",
 
@@ -112,10 +133,9 @@ export const issueFactories = {
 
         context: {
           resourceId: resource.id,
-        }
-
+        },
       }),
-    missingQuestionnaire: (resource: any): Errors.DataIssue => 
+    missingQuestionnaire: (resource: any): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
@@ -135,7 +155,10 @@ export const issueFactories = {
       }),
   },
   questionnaire: {
-    missingItemAnswerOption: (resource: Mapping.Questionnaire, linkId: string): Errors.DataIssue => 
+    missingItemAnswerOption: (
+      resource: Mapping.Questionnaire,
+      linkId: string,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_FIELD,
         level: "error",
@@ -144,33 +167,39 @@ export const issueFactories = {
         // userMessage: "test",
         // resourceId: resource.id,
         resourceType: "Questionnaire",
-        
+
         // showUser: true,
-        
+
         context: {
           resourceId: resource.id,
           field: linkId,
-        }
+        },
       }),
-    invalidItemAnswerOption: (resource: any, linkId: string, value: any): Errors.DataIssue => 
+    invalidItemAnswerOption: (
+      resource: any,
+      linkId: string,
+      value: any,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
         level: "warning",
 
         message: `Invalid type for at least one answerOption of item ${linkId} in Questionnaire. Expected type: convertible to number`,
-        
+
         // resourceId: resource.id,
         resourceType: "Questionnaire",
-        
+
         showUser: false,
 
         context: {
           resourceId: resource.id,
           field: linkId,
           value: value,
-        }
+        },
       }),
-      missingInConfig: (resource: NormalizedFHIR.Questionnaire): Errors.DataIssue =>
+    missingInConfig: (
+      resource: NormalizedFHIR.Questionnaire,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_IN_CONFIG,
         level: "error",
@@ -186,10 +215,10 @@ export const issueFactories = {
         context: {
           resourceId: resource.id,
         },
-      }), 
+      }),
   },
-  observation: { 
-    missingQuestionnaireResponse: (resource: any): Errors.DataIssue => 
+  observation: {
+    missingQuestionnaireResponse: (resource: any): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
@@ -205,7 +234,7 @@ export const issueFactories = {
           resourceId: resource.id,
         },
       }),
-    missingObservationDefinition: (resource: any): Errors.DataIssue => 
+    missingObservationDefinition: (resource: any): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
@@ -214,69 +243,77 @@ export const issueFactories = {
 
         // resourceId: resource.id,
         resourceType: "Observation",
-        
+
         showUser: false,
 
         context: {
           resourceId: resource.id,
         },
       }),
-    invalidObservationValue: (resource: NormalizedFHIR.Observation): Errors.DataIssue => 
+    invalidObservationValue: (
+      resource: NormalizedFHIR.Observation,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
         level: "error",
 
         message: `Observation value is of an invalid type. Expected type: convertible to number.`,
-        
+
         // resourceId: resource.id,
         resourceType: "Observation",
-        
+
         showUser: false,
 
         context: {
           resourceId: resource.id,
           value: resource.value,
           // expectedType: "number",
-        }
+        },
       }),
   },
-  observationDefinition: { 
-    contradictingRangeInConfig: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+  observationDefinition: {
+    contradictingRangeInConfig: (
+      resource: Mapping.ObservationDefinition,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.CONTRADICTING_VALUES,
         level: "warning",
 
-        message: "Score range definition in ObservationDefinition contradicts range given in the configuration file. The latter is used.",
-        
+        message:
+          "Score range definition in ObservationDefinition contradicts range given in the configuration file. The latter is used.",
+
         // resourceId: resource.id,
         resourceType: "ObservationDefinition",
-        
+
         showUser: false,
 
         context: {
           resourceId: resource.id,
           value: resource.range,
-        }
+        },
       }),
-    contradictingScoreHealthCorrelationInConfig: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+    contradictingScoreHealthCorrelationInConfig: (
+      resource: Mapping.ObservationDefinition,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.CONTRADICTING_VALUES,
         level: "warning",
 
-        message: "ScoreHealthCorrelation definition in ObservationDefinition contradicts scoreHealthCorrelation given in the configuration file. The latter is used.",
-        
+        message:
+          "ScoreHealthCorrelation definition in ObservationDefinition contradicts scoreHealthCorrelation given in the configuration file. The latter is used.",
+
         // resourceId: resource.id,
         resourceType: "ObservationDefinition",
 
         showUser: false,
-        
+
         context: {
           resourceId: resource.id,
           // scoreHealthCorrelation: resource.scoreHealthCorrelation,
           // scoreHealthCorrelationConfig: scoreHealthCorrelationConfig
-        }
+        },
       }),
-    missingRange: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+    missingRange: (resource: Mapping.ObservationDefinition): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_FIELD,
         level: "error",
@@ -287,12 +324,12 @@ export const issueFactories = {
         resourceType: "ObservationDefinition",
 
         showUser: false,
-        
+
         context: {
           resourceId: resource.id,
-        }
+        },
       }),
-    invalidRange: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+    invalidRange: (resource: Mapping.ObservationDefinition): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
         level: "error",
@@ -308,9 +345,11 @@ export const issueFactories = {
           resourceId: resource.id,
           // range: resource.range,
           // expectedType: "[number, number] with first number smaller or equal to second number",
-        }
+        },
       }),
-    missingScoreHealthCorrelation: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+    missingScoreHealthCorrelation: (
+      resource: Mapping.ObservationDefinition,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_FIELD,
         level: "error",
@@ -321,12 +360,14 @@ export const issueFactories = {
         resourceType: "ObservationDefinition",
 
         showUser: false,
-        
+
         context: {
           resourceId: resource.id,
-        }
+        },
       }),
-    invalidScoreHealthCorrelation: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
+    invalidScoreHealthCorrelation: (
+      resource: Mapping.ObservationDefinition,
+    ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
         level: "error",
@@ -342,23 +383,26 @@ export const issueFactories = {
           resourceId: resource.id,
           //range: resource.scoreHealthCorrelation,
           //expectedType: "increase | decrease",
-        }
+        },
       }),
-      additionalReferenceValuesInConfig: (resource: Mapping.ObservationDefinition): Errors.DataIssue => 
-        createIssue({
-          code: DataIssueCode.DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG,
-          level: "warning",
+    additionalReferenceValuesInConfig: (
+      resource: Mapping.ObservationDefinition,
+    ): Errors.DataIssue =>
+      createIssue({
+        code: DataIssueCode.DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG,
+        level: "warning",
 
-          message: "There are reference values defined in both the ObservationDefinition and the configuration file. All will be displayed.",
+        message:
+          "There are reference values defined in both the ObservationDefinition and the configuration file. All will be displayed.",
 
-          resourceType: "ObservationDefinition",
+        resourceType: "ObservationDefinition",
 
-          showUser: false,
+        showUser: false,
 
-          context: {
-            resourceId: resource.id,
-            value: resource.referenceRange
-          }
-        }),
+        context: {
+          resourceId: resource.id,
+          value: resource.referenceRange,
+        },
+      }),
   },
 };
