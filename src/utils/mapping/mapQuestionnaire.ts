@@ -2,7 +2,7 @@ import type { NormalizedFHIR } from "@utils/normalization";
 import type { Mapping } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
 // import * as _ from "lodash-es";
-import { unspecifiedDimension } from "./constants";
+import { UNSPECIFIED_DOMAIN } from "./constants";
 
 export const mapQuestionnaire = (
   questionnaire: NormalizedFHIR.Questionnaire,
@@ -81,7 +81,7 @@ export const mapQuestionnaire = (
 
     items[linkId] = {
       linkId: linkId,
-      domain: unspecifiedDimension,
+      domain: UNSPECIFIED_DOMAIN,
       answerOptions: filteredAnswerOptions,
       ...(item.text !== undefined && { text: item.text }),
       ...(range !== undefined && { range: range }),

@@ -1,7 +1,8 @@
 
 // export const globalDimension = "Overall Health";
 // export const otherDimension = "Other";
-export const unspecifiedDimension = "Unspecified";
+export const UNSPECIFIED_DOMAIN = "N/A";
+export const UNSPECIFIED_DIMENSION = "Not Specified";
 
 export const SCORE_HEALTH_CORRELATIONS = {increase: "increase", decrease: "decrease"};
 

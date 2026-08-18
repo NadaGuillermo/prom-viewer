@@ -1,5 +1,5 @@
 import type { Visualization } from "./types";
-import { unspecifiedDimension, type Mapping } from "@utils/mapping";
+import { UNSPECIFIED_DOMAIN, UNSPECIFIED_DIMENSION, type Mapping } from "@utils/mapping";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 import { ITEM_TYPES } from "@utils/mapping";
@@ -140,7 +140,7 @@ export const sortDomains = (
   // 4. Include domain "Unspecified" for items that were not assigned a domain in the configuration file
   if (addUnspecified) {
     // sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
-    filteredDomains.push(unspecifiedDimension);
+    filteredDomains.push(UNSPECIFIED_DOMAIN);
   }
 
   // 5. Delete duplicates
@@ -149,8 +149,8 @@ export const sortDomains = (
   return uniqueDomains;
 };
 
-export const addUnspecifiedDimensionToDomains = (domains: string[]) => {
-  return [...domains, unspecifiedDimension];
+export const addUnspecifiedDomainToDomains = (domains: string[]) => {
+  return [...domains, UNSPECIFIED_DOMAIN];
 }
 
 // ok
@@ -639,6 +639,19 @@ export const extractItemsDataSeries = (
         }  
       }
     });
+    // items without a dimension
+    const dimensionScoreAndItemDataSeries: Visualization.DataSeries[] = [...dimensionScoresDataSeries];
+    Object.values(dimensionItemDataSeriesRecord).forEach((series) => {
+      series.forEach((s) => {
+        dimensionScoreAndItemDataSeries.push(s);
+      });
+    });
+    const itemsWithoutDimensionDataSeries: Visualization.DataSeries[] = _.difference(domainData, dimensionScoreAndItemDataSeries);
+
+    if (itemsWithoutDimensionDataSeries.length > 0) {
+      dimensionItemDataSeriesRecord[UNSPECIFIED_DIMENSION] = itemsWithoutDimensionDataSeries;
+    }
+
     return dimensionItemDataSeriesRecord;
   }
 
@@ -662,6 +675,7 @@ export const createQuestionnaireMostRecentResponseDateRecord = (questionnaireNam
 export const createDomainDimensionsRecord = (
   questionnaires: Mapping.Questionnaire[],
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
+  addUnspecifiedDimension = true,
 ) => {
   const domainDimensionsRecord: Record<string, string[]> = {};
   Object.entries(dimensionScoresDataSeriesByDomain).forEach(([domain, dimensionScoresDataSeries]) => {
@@ -679,6 +693,10 @@ export const createDomainDimensionsRecord = (
     }
   );
     const uniqueDimensions = _.uniq(dimensions.filter((dim) => dim !== undefined));
+    // add unspecified dimension
+    if(addUnspecifiedDimension) {
+      uniqueDimensions.push(UNSPECIFIED_DIMENSION);
+    }
     domainDimensionsRecord[domain] = uniqueDimensions;
   });
   return domainDimensionsRecord;
