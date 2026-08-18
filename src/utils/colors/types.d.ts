@@ -26,7 +26,7 @@ export namespace Colors {
   }
 
   export interface CategoricalPalettes {
-    muted: string[];
+    tolMuted: string[];
     okabeIto: string[];
   }
 

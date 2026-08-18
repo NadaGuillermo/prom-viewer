@@ -1,6 +1,6 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@utils/visualization/types";
-import { type Charts,  mutedColorPalette, } from "@utils/charts";
+import { type Charts,  tolColorPalette, } from "@utils/charts";
 import * as _ from "lodash-es";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as echarts from "echarts/core";
@@ -40,7 +40,7 @@ const RadarChart = ({
   title,
   subtitle,
   height = 400,
-  colors = mutedColorPalette,
+  colors = tolColorPalette,
   titleOptions,
   legendOptions,
   gridOptions,

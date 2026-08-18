@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import { ShowReferenceValuesContext } from "@components/LineChartGroup";
-import { type Charts, mutedColorPalette, referenceColors } from "@utils/charts";
+import { type Charts, tolColorPalette, referenceColors } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
@@ -54,7 +54,7 @@ const LineChart = ({
   subtitle,
   height = 400,
   data,
-  colors = mutedColorPalette,
+  colors = tolColorPalette,
   titleOptions,
   legendOptions,
   gridOptions,
