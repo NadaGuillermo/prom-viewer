@@ -1,6 +1,6 @@
 /**
  * Source of raw FHIR resources, abstracting over where/how they are fetched
- * (mock JSON in public/, or a real SMART on FHIR + open definitions server).
+ * (mock JSON in src/mocks/, served via MSW, or a real SMART on FHIR + open definitions server).
  * All resources are returned raw/untyped: FHIR resource shapes are too varied
  * to usefully model as TypeScript types, so callers normalize them downstream
  * (see src/utils/fhir/normalize*.ts).

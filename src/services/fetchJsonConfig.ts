@@ -14,7 +14,7 @@ export async function fetchJsonConfig(url: string): Promise<unknown> {
  * @returns the url to fetch that config file from
  * @description Resolves a config file url based on VITE_CONFIG_SOURCE: "remote"
  * with VITE_CONFIG_SERVER_URL set fetches from that server, otherwise falls
- * back to the local public/config folder.
+ * back to the local mock config fixtures (src/mocks/config/data/), served via MSW.
  */
 export function resolveConfigUrl(filename: string): string {
   const { VITE_CONFIG_SOURCE, VITE_CONFIG_SERVER_URL } = import.meta.env;

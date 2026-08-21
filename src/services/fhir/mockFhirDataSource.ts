@@ -7,7 +7,7 @@ const BUNDLE_NAMES: string[] = [
   // "mii-exa-pro-promis-29-bundle", // Questionnaire fehlt
 ];
 
-// Standalone Patient fixtures (public/patients/<name>.json). Empty until such
+// Standalone Patient fixtures (src/mocks/fhir/data/patients/<name>.json). Empty until such
 // a fixture is added; the bundle-contained Patient is picked up regardless.
 const PATIENT_NAMES: string[] = [];
 
@@ -71,15 +71,15 @@ async function fetchMockResourcesByName(
 }
 
 /**
- * Loads FHIR resources from the static JSON fixtures in public/ instead of a
- * real FHIR server. Questionnaire/ObservationDefinition are still resolved by
+ * Loads FHIR resources from the mock JSON fixtures in src/mocks/fhir/data/,
+ * served via MSW request handlers instead of a real FHIR server. Questionnaire/ObservationDefinition are still resolved by
  * matching each fixture's own `url` field against the requested canonical
  * urls, so the mock exercises the same reference-driven filtering as
  * SmartFhirDataSource, just against a fixed, pre-loaded catalog.
  */
 export class MockFhirDataSource implements FhirDataSource {
   async fetchPatientQuestionnaireResponses(): Promise<any[]> {
-    const responses = await fetchMockResourcesByName("responses", RESPONSE_NAMES);
+    const responses = await fetchMockResourcesByName("questionnaireResponses", RESPONSE_NAMES);
     const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
     const bundleResponses = extractResourcesFromBundles(bundles, "QuestionnaireResponse");
     return [...responses, ...bundleResponses];
