@@ -16,6 +16,7 @@ export default defineConfig({
       input: {
         main: `${rootDir}index.html`,
         launch: `${rootDir}launch.html`,
+        launchPatient: `${rootDir}launch-patient.html`,
       },
     },
   },
