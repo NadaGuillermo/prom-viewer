@@ -90,6 +90,8 @@ Each handler answers with the matching fixture's JSON content and a `200`, or a 
 
 The MSW browser worker script (`public/mockServiceWorker.js`) is generated infrastructure, not mock data — regenerate it with `yarn msw init public --save` if it's ever missing (e.g. after a clean checkout that doesn't track it, or an MSW version bump).
 
+*Note:* If you add mock questionnaire responses or bundles and you want them to be displayed in the app, you must add their names in `src/services/fhir/mockFhirDataSource.ts`.
+
 ### SMART on FHIR Launch Configuration
 
 SMART on FHIR launch behavior is configured across three places:

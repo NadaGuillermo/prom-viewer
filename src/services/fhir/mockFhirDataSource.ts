@@ -1,62 +1,72 @@
 import type { FhirDataSource } from "./types";
 import { extractResourcesFromBundles, findPatientResource } from "./bundleUtils";
 
-const BUNDLE_NAMES: string[] = [
-  "mii-exa-pro-eortc-qlq-c30-bundle-1",
-  // "mii-exa-pro-phq-9-bundle",
-  // "mii-exa-pro-promis-29-bundle", // Questionnaire fehlt
-];
+/**
+ * @param modules - result of import.meta.glob() over a fixture folder; only its keys are used
+ * @returns the bare file names (without extension) present in that folder
+ * @description Shared discovery step for resolveFixtureNames: turns glob keys into fixture names.
+ */
+function namesFromGlob(modules: Record<string, unknown>): string[] {
+  return Object.keys(modules).map((path) => (path.split("/").pop() ?? path).replace(/\.json$/, ""));
+}
 
-// Standalone Patient fixtures (src/mocks/fhir/data/patients/<name>.json). Empty until such
-// a fixture is added; the bundle-contained Patient is picked up regardless.
-const PATIENT_NAMES: string[] = [];
+/**
+ * @param modules - result of import.meta.glob() over a fixture folder
+ * @param curated - optional allow-list of names to load; omit to load every fixture found on disk
+ * @returns the file names (without extension) to load for this folder
+ * @description Single discovery strategy for both curated and auto-discovered folders. Metadata
+ * fixtures (Patient, Questionnaire, ObservationDefinition) pass no curated list, so every fixture
+ * found is loaded. Patient-data fixtures (bundles, responses, observations) pass a curated list so
+ * the programmer decides which ones are displayed; entries no longer present on disk are dropped.
+ */
+function resolveFixtureNames(modules: Record<string, unknown>, curated?: string[]): string[] {
+  const discovered = namesFromGlob(modules);
+  if (curated === undefined) {
+    return discovered;
+  }
+  const available = new Set(discovered);
+  return curated.filter((name) => available.has(name));
+}
 
-const QUESTIONNAIRE_NAMES: string[] = [
-  "mii-qst-pro-euroqol-eq5d5l-collectable",
-  // "mii-qst-pro-promis-29",
-];
+const BUNDLE_NAMES: string[] = resolveFixtureNames(
+  import.meta.glob("../../mocks/fhir/data/bundles/*.json"),
+  [
+    "mii-exa-pro-eortc-qlq-c30-bundle",
+    "mii-exa-pro-phq-9-bundle",
+    // "mii-exa-pro-promis-29-bundle",
+  ],
+);
 
-const RESPONSE_NAMES: string[] = [
-  "mii-exa-pro-euroqol-eq5d5l-response-1",
-  "mii-exa-pro-euroqol-eq5d5l-response-2",
-  "mii-exa-pro-euroqol-eq5d5l-response-3",
-  "mii-exa-pro-euroqol-eq5d5l-response-4",
-  "mii-exa-pro-euroqol-eq5d5l-response-5",
-  "mii-exa-pro-euroqol-eq5d5l-response-6",
-  "mii-exa-pro-promis-29-response",
-];
+const RESPONSE_NAMES: string[] = resolveFixtureNames(
+  import.meta.glob("../../mocks/fhir/data/questionnaireResponses/*.json"),
+  [
+    "mii-exa-pro-euroqol-eq5d5l-response-1",
+    "mii-exa-pro-euroqol-eq5d5l-response-2",
+    "mii-exa-pro-euroqol-eq5d5l-response-3",
+    "mii-exa-pro-euroqol-eq5d5l-response-4",
+    "mii-exa-pro-euroqol-eq5d5l-response-5",
+    "mii-exa-pro-euroqol-eq5d5l-response-6",
+    // "mii-exa-pro-promis-29-response",
+  ],
+);
 
-const OBSERVATION_DEFINITION_NAMES: string[] = [
-  "fsh-generated-resources-ObservationDefinition-mii-obsdef-pro-score-phq-9",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-ap",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-cf",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-co",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-di",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-dy",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-ef",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-fa",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-fi",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-nv",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-pa",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-pf",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-ql",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-rf",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-sf",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-eortc-qlq-c30-sl",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-score-eq5d5l-index",
-  "generated-resources-ObservationDefinition-mii-obsdef-pro-score-eq5d5l-vas",
-  "ObservationDefinition-mii-obsdef-pro-promis-29-pain-interference-tscore",
-  "ObservationDefinition-mii-obsdef-pro-promis-29-physical-function-tscore",
-  "ObservationDefinition-mii-obsdef-pro-promis-29-sleep-disturbance-tscore",
-  "ObservationDefinition-mii-obsdef-pro-promis-29-social-function-tscore",
-  "resources-ObservationDefinition-mii-obsdef-pro-promis-29-anxiety-tscore",
-  "resources-ObservationDefinition-mii-obsdef-pro-promis-29-depression-tscore",
-  "resources-ObservationDefinition-mii-obsdef-pro-promis-29-fatigue-tscore",
-  "resources-ObservationDefinition-mii-obsdef-pro-promis-29-pain-intensity",
-  "resources-ObservationDefinition-mii-obsdef-pro-score-eq5d5l-profile",
-];
+const OBSERVATION_NAMES: string[] = resolveFixtureNames(
+  import.meta.glob("../../mocks/fhir/data/observations/*.json"),
+  [], // none loaded standalone; only extracted from bundles
+);
 
-const OBSERVATION_NAMES: string[] = [];
+const PATIENT_NAMES: string[] = resolveFixtureNames(
+  import.meta.glob("../../mocks/fhir/data/patients/*.json"),
+);
+
+const QUESTIONNAIRE_NAMES: string[] = resolveFixtureNames(
+  import.meta.glob("../../mocks/fhir/data/questionnaires/*.json"),
+);
+
+const OBSERVATION_DEFINITION_NAMES: string[] = resolveFixtureNames(
+  import.meta.glob("../../mocks/fhir/data/observationDefinitions/*.json"),
+);
+
 
 async function fetchMockResourcesByName(
   folder: string,
