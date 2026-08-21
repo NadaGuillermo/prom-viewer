@@ -46,7 +46,10 @@ src/
 - Install dependencies: `yarn`
 - Start dev server: `yarn dev`
 - Build for production: `yarn build`
-- Run tests: *(not set up yet)*
+- Run tests: `yarn test`
+- Run tests in watch mode: `yarn test:watch`
+- Run tests with coverage: `yarn test:coverage`
+- Run a single test file: `yarn test src/path/to/File.test.tsx`
 - Lint: `yarn lint`
 - Lint fix: `yarn lint:fix`
 - Format: `yarn format`
@@ -63,7 +66,13 @@ src/
 
 ## Testing
 
-No test setup yet. When adding one, note the framework here (e.g. Vitest, Jest + React Testing Library) and how to run a single test file.
+Vitest + React Testing Library, configured in `vite.config.ts` (`test`: `environment: "jsdom"`, `globals: true`, `setupFiles: ["./src/test/setup.ts"]`). See the [README's Testing section](README.md#testing) for the full stack/conventions rundown; the essentials for writing a new test:
+
+- Colocate tests as `[File].test.ts(x)` next to the source file
+- Reuse the existing MSW fixture handlers (`src/mocks/handlers.ts`) via the Node-side server in `src/test/mocks/server.ts`; override per-test with `server.use(...)` for error/edge cases instead of duplicating handlers
+- `src/test/setup.ts` provides things components implicitly depend on outside the real app shell — a `ResizeObserver` stub, a `#portal-root` div, and FontAwesome icon registration (`library.add(fas)`, mirroring `App.tsx`). You shouldn't need to touch this file when writing a component test that uses an icon, a `Portal`-based tooltip, or the ECharts wrapper — it's already covered.
+- ECharts-based components (`LineChart`, `RadarChart`, `ReactEChartsWrapper`) can only be smoke-tested: jsdom has no `<canvas>` context, so `echarts/core`'s `init` must be mocked in the test file (see `ReactEChartsWrapper.test.tsx` for the pattern) — don't try to assert on rendered chart pixels or option payloads
+- Run a single test file: `yarn test src/path/to/File.test.tsx`
 
 ## Chart Library Instructions
 

@@ -38,15 +38,18 @@ yarn dev
 
 Other available commands:
 
-| Command          | Description                          |
-| ---------------- | ------------------------------------ |
-| `yarn dev`       | Start the dev server with hot reload |
-| `yarn build`     | Type-check and build for production  |
-| `yarn preview`   | Preview the production build locally |
-| `yarn lint`      | Lint the codebase                    |
-| `yarn lint:fix`  | Lint and auto-fix issues             |
-| `yarn format`    | Format code with Prettier            |
-| `yarn typecheck` | Run TypeScript type checking         |
+| Command               | Description                          |
+| --------------------- | ------------------------------------ |
+| `yarn dev`            | Start the dev server with hot reload |
+| `yarn build`          | Type-check and build for production  |
+| `yarn preview`        | Preview the production build locally |
+| `yarn lint`           | Lint the codebase                    |
+| `yarn lint:fix`       | Lint and auto-fix issues             |
+| `yarn format`         | Format code with Prettier            |
+| `yarn typecheck`      | Run TypeScript type checking         |
+| `yarn test`           | Run the test suite once              |
+| `yarn test:watch`     | Run tests in watch mode              |
+| `yarn test:coverage`  | Run tests with a coverage report     |
 
 If the `yarn dev` command was executed successfully, the console output should look similar to this one:
 
@@ -122,6 +125,34 @@ Copy or edit the `.env` file at the project root to configure the app. All varia
 
 In **mock mode** (`VITE_DATA_SOURCE=mock`), only `VITE_DATA_SOURCE` and, optionally, the `VITE_CONFIG_*` variables are relevant — the FHIR/SMART variables are unused. In **smart mode** (`VITE_DATA_SOURCE=smart`), the `VITE_FHIR_*`, `VITE_SMART_CLIENT_ID`, and (for standalone launch) `VITE_SMART_STANDALONE_SERVER_URL` variables must be set, and the app must be opened via `launch.html` or `launch-patient.html` rather than `index.html` directly so the SMART OAuth2 flow can run.
 
+## Testing
+
+Unit tests use [Vitest](https://vitest.dev/) with [React Testing Library](https://testing-library.com/react), colocated next to the code they test (`Component.test.tsx`, `utils.test.ts`).
+
+```bash
+yarn test           # run once
+yarn test:watch     # watch mode
+yarn test:coverage  # with a coverage report
+```
+
+**Stack:**
+
+- **Runner:** Vitest, configured in `vite.config.ts` (`test`: `environment: "jsdom"`, `globals: true`, `setupFiles: ["./src/test/setup.ts"]`)
+- **Component testing:** `@testing-library/react` + `@testing-library/user-event`, with matchers from `@testing-library/jest-dom`
+- **API mocking:** a Node-side MSW server (`src/test/mocks/server.ts`) reuses the same fixture-backed handlers as browser dev-mode mocking (`src/mocks/handlers.ts`) — no separate test fixtures to maintain
+- **Global setup** (`src/test/setup.ts`): starts/stops the MSW server and resets React Testing Library after each test; also stubs a few things components rely on that don't exist by default in an isolated jsdom render — a `ResizeObserver` polyfill (needed by the ECharts wrapper), a `#portal-root` mount point mirroring `index.html` (needed by `Portal` and the react-tooltip-based components), and the FontAwesome icon registration that normally happens once in `App.tsx` (`library.add(fas)`)
+
+**Conventions:**
+
+- Prefer `screen.getByRole`/other accessible queries over `getByTestId`
+- Chart components (`LineChart`, `RadarChart`, `ReactEChartsWrapper`) are smoke-tested only: jsdom has no `<canvas>` 2D context, so `echarts/core`'s `init` is mocked in those test files, and assertions focus on the wrapper's own lifecycle/props (mount/unmount, export button, loading state) rather than actual chart rendering
+
+**Known coverage gaps:**
+
+- Ten domain/dimension/table-reshaping functions in `src/utils/visualization/utils.ts` (e.g. `createTableData`, `extractItemsDataSeries`, `createDomainDimensionsRecord`) are untested — each needs deeply-nested `Mapping.Questionnaire` fixtures with many optional flags (`isGlobalScore`, `isDomainScore`, `dimension`, …)
+- The interactive calendar widget inside `DateRangePicker` (a `cally` custom element) isn't exercised — only its static button label and Clear-button behavior are
+- ECharts chart-option payloads aren't asserted on (see chart smoke-testing note above)
+
 ## Features
 
 - Visualizes FHIR questionnaire responses (mock data for now)
@@ -141,8 +172,9 @@ In **mock mode** (`VITE_DATA_SOURCE=mock`), only `VITE_DATA_SOURCE` and, optiona
 - **Styling:** Tailwind CSS, daisyUI
 - **Charting:** ECharts
 - **Package manager:** Yarn
-- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash, fhirclient
+- **Testing:** Vitest, React Testing Library
 - **Mocking:** Mock Service Worker (MSW)
+- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash, fhirclient
 
 ## License
 
