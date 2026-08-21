@@ -12,7 +12,6 @@ export namespace Mapping {
     shortText?: string;
     dimension?: string;
     isDimensionScore?: boolean;
-    thresholds?: number[];
   }
 
   /** Questionnaire */

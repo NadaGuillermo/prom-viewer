@@ -5,31 +5,6 @@ import * as _ from "lodash-es";
 import { ITEM_TYPES } from "@utils/mapping";
 import { getDateFormatPattern, parseFormattedDate } from "@utils/dateFormat";
 
-export const isScoreSeries = (
-  series: Visualization.DataSeries[],
-  seriesName: string,
-) => {
-  return series.some(
-    (s) => s.name === seriesName || s.shortName === seriesName,
-  );
-};
-
-export const getLabelFromOriginalValueAndDataSeriesName = (
-  yData: Visualization.DataSeries[],
-  originalValue: GlobalTypes.NumberOrNull,
-  seriesName: string,
-) => {
-  const correspondingSeries = yData.find(
-    (series) => series.name === seriesName || series.shortName === seriesName,
-  );
-  // console.log("correspondingSeries: ", correspondingSeries, originalValue);
-  return correspondingSeries
-    ? correspondingSeries.dataLabels[
-        correspondingSeries.originalData.indexOf(originalValue)
-      ]
-    : "";
-};
-
 export const getLabelFromValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],
   value: number,
@@ -149,10 +124,6 @@ export const sortDomains = (
   return uniqueDomains;
 };
 
-export const addUnspecifiedDomainToDomains = (domains: string[]) => {
-  return [...domains, UNSPECIFIED_DOMAIN];
-}
-
 // ok
 export const getMinAndMaxAnswerOptionValueForItem = (
   item: Mapping.QuestionnaireItem,
@@ -184,7 +155,7 @@ export const getDatesWithinRange = (dates: string[], range: [string, string], da
 }
 
 // ok
-export const sortQuestionnaireResponsesByDate = (
+const sortQuestionnaireResponsesByDate = (
   questionnaireResponses: Mapping.QuestionnaireResponse[],
 ) => {
   return questionnaireResponses.sort((a, b) => {
@@ -269,24 +240,6 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
   });
 
   return groupedQuestionnaireResponses;
-};
-
-export const calculatePeriodOfObservations = (
-  proms: Record<string, Mapping.QuestionnaireResponse>,
-) => {
-  const questionnaireResponses = Object.values(proms);
-  const years = questionnaireResponses.map((prom) => {
-    return new Date(prom.authored).getFullYear();
-  });
-  const uniqueYears = [...new Set(years)].sort();
-  if (uniqueYears.length < 2) {
-    return [uniqueYears[0].toString()];
-  } else {
-    return [
-      uniqueYears[0].toString(),
-      uniqueYears[uniqueYears.length - 1].toString(),
-    ];
-  }
 };
 
 export const createQuestionnaireDatesRecord = (
@@ -654,23 +607,6 @@ export const extractItemsDataSeries = (
 
     return dimensionItemDataSeriesRecord;
   }
-
-export const createQuestionnaireMostRecentResponseDateRecord = (questionnaireNamesByDate: Record<string, string[]>) => {
-  const questionnaireMostRecentResponseDateRecord: Record<string, string> = {};
-  const sortedDates = Object.keys(questionnaireNamesByDate).sort(
-    (a, b) => {
-    return sortDates(a, b, "descending");
-    });
-  Object.entries(questionnaireNamesByDate).forEach(([date, names]) => {
-    for(let name of names) {
-      const mostRecentDate = sortedDates.find((d) => questionnaireNamesByDate[d].includes(name));
-      if (mostRecentDate !== undefined) {
-        questionnaireMostRecentResponseDateRecord[name] = date;
-      }
-    }
-  });
-  return questionnaireMostRecentResponseDateRecord;
-}
 
 export const createDomainDimensionsRecord = (
   questionnaires: Mapping.Questionnaire[],

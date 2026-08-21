@@ -40,13 +40,6 @@ export namespace Visualization {
     yData: DataSeries[];
   }
 
-  interface ChartProps {
-    title?: string;
-    subtitle?: string;
-    height?: number;
-    data: ChartData;
-  }
-
   interface RangeState {
   start: string;
   end: string;

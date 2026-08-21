@@ -8,8 +8,6 @@ interface Props {
     label: string;
     onClick: () => void;
   };
-  /** Optional className for the container */
-  className?: string;
 }
 
 /**
@@ -20,11 +18,10 @@ const NoData = ({
   title = "No Data Available",
   message = "No data could be found for this visualization. Please try adjusting your filters or time range.",
   action,
-  className = "",
 }: Props) => {
   return (
     <div
-      className={`tw:flex tw:flex-col tw:items-center tw:justify-center tw:h-full tw:max-h-96 tw:px-4 tw:pb-4 tw:mt-8 tw:mx-2 tw:text-center tw:bg-base-100 tw:border border-rounded-prominent border-light ${className}`}
+      className="tw:flex tw:flex-col tw:items-center tw:justify-center tw:h-full tw:max-h-96 tw:px-4 tw:pb-4 tw:mt-8 tw:mx-2 tw:text-center tw:bg-base-100 tw:border border-rounded-prominent border-light"
     >
 
       {/* Content */}

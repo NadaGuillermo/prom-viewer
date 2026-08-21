@@ -66,15 +66,7 @@ export namespace NormalizedFHIR {
     observationDefinition: string | undefined; // ObservationDefinition.id
   }
 
-  /* Bundle */
-  interface Bundle {
-    questionnaire: Questionnaire | undefined;
-    questionnaireResponse: QuestionnaireResponse | undefined;
-    observations: Observation[] | undefined;
-  }
-
-  /* Patient */
-
+/* Patient */
   interface Patient {
     id: string;
     familyName: string | undefined;
