@@ -1,6 +1,7 @@
 import type Client from "fhirclient/lib/Client";
+import type { Observation, Patient, Questionnaire, QuestionnaireResponse } from "fhir/r4";
 
-import type { FhirDataSource } from "./types";
+import type { FhirDataSource, ObservationDefinition } from "./types";
 import { MockFhirDataSource } from "./mockFhirDataSource";
 import { SmartFhirDataSource } from "./smartFhirDataSource";
 import {
@@ -35,11 +36,11 @@ export async function loadFhirData(
   dataSource: FhirDataSource,
   patientId?: string,
 ): Promise<{
-  questionnaires: any[];
-  responses: any[];
-  observations: any[];
-  observationDefinitions: any[];
-  patient: any | undefined;
+  questionnaires: Questionnaire[];
+  responses: QuestionnaireResponse[];
+  observations: Observation[];
+  observationDefinitions: ObservationDefinition[];
+  patient: Patient | undefined;
 }> {
   const [responses, observations, patient] = await Promise.all([
     dataSource.fetchPatientQuestionnaireResponses(patientId),

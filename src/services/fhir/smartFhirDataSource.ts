@@ -1,30 +1,31 @@
 import type Client from "fhirclient/lib/Client";
+import type { Bundle, Observation, Questionnaire, QuestionnaireResponse } from "fhir/r4";
 
-import type { FhirDataSource } from "./types";
+import type { FhirDataSource, ObservationDefinition } from "./types";
 import { extractResourcesFromBundle } from "./bundleUtils";
 
-async function fetchDefinitionByUrl(
+async function fetchDefinitionByUrl<T extends Questionnaire | ObservationDefinition>(
   definitionsBaseUrl: string,
-  resourceType: "Questionnaire" | "ObservationDefinition",
+  resourceType: T["resourceType"],
   canonicalUrl: string,
-): Promise<any[]> {
+): Promise<T[]> {
   const searchUrl = `${definitionsBaseUrl}/${resourceType}?url=${encodeURIComponent(canonicalUrl)}`;
   const response = await fetch(searchUrl);
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  const bundle = await response.json();
-  return extractResourcesFromBundle(bundle, resourceType);
+  const bundle: Bundle = await response.json();
+  return extractResourcesFromBundle<T>(bundle, resourceType);
 }
 
-async function fetchDefinitionsByUrls(
+async function fetchDefinitionsByUrls<T extends Questionnaire | ObservationDefinition>(
   definitionsBaseUrl: string,
-  resourceType: "Questionnaire" | "ObservationDefinition",
+  resourceType: T["resourceType"],
   canonicalUrls: string[],
-): Promise<any[]> {
+): Promise<T[]> {
   const results = await Promise.all(
     canonicalUrls.map((url) =>
-      fetchDefinitionByUrl(definitionsBaseUrl, resourceType, url),
+      fetchDefinitionByUrl<T>(definitionsBaseUrl, resourceType, url),
     ),
   );
   return results.flat();
@@ -48,25 +49,25 @@ export class SmartFhirDataSource implements FhirDataSource {
     this.observationDefinitionBaseUrl = obsdefBaseUrl;
   }
 
-  async fetchPatientQuestionnaireResponses(): Promise<any[]> {
+  async fetchPatientQuestionnaireResponses(): Promise<QuestionnaireResponse[]> {
     return this.client.patient.request("QuestionnaireResponse", {
       pageLimit: 0,
       flat: true,
     });
   }
 
-  async fetchPatientObservations(): Promise<any[]> {
+  async fetchPatientObservations(): Promise<Observation[]> {
     return this.client.patient.request("Observation", {
       pageLimit: 0,
       flat: true,
     });
   }
 
-  async fetchQuestionnairesByUrls(urls: string[]): Promise<any[]> {
-    return fetchDefinitionsByUrls(this.questionnaireBaseUrl, "Questionnaire", urls);
+  async fetchQuestionnairesByUrls(urls: string[]): Promise<Questionnaire[]> {
+    return fetchDefinitionsByUrls<Questionnaire>(this.questionnaireBaseUrl, "Questionnaire", urls);
   }
 
-  async fetchObservationDefinitionsByUrls(urls: string[]): Promise<any[]> {
-    return fetchDefinitionsByUrls(this.observationDefinitionBaseUrl, "ObservationDefinition", urls);
+  async fetchObservationDefinitionsByUrls(urls: string[]): Promise<ObservationDefinition[]> {
+    return fetchDefinitionsByUrls<ObservationDefinition>(this.observationDefinitionBaseUrl, "ObservationDefinition", urls);
   }
 }

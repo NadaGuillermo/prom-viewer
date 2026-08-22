@@ -1858,6 +1858,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/fhir@npm:^0.0.44":
+  version: 0.0.44
+  resolution: "@types/fhir@npm:0.0.44"
+  checksum: 10c0/1b6c9d5247c96c919ebc59dfb6945164c49302579eef915840a957c0e8021ec6a97b42c3bea1f0b5a79673696b8e470ec0caef68d5ee3bf1bf5f7df454fa08fe
+  languageName: node
+  linkType: hard
+
 "@types/jsdom@npm:^30":
   version: 30.0.0
   resolution: "@types/jsdom@npm:30.0.0"
@@ -5538,6 +5545,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^7.0.1"
     "@testing-library/react": "npm:^16.3.2"
     "@testing-library/user-event": "npm:^14.6.5"
+    "@types/fhir": "npm:^0.0.44"
     "@types/jsdom": "npm:^30"
     "@types/lodash": "npm:^4"
     "@types/lodash-es": "npm:^4"

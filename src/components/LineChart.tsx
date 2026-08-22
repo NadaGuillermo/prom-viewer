@@ -20,7 +20,13 @@ import type {
   LineSeriesOption,
   MarkAreaComponentOption,
   MarkLineComponentOption,
+  DefaultLabelFormatterCallbackParams as CallbackDataParams,
+  TooltipComponentFormatterCallbackParams as TopLevelFormatterParams,
 } from "echarts";
+
+type ReferenceTooltipParams = CallbackDataParams & {
+  data?: { referenceDescription?: string; referenceValueLabel?: string };
+};
 
 interface Props {
   id: string;
@@ -147,7 +153,7 @@ const buildReferenceMarkArea = (
 };
 
   const generateSeriesList = () => {
-    const seriesList: any[] = [];
+    const seriesList: LineSeriesOption[] = [];
     yData.forEach((dataseries) => {
       const referenceValues =
         shouldShowReferenceValues && dataseries.referenceValues
@@ -158,12 +164,14 @@ const buildReferenceMarkArea = (
       const series = {
         ...lineOption,
         name: dataseries.shortName,
-        type: "line",
+        type: "line" as const,
         data: dataseries.data,
         ...(markLine && { markLine }),
         ...(markArea && { markArea }),
       };
-      seriesList.push(series);
+      // markLine/markArea data points carry extra referenceDescription/referenceValueLabel
+      // fields (read back in referenceTooltipFormatter) that ECharts' strict types don't model.
+      seriesList.push(series as LineSeriesOption);
     });
     return seriesList;
   };
@@ -178,7 +186,7 @@ const buildReferenceMarkArea = (
     return value.toString();
   };
 
-  const legendTooltipFormatter = (params: any) => {
+  const legendTooltipFormatter = (params: { name: string }) => {
     console.log("Legend Params: ", params);
     const { name } = params;
     console.log("Legend Name: ", name);
@@ -194,7 +202,7 @@ const buildReferenceMarkArea = (
     `;
   };
 
-  const referenceTooltipFormatter = (params: any) => {
+  const referenceTooltipFormatter = (params: ReferenceTooltipParams) => {
     const { name, data } = params;
     const description = data?.referenceDescription;
     const valueLabel = data?.referenceValueLabel;
@@ -207,12 +215,12 @@ const buildReferenceMarkArea = (
     `;
   };
 
-  const tooltipFormatter = (params: any) => {
+  const tooltipFormatter = (params: CallbackDataParams) => {
     if (
       params.componentType === "markLine" ||
       params.componentType === "markArea"
     ) {
-      return referenceTooltipFormatter(params);
+      return referenceTooltipFormatter(params as ReferenceTooltipParams);
     }
     const { seriesName, value, name } = params;
     console.log("Tooltip Params: ", params);
@@ -221,10 +229,10 @@ const buildReferenceMarkArea = (
     console.log("Tooltip date: ", name);
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
       yData,
-      value,
-      seriesName,
+      Number(value),
+      seriesName ?? "",
     );
-    const label = getLabelFromValueAndDataSeriesName(yData, value, seriesName);
+    const label = getLabelFromValueAndDataSeriesName(yData, Number(value), seriesName ?? "");
     // const longName = getDataSeriesNameFromShortName(yData, seriesName);
     // const displayName = longName.length > 0 ? longName : seriesName;
 
@@ -233,7 +241,7 @@ const buildReferenceMarkArea = (
         
           return `
       <div class="tooltip-content">
-        ${echarts.format.encodeHTML(seriesName)}<br/>
+        ${echarts.format.encodeHTML(seriesName ?? "")}<br/>
         ${echarts.format.encodeHTML(name)}:
         &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>${label.length > 0 ? " (" + echarts.format.encodeHTML(label) + ")" : ""}
       </div>
@@ -263,12 +271,13 @@ const buildReferenceMarkArea = (
       tooltip: {
         ...tooltipOptions,
         show: showLegendTooltip,
-        formatter: (params: any) => legendTooltipFormatter(params),
+        formatter: (params: { name: string }) => legendTooltipFormatter(params),
       },
     },
     tooltip: {
       ...tooltipOptions,
-      formatter: (params: any) => tooltipFormatter(params),
+      formatter: (params: TopLevelFormatterParams) =>
+        tooltipFormatter(Array.isArray(params) ? params[0] : params),
     },
     // @ts-expect-error: Seems to be a bug in ECharts types
     xAxis: {

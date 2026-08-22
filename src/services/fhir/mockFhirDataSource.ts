@@ -1,4 +1,13 @@
-import type { FhirDataSource } from "./types";
+import type {
+  Bundle,
+  FhirResource,
+  Observation,
+  Patient,
+  Questionnaire,
+  QuestionnaireResponse,
+} from "fhir/r4";
+
+import type { FhirDataSource, ObservationDefinition } from "./types";
 import { extractResourcesFromBundles, findPatientResource } from "./bundleUtils";
 
 /**
@@ -68,11 +77,11 @@ const OBSERVATION_DEFINITION_NAMES: string[] = resolveFixtureNames(
 );
 
 
-async function fetchMockResourcesByName(
+async function fetchMockResourcesByName<T extends FhirResource>(
   folder: string,
   names: string[],
-): Promise<any[]> {
-  const results: any[] = [];
+): Promise<T[]> {
+  const results: T[] = [];
   for (const name of names) {
     const result = await fetch(`${import.meta.env.BASE_URL}${folder}/${name}.json`);
     results.push(await result.json());
@@ -88,36 +97,36 @@ async function fetchMockResourcesByName(
  * SmartFhirDataSource, just against a fixed, pre-loaded catalog.
  */
 export class MockFhirDataSource implements FhirDataSource {
-  async fetchPatientQuestionnaireResponses(): Promise<any[]> {
-    const responses = await fetchMockResourcesByName("questionnaireResponses", RESPONSE_NAMES);
-    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
-    const bundleResponses = extractResourcesFromBundles(bundles, "QuestionnaireResponse");
+  async fetchPatientQuestionnaireResponses(): Promise<QuestionnaireResponse[]> {
+    const responses = await fetchMockResourcesByName<QuestionnaireResponse>("questionnaireResponses", RESPONSE_NAMES);
+    const bundles = await fetchMockResourcesByName<Bundle>("bundles", BUNDLE_NAMES);
+    const bundleResponses = extractResourcesFromBundles<QuestionnaireResponse>(bundles, "QuestionnaireResponse");
     return [...responses, ...bundleResponses];
   }
 
-  async fetchPatientObservations(): Promise<any[]> {
-    const observations = await fetchMockResourcesByName("observations", OBSERVATION_NAMES);
-    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
-    const bundleObservations = extractResourcesFromBundles(bundles, "Observation");
+  async fetchPatientObservations(): Promise<Observation[]> {
+    const observations = await fetchMockResourcesByName<Observation>("observations", OBSERVATION_NAMES);
+    const bundles = await fetchMockResourcesByName<Bundle>("bundles", BUNDLE_NAMES);
+    const bundleObservations = extractResourcesFromBundles<Observation>(bundles, "Observation");
     return [...observations, ...bundleObservations];
   }
 
-  async fetchQuestionnairesByUrls(urls: string[]): Promise<any[]> {
-    const questionnaires = await fetchMockResourcesByName("questionnaires", QUESTIONNAIRE_NAMES);
-    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
-    const bundleQuestionnaires = extractResourcesFromBundles(bundles, "Questionnaire");
+  async fetchQuestionnairesByUrls(urls: string[]): Promise<Questionnaire[]> {
+    const questionnaires = await fetchMockResourcesByName<Questionnaire>("questionnaires", QUESTIONNAIRE_NAMES);
+    const bundles = await fetchMockResourcesByName<Bundle>("bundles", BUNDLE_NAMES);
+    const bundleQuestionnaires = extractResourcesFromBundles<Questionnaire>(bundles, "Questionnaire");
     return [...questionnaires, ...bundleQuestionnaires].filter((questionnaire) =>
-      urls.includes(questionnaire.url),
+      urls.includes(questionnaire.url ?? ""),
     );
   }
 
-  async fetchObservationDefinitionsByUrls(urls: string[]): Promise<any[]> {
-    const observationDefinitions = await fetchMockResourcesByName(
+  async fetchObservationDefinitionsByUrls(urls: string[]): Promise<ObservationDefinition[]> {
+    const observationDefinitions = await fetchMockResourcesByName<ObservationDefinition>(
       "observationDefinitions",
       OBSERVATION_DEFINITION_NAMES,
     );
     return observationDefinitions.filter((observationDefinition) =>
-      urls.includes(observationDefinition.url),
+      urls.includes(observationDefinition.url ?? ""),
     );
   }
 
@@ -125,9 +134,9 @@ export class MockFhirDataSource implements FhirDataSource {
    * @returns the raw FHIR Patient resource found among the mock fixtures, or undefined
    * @description Looks for a standalone Patient fixture first, then falls back to any Patient contained in the mock bundles. Returns undefined if none is found.
    */
-  async fetchPatient(): Promise<any | undefined> {
-    const patients = await fetchMockResourcesByName("patients", PATIENT_NAMES);
-    const bundles = await fetchMockResourcesByName("bundles", BUNDLE_NAMES);
+  async fetchPatient(): Promise<Patient | undefined> {
+    const patients = await fetchMockResourcesByName<Patient>("patients", PATIENT_NAMES);
+    const bundles = await fetchMockResourcesByName<Bundle>("bundles", BUNDLE_NAMES);
     for (const candidate of [...patients, ...bundles]) {
       const patient = findPatientResource(candidate);
       if (patient !== undefined) {

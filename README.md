@@ -4,7 +4,7 @@
 
 ## Description / Overview
 
-PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by the [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction) project.
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction). However, for type checking the application uses the FHIR R4 types of the [Definitely Typed](https://definitelytyped.org/) project.
 
 The app supports two data modes, toggled via the [`.env`](#environment-variables-env) file: `mock` (default), which runs against mock FHIR resources and configuration files served through [Mock Service Worker](#mocking-with-msw) (MSW), and `smart`, which launches the app as a SMART on FHIR application and fetches real patient data from a FHIR server. See [SMART on FHIR Launch Configuration](#smart-on-fhir-launch-configuration) for details.
 
@@ -174,7 +174,7 @@ yarn test:coverage  # with a coverage report
 - **Package manager:** Yarn
 - **Testing:** Vitest, React Testing Library
 - **Mocking:** Mock Service Worker (MSW)
-- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash, fhirclient
+- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash-es, fhirclient
 
 ## License
 

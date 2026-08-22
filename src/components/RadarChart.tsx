@@ -12,6 +12,7 @@ import type {
   TooltipComponentOption,
   RadarSeriesOption,
   RadarComponentOption,
+  DefaultLabelFormatterCallbackParams as CallbackDataParams,
 } from "echarts";
 
 interface Props {
@@ -127,7 +128,7 @@ const RadarChart = ({
 
   
 
-  const tooltipFormatter = (params: any) => {
+  const tooltipFormatter = (params: CallbackDataParams) => {
     console.log("params: ", params)
     const { seriesName } = params;
     console.log("seriesName: ", seriesName)
@@ -137,7 +138,7 @@ const RadarChart = ({
     // if (mostRecentDate !== undefined) {
        return `
           <div class="tooltip-content">
-            ${echarts.format.encodeHTML(seriesName)}<br/>
+            ${echarts.format.encodeHTML(seriesName ?? "")}<br/>
             <b>${echarts.format.encodeHTML(date)}</b>
           </div>
           `;
@@ -152,14 +153,14 @@ const RadarChart = ({
 
 
   const generateSeriesList = () => {
-    const seriesList: any[] = [];
+    const seriesList: RadarSeriesOption[] = [];
     Object.entries(transformedData).forEach(([questionnaireName, data], i) => {
       const series = [
         // inner values
         {
         ...seriesOptions,
         name: questionnaireName,
-        type: "radar",
+        type: "radar" as const,
         z: 2,
         silent: true,
         // symbol: "circle",
@@ -193,7 +194,7 @@ const RadarChart = ({
         {
         ...seriesOptions,
         name: questionnaireName,
-        type: "radar",
+        type: "radar" as const,
         z: 1,
         // symbol: "circle",
         // symbolSize: 8,
@@ -236,7 +237,7 @@ const RadarChart = ({
     tooltip: {
       ...tooltipOptions,
       show: true,
-      formatter: (params) => tooltipFormatter(params)
+      formatter: (params) => tooltipFormatter(Array.isArray(params) ? params[0] : params)
     },
     legend: {
       ...legendOptions,

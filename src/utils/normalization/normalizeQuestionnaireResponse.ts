@@ -1,14 +1,20 @@
+import type {
+  QuestionnaireResponse,
+  QuestionnaireResponseItem,
+  QuestionnaireResponseItemAnswer,
+} from "fhir/r4";
+
 import type { NormalizedFHIR } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
 
 export const normalizeQuestionnaireResponse = (
-  resource: any,
+  resource: QuestionnaireResponse,
   normalizedQuestionnaires: NormalizedFHIR.Questionnaire[],
 ): Errors.Result<NormalizedFHIR.QuestionnaireResponse> => {
   const items: Record<string, NormalizedFHIR.ResponseItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractValue = (answer: any, linkId: string): NormalizedFHIR.Answer => {
+  const extractValue = (answer: QuestionnaireResponseItemAnswer, linkId: string): NormalizedFHIR.Answer => {
     if (!answer) return null;
 
     const answerValue =
@@ -34,7 +40,7 @@ export const normalizeQuestionnaireResponse = (
     const item = questionnaire?.items[linkId];
     // lookup in answerOptions
     const value = item?.answerOptions?.find(
-      (opt) => opt.code === answer.valueCoding.code,
+      (opt) => opt.code === answer.valueCoding?.code,
     )?.value;
     if (value !== undefined) {
       return value;
@@ -42,7 +48,7 @@ export const normalizeQuestionnaireResponse = (
     return null;
   };
 
-  const traverse = (itemsInput: any[] | undefined) => {
+  const traverse = (itemsInput: QuestionnaireResponseItem[] | undefined) => {
     if (!itemsInput) return;
 
     for (const item of itemsInput) {
@@ -76,9 +82,9 @@ export const normalizeQuestionnaireResponse = (
 
   return {
     data: {
-      id: resource.id, // sollte immer gegeben sein
-      questionnaire: resource.questionnaire, // immer gegeben
-      authored: resource.authored, // immer gegeben in ISO Format
+      id: resource.id!, // sollte immer gegeben sein
+      questionnaire: resource.questionnaire!, // immer gegeben
+      authored: resource.authored!, // immer gegeben in ISO Format
       items, // optional
     },
     issues: issues,

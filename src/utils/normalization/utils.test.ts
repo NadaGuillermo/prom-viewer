@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { Observation } from "fhir/r4";
 
 import {
   getObservationDefinitionCanonicalUrlFromObservation,
@@ -14,7 +15,7 @@ describe("getObservationDefinitionCanonicalUrlFromObservation", () => {
           valueCanonical: "https://example.org/ObservationDefinition/score",
         },
       ],
-    };
+    } as Observation;
 
     expect(getObservationDefinitionCanonicalUrlFromObservation(resource)).toBe(
       "https://example.org/ObservationDefinition/score",
@@ -23,14 +24,14 @@ describe("getObservationDefinitionCanonicalUrlFromObservation", () => {
 
   it("returns undefined when the extension array is missing", () => {
     expect(
-      getObservationDefinitionCanonicalUrlFromObservation({}),
+      getObservationDefinitionCanonicalUrlFromObservation({} as Observation),
     ).toBeUndefined();
   });
 
   it("returns undefined when no extension matches the expected url", () => {
     const resource = {
       extension: [{ url: "http://example.org/other", valueCanonical: "x" }],
-    };
+    } as Observation;
 
     expect(
       getObservationDefinitionCanonicalUrlFromObservation(resource),
@@ -42,7 +43,7 @@ describe("getQuestionnaireResponseIdFromObservationReferenceAttribute", () => {
   it("extracts the id from a QuestionnaireResponse reference", () => {
     const resource = {
       derivedFrom: [{ reference: "QuestionnaireResponse/abc-123" }],
-    };
+    } as Observation;
 
     expect(
       getQuestionnaireResponseIdFromObservationReferenceAttribute(resource),
@@ -51,12 +52,14 @@ describe("getQuestionnaireResponseIdFromObservationReferenceAttribute", () => {
 
   it("returns undefined when derivedFrom is missing", () => {
     expect(
-      getQuestionnaireResponseIdFromObservationReferenceAttribute({}),
+      getQuestionnaireResponseIdFromObservationReferenceAttribute(
+        {} as Observation,
+      ),
     ).toBeUndefined();
   });
 
   it("returns undefined when no entry has a reference", () => {
-    const resource = { derivedFrom: [{}] };
+    const resource = { derivedFrom: [{}] } as Observation;
 
     expect(
       getQuestionnaireResponseIdFromObservationReferenceAttribute(resource),
@@ -64,7 +67,7 @@ describe("getQuestionnaireResponseIdFromObservationReferenceAttribute", () => {
   });
 
   it("returns undefined when the reference has no '/' separator", () => {
-    const resource = { derivedFrom: [{ reference: "abc-123" }] };
+    const resource = { derivedFrom: [{ reference: "abc-123" }] } as Observation;
 
     expect(
       getQuestionnaireResponseIdFromObservationReferenceAttribute(resource),

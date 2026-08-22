@@ -9,6 +9,8 @@ import React, { useState, useEffect } from "react";
 import * as _ from "lodash-es";
 import FHIR from "fhirclient";
 import type Client from "fhirclient/lib/Client";
+import type { Observation, Patient, Questionnaire, QuestionnaireResponse } from "fhir/r4";
+import type { ObservationDefinition } from "@services/fhir/types";
 
 // Components
 import LineChart from "@components/LineChart";
@@ -122,22 +124,22 @@ function App() {
     fhirData: false,
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
-  const [smartPatient, setSmartPatient] = useState<unknown>(null);
-  const [mockPatient, setMockPatient] = useState<unknown>(undefined);
+  const [smartPatient, setSmartPatient] = useState<Patient | null>(null);
+  const [mockPatient, setMockPatient] = useState<Patient | undefined>(undefined);
   const [smartLaunchError, setSmartLaunchError] = useState<string | null>(null);
   const [config, setConfig] = useState<Config.PromConfig>();
   const [configError, setConfigError] = useState<string | null>(null);
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
 
   // Data pipeline
-  const [fhirQuestionnaires, setFhirQuestionnaires] = useState<unknown[]>([]);
+  const [fhirQuestionnaires, setFhirQuestionnaires] = useState<Questionnaire[]>([]);
   const [fhirQuestionnaireResponses, setFhirQuestionnaireResponses] = useState<
-    unknown[]
+    QuestionnaireResponse[]
   >([]);
   const [fhirObservationDefinitions, setFhirObservationDefinitions] = useState<
-    unknown[]
+    ObservationDefinition[]
   >([]);
-  const [fhirObservations, setFhirObservations] = useState<unknown[]>([]);
+  const [fhirObservations, setFhirObservations] = useState<Observation[]>([]);
   const [questionnaires, setQuestionnaires] = useState<Mapping.Questionnaire[]>(
     [],
   );

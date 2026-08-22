@@ -1,16 +1,21 @@
+import type { Bundle, FhirResource, Patient } from "fhir/r4";
+
 /**
  * @param bundle - a FHIR Bundle resource (searchset or collection)
  * @param resourceType - the FHIR resourceType to extract from the bundle's entries
  * @returns the resources of the given resourceType contained in the bundle
  * @description Flattens Bundle.entry[].resource into a plain resource array, filtered by resourceType.
  */
-export function extractResourcesFromBundle(
-  bundle: any,
-  resourceType: string,
-): any[] {
-  const entries: any[] = bundle?.entry ?? [];
+export function extractResourcesFromBundle<T extends FhirResource>(
+  bundle: Bundle,
+  resourceType: T["resourceType"],
+): T[] {
+  const entries = bundle.entry ?? [];
   return entries
-    .filter((entry) => entry.resource?.resourceType === resourceType)
+    .filter(
+      (entry): entry is typeof entry & { resource: T } =>
+        entry.resource?.resourceType === resourceType,
+    )
     .map((entry) => entry.resource);
 }
 
@@ -20,12 +25,12 @@ export function extractResourcesFromBundle(
  * @returns the resources of the given resourceType contained across all bundles
  * @description Applies extractResourcesFromBundle to multiple bundles and flattens the result.
  */
-export function extractResourcesFromBundles(
-  bundles: any[],
-  resourceType: string,
-): any[] {
+export function extractResourcesFromBundles<T extends FhirResource>(
+  bundles: Bundle[],
+  resourceType: T["resourceType"],
+): T[] {
   return bundles.flatMap((bundle) =>
-    extractResourcesFromBundle(bundle, resourceType),
+    extractResourcesFromBundle<T>(bundle, resourceType),
   );
 }
 
@@ -34,12 +39,12 @@ export function extractResourcesFromBundles(
  * @returns the Patient resource contained in it, or undefined if none is present
  * @description Supports a standalone Patient resource as well as a Patient contained in a Bundle's entries. If a Bundle contains multiple Patient resources, the first one found is used.
  */
-export function findPatientResource(resource: any): any | undefined {
-  if (resource?.resourceType === "Patient") {
+export function findPatientResource(resource: FhirResource): Patient | undefined {
+  if (resource.resourceType === "Patient") {
     return resource;
   }
-  if (resource?.resourceType === "Bundle") {
-    return extractResourcesFromBundle(resource, "Patient")[0];
+  if (resource.resourceType === "Bundle") {
+    return extractResourcesFromBundle<Patient>(resource, "Patient")[0];
   }
   return undefined;
 }

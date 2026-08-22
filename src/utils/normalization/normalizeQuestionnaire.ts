@@ -1,32 +1,40 @@
+import type { Questionnaire, QuestionnaireItem, ValueSet, CodeSystem } from "fhir/r4";
+
 import type { NormalizedFHIR } from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
 import { type Errors } from "@utils/errors";
 
+type RawAnswerOption = {
+  value: NormalizedFHIR.Answer | undefined;
+  label: string | undefined;
+  code: string | undefined;
+};
+
 export const normalizeQuestionnaire = (
-  resource: any,
+  resource: Questionnaire,
 ): Errors.Result<NormalizedFHIR.Questionnaire> => {
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractAnswerOptions = (item: any): NormalizedFHIR.AnswerOption[] | undefined => {
-    let answerOptions: any[] | undefined = undefined;
+  const extractAnswerOptions = (item: QuestionnaireItem): NormalizedFHIR.AnswerOption[] | undefined => {
+    let answerOptions: RawAnswerOption[] | undefined = undefined;
 
     if (item.answerOption) {
-      answerOptions = item.answerOption.map((opt: any) => {
+      answerOptions = item.answerOption.map((opt) => {
         // omit preselected answer option
         const initialSelected = opt.initialSelected;
         if (initialSelected) {
           return {
             value: undefined,
             label: undefined,
-            code: undefined, 
+            code: undefined,
           };
         }
         const display = opt.valueCoding?.display;
-        let value: any;
+        let value: NormalizedFHIR.Answer | undefined;
         // search for extension with value
-        const extension = opt.extension?.find((ext: any) => {
+        const extension = opt.extension?.find((ext) => {
           return (
             ext.valueDecimal !== undefined ||
             ext.valueInteger !== undefined ||
@@ -60,31 +68,35 @@ export const normalizeQuestionnaire = (
       });
     } else if (item.answerValueSet) {
       // answerValueSet instead
-      const answerValueSet = resource.contained?.find((containedObj: any) => {
-        return (
-          containedObj.resourceType === "ValueSet" &&
-          containedObj.id === item.answerValueSet.replace("#", "")
-        );
-      });
-      const codeSystemArray = resource.contained?.find((containedObj: any) => {
-        return containedObj.resourceType === "CodeSystem";
-      })?.concept;
+      const answerValueSet = resource.contained?.find(
+        (containedObj): containedObj is ValueSet => {
+          return (
+            containedObj.resourceType === "ValueSet" &&
+            containedObj.id === item.answerValueSet?.replace("#", "")
+          );
+        },
+      );
+      const codeSystemArray = resource.contained?.find(
+        (containedObj): containedObj is CodeSystem => {
+          return containedObj.resourceType === "CodeSystem";
+        },
+      )?.concept;
       if (answerValueSet !== undefined && codeSystemArray !== undefined) {
         const answerValueSetArray = answerValueSet.compose?.include?.find(
-          (includedObj: any) => {
-            return includedObj.concept?.length > 0;
+          (includedObj) => {
+            return (includedObj.concept?.length ?? 0) > 0;
           },
         )?.concept;
 
         if (answerValueSetArray !== undefined) {
-          answerOptions = answerValueSetArray.map((answerVal: any) => {
+          answerOptions = answerValueSetArray.map((answerVal) => {
             const codeValue = codeSystemArray
-              .find((elem: any) => {
+              .find((elem) => {
                 return elem.code === answerVal.code;
               })
-              .extension?.find(
-                (ext: any) => ext.valueDecimal !== undefined,
-              ).valueDecimal;
+              ?.extension?.find(
+                (ext) => ext.valueDecimal !== undefined,
+              )?.valueDecimal;
             return {
               value: codeValue,
               label: answerVal.display ?? answerVal.code,
@@ -94,16 +106,16 @@ export const normalizeQuestionnaire = (
         }
       }
     }
-    return answerOptions; // can be empty
+    return answerOptions as NormalizedFHIR.AnswerOption[] | undefined; // can be empty
   };
 
-  const extractReferenceQuestionnaireItemsAndScoreExpression = (item: any): {
+  const extractReferenceQuestionnaireItemsAndScoreExpression = (item: QuestionnaireItem): {
     referenceQuestionnaireItems: string[] | undefined;
     scoreExpression: string | undefined;
   } => {
     const referenceQuestionnaireItems: string[] = [];
     let scoreExpression: string | undefined = undefined;
-    let calculationFormula = item.extension?.find((ext: any) => 
+    let calculationFormula = item.extension?.find((ext) =>
       ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
     )?.valueExpression?.expression;
 
@@ -112,13 +124,16 @@ export const normalizeQuestionnaire = (
       if (calculationFormula.charAt(0) === "%") {
         // try to find in resource
         const valueExpressions = resource.extension?.filter(
-          (ext: any) => ext.valueExpression?.expression !== undefined,
+          (ext) => ext.valueExpression?.expression !== undefined,
         );
         if (valueExpressions !== undefined) {
           const expressionReference = calculationFormula;
           for (const valueEx of valueExpressions) {
-            if (expressionReference.includes(valueEx.valueExpression.name)) {
-              calculationFormula = valueEx.valueExpression.expression;
+            if (
+              valueEx.valueExpression?.name !== undefined &&
+              expressionReference.includes(valueEx.valueExpression.name)
+            ) {
+              calculationFormula = valueEx.valueExpression.expression ?? calculationFormula;
               break;
             }
           }
@@ -135,16 +150,16 @@ export const normalizeQuestionnaire = (
     return {
       referenceQuestionnaireItems: referenceQuestionnaireItems.length > 0
       ? referenceQuestionnaireItems
-      : undefined, 
+      : undefined,
       scoreExpression: scoreExpression
     }
   };
 
-  const extractRange = (item: any): [number, number] | undefined => {
-    const extensionMinVal = item.extension?.find((ext: any) =>
+  const extractRange = (item: QuestionnaireItem): [number, number] | undefined => {
+    const extensionMinVal = item.extension?.find((ext) =>
       ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
     );
-    const extensionMaxVal = item.extension?.find((ext: any) =>
+    const extensionMaxVal = item.extension?.find((ext) =>
       ext.url === "http://hl7.org/fhir/StructureDefinition/maxValue",
     );
 
@@ -174,12 +189,12 @@ export const normalizeQuestionnaire = (
       undefined;
 
     if (low !== undefined && high !== undefined) {
-      return [low, high];
+      return [low, high] as [number, number];
     }
     return undefined;
   };
 
-  const traverse = (itemsInput: any[] | undefined) => {
+  const traverse = (itemsInput: QuestionnaireItem[] | undefined) => {
     if (!itemsInput) return;
 
     for (const item of itemsInput) {
@@ -194,7 +209,7 @@ export const normalizeQuestionnaire = (
 
       items[item.linkId] = {
         linkId: item.linkId, // immer gegeben
-        text: item.text, // optional
+        text: item.text!, // optional
         ...(itemAnswerOptions !== undefined && {answerOptions: itemAnswerOptions}),
         ...(referenceQuestionnaireItems !== undefined && {
           referenceQuestionnaireItems: referenceQuestionnaireItems,
@@ -232,10 +247,10 @@ export const normalizeQuestionnaire = (
 
   return {
     data: {
-      id: resource.id, // sollte immer gegeben sein
-      name: resource.title, // optional
-      url: resource.url, // immer gegeben
-      description: resource.description, // optional
+      id: resource.id!, // sollte immer gegeben sein
+      name: resource.title!, // optional
+      url: resource.url!, // immer gegeben
+      description: resource.description!, // optional
       items, // optional
     },
     issues: issues,

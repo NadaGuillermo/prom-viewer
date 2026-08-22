@@ -1,3 +1,4 @@
+import type { Observation, QuestionnaireResponse } from "fhir/r4";
 import { getObservationDefinitionCanonicalUrlFromObservation } from "@utils/normalization/utils";
 
 /**
@@ -5,7 +6,7 @@ import { getObservationDefinitionCanonicalUrlFromObservation } from "@utils/norm
  * @returns deduplicated list of canonical Questionnaire urls referenced by the responses
  * @description Reads QuestionnaireResponse.questionnaire to determine which Questionnaires must be fetched next.
  */
-export function extractQuestionnaireCanonicalUrls(responses: any[]): string[] {
+export function extractQuestionnaireCanonicalUrls(responses: QuestionnaireResponse[]): string[] {
   const urls = responses
     .map((response) => response.questionnaire)
     .filter((url): url is string => url !== undefined);
@@ -18,7 +19,7 @@ export function extractQuestionnaireCanonicalUrls(responses: any[]): string[] {
  * @description Reads the workflow-instantiatesCanonical extension to determine which ObservationDefinitions must be fetched next.
  */
 export function extractObservationDefinitionCanonicalUrls(
-  observations: any[],
+  observations: Observation[],
 ): string[] {
   const urls = observations
     .map((observation) =>

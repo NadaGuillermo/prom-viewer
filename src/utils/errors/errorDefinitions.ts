@@ -1,3 +1,5 @@
+import type { Observation, QuestionnaireResponse, QuestionnaireResponseItemAnswer } from "fhir/r4";
+
 import type { Errors } from "./types";
 import {
   DataIssueCode,
@@ -74,9 +76,9 @@ export const issueFactories = {
         },
       }),
     multipleItemValues: (
-      resource: any,
-      linkId: any,
-      values: any[],
+      resource: QuestionnaireResponse,
+      linkId: string,
+      values: QuestionnaireResponseItemAnswer[],
     ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_NUMBER_OF_VALUES,
@@ -90,7 +92,7 @@ export const issueFactories = {
         showUser: false,
 
         context: {
-          resourceId: resource.id,
+          resourceId: resource.id!,
           field: linkId,
           value: values,
         },
@@ -98,7 +100,7 @@ export const issueFactories = {
     invalidItemValue: (
       resource: NormalizedFHIR.QuestionnaireResponse,
       linkId: string,
-      value: any,
+      value: NormalizedFHIR.Answer,
     ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE,
@@ -135,7 +137,7 @@ export const issueFactories = {
           resourceId: resource.id,
         },
       }),
-    missingQuestionnaire: (resource: any): Errors.DataIssue =>
+    missingQuestionnaire: (resource: QuestionnaireResponse): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
@@ -149,7 +151,7 @@ export const issueFactories = {
         showUser: true,
 
         context: {
-          resourceId: resource.id,
+          resourceId: resource.id!,
           value: resource.questionnaire,
         },
       }),
@@ -176,9 +178,9 @@ export const issueFactories = {
         },
       }),
     invalidItemAnswerOption: (
-      resource: any,
+      resource: NormalizedFHIR.Questionnaire,
       linkId: string,
-      value: any,
+      value: NormalizedFHIR.AnswerOption[],
     ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
@@ -218,7 +220,7 @@ export const issueFactories = {
       }),
   },
   observation: {
-    missingQuestionnaireResponse: (resource: any): Errors.DataIssue =>
+    missingQuestionnaireResponse: (resource: Observation): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
@@ -231,10 +233,10 @@ export const issueFactories = {
         showUser: false,
 
         context: {
-          resourceId: resource.id,
+          resourceId: resource.id!,
         },
       }),
-    missingObservationDefinition: (resource: any): Errors.DataIssue =>
+    missingObservationDefinition: (resource: Observation): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
@@ -247,7 +249,7 @@ export const issueFactories = {
         showUser: false,
 
         context: {
-          resourceId: resource.id,
+          resourceId: resource.id!,
         },
       }),
     invalidObservationValue: (
