@@ -40,12 +40,12 @@ const chartData: Visualization.ChartData = {
 
 describe("LineChart", () => {
   it("renders without throwing for typical chart data", () => {
-    expect(() => render(<LineChart data={chartData} />)).not.toThrow();
+    expect(() => render(<LineChart id="l-1" data={chartData} />)).not.toThrow();
   });
 
   it("renders without throwing when there is no data", () => {
     const emptyData: Visualization.ChartData = { xData: [], yData: [] };
 
-    expect(() => render(<LineChart data={emptyData} />)).not.toThrow();
+    expect(() => render(<LineChart id="l-2" data={emptyData} />)).not.toThrow();
   });
 });

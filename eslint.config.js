@@ -31,6 +31,11 @@ export default defineConfig([
       react,
       prettier: pluginPrettier,
     },
+    settings: {
+      react: {
+        version: "19.2.4",
+      },
+    },
     rules: {
       // "prettier/prettier": "error",
       // "react/prefer-stateless-function": "error",

@@ -100,7 +100,7 @@ export const sortDomains = (
     globalHealthDomains?.includes(domain),
   );
   if (globalDomains.length > 0) {
-    for (let dim of globalDomains) {
+    for (const dim of globalDomains) {
       const index = sortedDomains.indexOf(dim);
       sortedDomains.splice(index, 1);
       sortedDomains.unshift(dim);
@@ -276,7 +276,7 @@ export const groupQuestionnaireNamesByDate = (
   });
   // console.log("questionnairesByDate: ", questionnairesByDate);
   // sort by key descending (newest first)
-  let sortedQuestionnairesByDate: Record<string, string[]> = {};
+  const sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
     .sort((a, b) => 
      {

@@ -1,5 +1,4 @@
 import { SCORE_HEALTH_CORRELATIONS } from "./constants";
-import type { NormalizedFHIR } from "@utils/normalization";
 
 export namespace Mapping {
   type Answer = number | null;

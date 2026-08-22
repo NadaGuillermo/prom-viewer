@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface Props {
@@ -7,18 +7,19 @@ interface Props {
 
 const Portal = ({ children }: Props) => {
   const portal = document.getElementById("portal-root");
-  const elRef = useRef<HTMLDivElement>(document.createElement("div"));
-  const el = elRef.current;
+  const [el] = useState(() => document.createElement("div"));
 
-  if (portal === null) {
-    return null;
-  }
   useEffect(() => {
+    if (portal === null) return;
     portal.appendChild(el);
     return () => {
       portal.removeChild(el);
     };
   }, [el, portal]);
+
+  if (portal === null) {
+    return null;
+  }
 
   return createPortal(children, el);
   

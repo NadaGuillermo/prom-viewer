@@ -18,7 +18,7 @@ export const normalizeObservationDefinition = (
   const referenceIntervals = resource.qualifiedInterval?.filter((interval: any) => interval.category !== undefined && (interval.category === "critical" || interval.category === "reference"));
   const referenceRangeRaw: {range: [any, any], context: any}[] | undefined = referenceIntervals ? referenceIntervals.map((interval: any) => {return {range: [interval.range?.low?.value, interval.range?.high?.value], context: interval.context.coding.find((coding: any) => coding.system ="http://terminology.hl7.org/CodeSystem/referencerange-meaning")?.code}}) : undefined;
   // implicitely assume healthScoreCorrelation same as for absolute interval
-  let referenceRange: NormalizedFHIR.ReferenceRange[] = [];
+  const referenceRange: NormalizedFHIR.ReferenceRange[] = [];
   // let referenceValue: NormalizedFHIR.ReferenceRange[] = [];
   if (referenceRangeRaw !== undefined) {
     referenceRangeRaw.forEach((rangeRaw) => {

@@ -43,7 +43,7 @@ describe("RadarChart", () => {
     const data = { "Physical Function": [series({})] };
 
     expect(() =>
-      render(<RadarChart data={data} dates={dates} date="2024-01-01" />),
+      render(<RadarChart id="r-1" data={data} dates={dates} date="2024-01-01" />),
     ).not.toThrow();
   });
 
@@ -51,7 +51,7 @@ describe("RadarChart", () => {
     const data = { "Physical Function": [series({})] };
 
     const { container } = render(
-      <RadarChart data={data} dates={dates} date="2024-02-01" />,
+      <RadarChart id="r-2" data={data} dates={dates} date="2024-02-01" />,
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -61,7 +61,7 @@ describe("RadarChart", () => {
     const data = { "Physical Function": [series({})] };
 
     const { container } = render(
-      <RadarChart data={data} dates={dates} date="2099-01-01" />,
+      <RadarChart id="r-3" data={data} dates={dates} date="2099-01-01" />,
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -69,7 +69,7 @@ describe("RadarChart", () => {
 
   it("renders nothing for empty data", () => {
     const { container } = render(
-      <RadarChart data={{}} dates={dates} date="2024-01-01" />,
+      <RadarChart id="r-3" data={{}} dates={dates} date="2024-01-01" />,
     );
 
     expect(container).toBeEmptyDOMElement();

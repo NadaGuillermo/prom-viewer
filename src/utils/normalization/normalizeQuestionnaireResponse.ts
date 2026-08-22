@@ -11,7 +11,7 @@ export const normalizeQuestionnaireResponse = (
   const extractValue = (answer: any, linkId: string): NormalizedFHIR.Answer => {
     if (!answer) return null;
 
-    let answerValue =
+    const answerValue =
       answer.valueInteger ??
       answer.valueDecimal ??
       answer.valueString ??

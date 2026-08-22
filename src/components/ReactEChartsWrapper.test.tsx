@@ -34,19 +34,19 @@ beforeEach(() => {
 
 describe("ReactEChartsWrapper", () => {
   it("initializes the chart and applies the given option", async () => {
-    render(<ReactEChartsWrapper option={{}} />);
+    render(<ReactEChartsWrapper chartId="" option={{}} />);
 
     await waitFor(() => expect(fakeChart.setOption).toHaveBeenCalled());
   });
 
   it("does not render a download button by default", () => {
-    render(<ReactEChartsWrapper option={{}} />);
+    render(<ReactEChartsWrapper chartId="" option={{}} />);
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
   it("renders a download button when enableExport is true", () => {
-    render(<ReactEChartsWrapper option={{}} enableExport />);
+    render(<ReactEChartsWrapper chartId="" option={{}} enableExport />);
 
     expect(
       screen.getByRole("button", { name: "Save as image" }),
@@ -54,11 +54,11 @@ describe("ReactEChartsWrapper", () => {
   });
 
   it("calls the loading API based on the loading prop", async () => {
-    const { rerender } = render(<ReactEChartsWrapper option={{}} loading />);
+    const { rerender } = render(<ReactEChartsWrapper chartId="" option={{}} loading />);
 
     await waitFor(() => expect(fakeChart.showLoading).toHaveBeenCalled());
 
-    rerender(<ReactEChartsWrapper option={{}} loading={false} />);
+    rerender(<ReactEChartsWrapper chartId="" option={{}} loading={false} />);
 
     await waitFor(() => expect(fakeChart.hideLoading).toHaveBeenCalled());
   });
@@ -67,6 +67,7 @@ describe("ReactEChartsWrapper", () => {
     const user = userEvent.setup();
     render(
       <ReactEChartsWrapper
+        chartId=""
         option={{}}
         enableExport
         exportFileName="my-chart"
@@ -88,7 +89,7 @@ describe("ReactEChartsWrapper", () => {
   });
 
   it("disposes the chart instance on unmount", () => {
-    const { unmount } = render(<ReactEChartsWrapper option={{}} />);
+    const { unmount } = render(<ReactEChartsWrapper chartId="" option={{}} />);
 
     unmount();
 

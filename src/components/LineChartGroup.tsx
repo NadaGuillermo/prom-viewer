@@ -1,24 +1,22 @@
-import { createContext, useRef, useState, useEffect, type ReactNode } from "react";
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import DownloadImageButton from "@components/DownloadImageButton";
 import ReferenceValuesToggle from "@components/ReferenceValuesToggle";
+import { ShowReferenceValuesContext } from "@components/ShowReferenceValuesContext";
 import {
   buildExportFileName,
   captureAndDownloadElement,
 } from "@utils/export";
 
-// Lets LineChart instances nested anywhere within a group's children (not
-// necessarily direct children) pick up the group's toggle state without the
-// group having to walk/clone its own children tree.
-export const ShowReferenceValuesContext = createContext(false);
-
 interface Props {
   name: string;
+  id: string;
   hasReferenceValues?: boolean;
   children: ReactNode;
 }
 
 const LineChartGroup = ({
   name,
+  id,
   hasReferenceValues = false,
   children,
 }: Props) => {
@@ -27,13 +25,17 @@ const LineChartGroup = ({
   const [showReferenceValues, setShowReferenceValues] = useState(false);
 
   useEffect(() => {
-    setIsReady(false);
+    let frame0 = 0;
     let frame1 = 0;
     let frame2 = 0;
-    frame1 = requestAnimationFrame(() => {
-      frame2 = requestAnimationFrame(() => setIsReady(true));
+    frame0 = requestAnimationFrame(() => {
+      setIsReady(false);
+      frame1 = requestAnimationFrame(() => {
+        frame2 = requestAnimationFrame(() => setIsReady(true));
+      });
     });
     return () => {
+      cancelAnimationFrame(frame0);
       cancelAnimationFrame(frame1);
       cancelAnimationFrame(frame2);
     };
@@ -55,6 +57,7 @@ const LineChartGroup = ({
       )}
       <DownloadImageButton
         onClick={handleDownload}
+        id={id}
         disabled={!isReady}
         className={`${hasReferenceValues ? "" : ""}`}
         tooltipText="Save as image"

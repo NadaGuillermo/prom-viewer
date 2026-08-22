@@ -27,7 +27,7 @@ const ErrorPage = ({ error, heading, onRetry }: Props) => {
 
         {/* Main message */}
         <p className="tw:text-xl tw:mb-10 tw:leading-relaxed">
-          We couldn't connect to the backend server to retrieve the required data.
+          We couldn&apos;t connect to the backend server to retrieve the required data.
         </p>
 
         {/* Error details */}

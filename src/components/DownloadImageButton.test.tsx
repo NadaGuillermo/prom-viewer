@@ -6,7 +6,7 @@ import DownloadImageButton from "@components/DownloadImageButton";
 
 describe("DownloadImageButton", () => {
   it("renders with the default aria-label", () => {
-    render(<DownloadImageButton onClick={vi.fn()} />);
+    render(<DownloadImageButton id="b-1" onClick={vi.fn()} />);
 
     expect(
       screen.getByRole("button", { name: "Save as image" }),
@@ -14,7 +14,7 @@ describe("DownloadImageButton", () => {
   });
 
   it("renders with a custom label", () => {
-    render(<DownloadImageButton onClick={vi.fn()} label="Export chart" />);
+    render(<DownloadImageButton id="b-2" onClick={vi.fn()} label="Export chart" />);
 
     expect(
       screen.getByRole("button", { name: "Export chart" }),
@@ -24,7 +24,7 @@ describe("DownloadImageButton", () => {
   it("calls onClick when enabled and clicked", async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render(<DownloadImageButton onClick={onClick} />);
+    render(<DownloadImageButton id="b-3" onClick={onClick} />);
 
     await user.click(screen.getByRole("button"));
 
@@ -34,7 +34,7 @@ describe("DownloadImageButton", () => {
   it("is disabled and does not call onClick when disabled is true", async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render(<DownloadImageButton onClick={onClick} disabled />);
+    render(<DownloadImageButton id="b-4" onClick={onClick} disabled />);
 
     const button = screen.getByRole("button");
     expect(button).toBeDisabled();

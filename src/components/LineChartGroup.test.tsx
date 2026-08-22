@@ -3,9 +3,8 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useContext } from "react";
 
-import LineChartGroup, {
-  ShowReferenceValuesContext,
-} from "@components/LineChartGroup";
+import LineChartGroup from "@components/LineChartGroup";
+import { ShowReferenceValuesContext } from "@components/ShowReferenceValuesContext";
 import * as exportUtils from "@utils/export";
 
 vi.mock("@utils/export", async (importOriginal) => ({
@@ -21,7 +20,7 @@ const ContextReader = () => {
 describe("LineChartGroup", () => {
   it("renders its children", () => {
     render(
-      <LineChartGroup name="Chart group">
+      <LineChartGroup name="Chart group" id="chart-group-1">
         <div>chart content</div>
       </LineChartGroup>,
     );
@@ -31,7 +30,7 @@ describe("LineChartGroup", () => {
 
   it("does not render the reference values toggle by default", () => {
     render(
-      <LineChartGroup name="Chart group">
+      <LineChartGroup name="Chart group" id="chart-group-2">
         <div>chart content</div>
       </LineChartGroup>,
     );
@@ -43,7 +42,7 @@ describe("LineChartGroup", () => {
 
   it("renders the reference values toggle when hasReferenceValues is true", () => {
     render(
-      <LineChartGroup name="Chart group" hasReferenceValues>
+      <LineChartGroup name="Chart group" id="chart-group-3" hasReferenceValues>
         <div>chart content</div>
       </LineChartGroup>,
     );
@@ -54,7 +53,7 @@ describe("LineChartGroup", () => {
   it("toggling the reference values checkbox updates the shared context", async () => {
     const user = userEvent.setup();
     render(
-      <LineChartGroup name="Chart group" hasReferenceValues>
+      <LineChartGroup name="Chart group" id="chart-group-4" hasReferenceValues>
         <ContextReader />
       </LineChartGroup>,
     );
@@ -69,7 +68,7 @@ describe("LineChartGroup", () => {
   it("enables the download button only after the group has settled, then downloads on click", async () => {
     const user = userEvent.setup();
     render(
-      <LineChartGroup name="Chart group">
+      <LineChartGroup name="Chart group" id="chart-group-5">
         <div>chart content</div>
       </LineChartGroup>,
     );

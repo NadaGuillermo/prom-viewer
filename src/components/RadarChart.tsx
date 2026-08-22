@@ -15,6 +15,7 @@ import type {
 } from "echarts";
 
 interface Props {
+  id: string;
   data: Record<string, Visualization.DataSeries[]>;
   dates: string[];
   date: string;
@@ -34,6 +35,7 @@ interface Props {
 }
 
 const RadarChart = ({
+  id,
   data,
   dates,
   date,
@@ -54,7 +56,7 @@ const RadarChart = ({
   
   const questionnaireNames = _.uniq(Object.values(data).flatMap((series) => series.map((item) => item.questionnaireName)))
 
-  const radarIndicators = Object.entries(data).filter(([_, series]) => series.length > 0).map(([domain, _]) => ({
+  const radarIndicators = Object.entries(data).filter(([, series]) => series.length > 0).map(([domain,]) => ({
     name: domain,
     max: 1,
   }));
@@ -63,12 +65,12 @@ const RadarChart = ({
 
   questionnaireNames.forEach((questionnaireName) => {
     // const questionnaireSeries = Object.values(data).flatMap((series) => series.filter((item) => item.questionnaireName === questionnaireName));
-    const questionnaireDomains = Object.entries(data).filter(([_, series]) => series.some((item) => item.questionnaireName === questionnaireName)).map(([domain, _]) => domain);
+    const questionnaireDomains = Object.entries(data).filter(([, series]) => series.some((item) => item.questionnaireName === questionnaireName)).map(([domain,]) => domain);
     const indexOfDate = dates.indexOf(date);
 
     chartData[questionnaireName] = {};
     if (indexOfDate > -1) {
-    Object.entries(data).filter(([_, series]) => series.length > 0).forEach(([domain, series]) => {
+    Object.entries(data).filter(([, series]) => series.length > 0).forEach(([domain, series]) => {
       let maxValue: GlobalTypes.NumberOrNull = null;
       let minValue: GlobalTypes.NumberOrNull = null;
       chartData[questionnaireName][domain] = [minValue, maxValue];
@@ -247,7 +249,7 @@ const RadarChart = ({
           }
         }
       }),
-      // @ts-ignore
+      // @ts-expect-error: Seems to be a bug in ECharts types
       tooltip: {
         ...tooltipOptions,
         show: showLegendTooltip,
@@ -260,7 +262,7 @@ const RadarChart = ({
       indicator: radarIndicators.map((indicator) => {
         const words = indicator.name.split(' ');
         let indicatorName = "";
-        for(let word of words) {
+        for(const word of words) {
           indicatorName += word;
           if (indicatorName.length > 3 && word.length > 3) {
             indicatorName += "\n";
@@ -290,6 +292,7 @@ const RadarChart = ({
   return (
     <>
       <ReactEChartsWrapper
+        chartId={id}
         option={options}
         chartHeight={height}
         enableExport={enableExport}

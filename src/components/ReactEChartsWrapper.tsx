@@ -7,7 +7,7 @@ import {
 } from "react";
 import type { Charts } from "@utils/charts";
 import type { ECharts } from "echarts/core";
-import { init, use } from "echarts/core";
+import { init, use as registerEChartsComponents } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import {
   HeatmapChart,
@@ -38,7 +38,7 @@ import {
 
 import type { SetOptionOpts } from "echarts/core";
 
-use([
+registerEChartsComponents([
   LegendComponent,
   ScatterChart,
   LineChart,
@@ -59,6 +59,7 @@ use([
 ]);
 
 interface Props {
+  chartId: string;
   option: Charts.EChartsOption;
   style?: CSSProperties;
   settings?: SetOptionOpts;
@@ -73,6 +74,7 @@ interface Props {
 export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
   (
     {
+      chartId,
       option,
       style,
       settings,
@@ -98,7 +100,7 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
     useEffect(() => {
       if (!containerRef.current) return;
 
-      setIsChartReady(false);
+      const notReadyFrame = requestAnimationFrame(() => setIsChartReady(false));
 
       // Dispose existing instance (important for theme changes)
       if (chartRef.current) {
@@ -128,13 +130,15 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
       resizeObserverRef.current.observe(containerRef.current);
 
       return () => {
+        cancelAnimationFrame(notReadyFrame);
+
         resizeObserverRef.current?.disconnect();
         resizeObserverRef.current = null;
 
         chartRef.current?.dispose();
         chartRef.current = null;
       };
-    }, [theme, ref]);
+    }, [theme, ref, chartHeight]);
 
     /**
      * Update chart options
@@ -193,6 +197,7 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
         />
         {enableExport && (
           <DownloadImageButton
+            id={chartId}
             onClick={handleDownload}
             disabled={!isChartReady}
             className="tw:absolute tw:top-4 tw:right-2"

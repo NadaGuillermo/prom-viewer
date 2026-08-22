@@ -163,7 +163,7 @@ export const createChartData = (
             const referenceRange: Visualization.NumberOrTuple = range.range;
             let normalizedReferenceRange: Visualization.NumberOrTuple;
             if (Array.isArray(referenceRange)) {
-              let values: number[] = [];
+              const values: number[] = [];
               referenceRange.forEach((val) => {
                 const normalizedValue = Number(normalizeValue(val, min, max).toFixed(3));
                 const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;

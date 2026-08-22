@@ -8,7 +8,7 @@ import {
   getEmptyAnswerOptions,
   addReferenceRangesAndValuesToQuestionnaireScoreItems,
 } from "./utils";
-import * as _ from "lodash-es";
+// import * as _ from "lodash-es";
 import type { Config } from "./types";
 
 export const addConfigurationsToQuestionnaire = (

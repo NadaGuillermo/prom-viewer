@@ -1,4 +1,4 @@
-import * as _ from "lodash-es";
+// import * as _ from "lodash-es";
 import {
   type Mapping,
   SCORE_HEALTH_CORRELATIONS,
@@ -122,7 +122,7 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
             }
           });
           if (scoreItemReferenceRange.length > 0) {
-            for (let range of scoreItemReferenceRange) {
+            for (const range of scoreItemReferenceRange) {
               referenceRange.push(range);
             }
             // scoreItem.referenceRange = scoreItemReferenceRange;
@@ -160,7 +160,7 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
               }
             });
             if (scoreItemReferenceRange.length > 0) {
-              for (let range of scoreItemReferenceRange) {
+              for (const range of scoreItemReferenceRange) {
                 referenceRange.push(range);
               }
               // scoreItem.referenceRange = scoreItemReferenceRange;
@@ -220,8 +220,8 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
   );
 
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
-    let rangeRaw: [number, number] | undefined = undefined;
-    let scoreHealthCorrelationRaw: string | undefined = undefined;
+    // let rangeRaw: [number, number] | undefined;
+    // let scoreHealthCorrelationRaw: string | undefined;
 
     let observationDefinitionRange: [number, number] | undefined = undefined;
     let observationDefinitionScoreHealthCorrelation: string | undefined = undefined;
@@ -274,7 +274,7 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
       }
 
       // Range
-      rangeRaw = configRange ?? observationDefinitionRange;
+      const rangeRaw = configRange ?? observationDefinitionRange;
 
       if (observationDefinitionRange !== undefined && configRange !== undefined && 
         (observationDefinitionRange[0] !== configRange[0] || observationDefinitionRange[1] !== configRange[1]) &&
@@ -288,7 +288,7 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
       }
 
       // ScoreHealthCorrelation
-      scoreHealthCorrelationRaw = configScoreHealthCorrelation ?? observationDefinitionScoreHealthCorrelation;
+      const scoreHealthCorrelationRaw = configScoreHealthCorrelation ?? observationDefinitionScoreHealthCorrelation;
 
       if (observationDefinitionScoreHealthCorrelation !== undefined && configScoreHealthCorrelation !== undefined &&
         observationDefinitionScoreHealthCorrelation !== configScoreHealthCorrelation &&
@@ -306,30 +306,34 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
       const isScoreHealthCorrelationValid = scoreHealthCorrelationRaw !== undefined && scoreHealthCorrelationRaw in SCORE_HEALTH_CORRELATIONS;
 
       if (!isRangeValid && correspondingObservationDefinition) {
-        rangeRaw !== undefined ?
+        if (rangeRaw !== undefined) {
         issues.push(
                 issueFactories.observationDefinition.invalidRange(
                   correspondingObservationDefinition,
                 ),
-              ) : 
+              )
+            } else {
               issues.push(
                 issueFactories.observationDefinition.missingRange(
                   correspondingObservationDefinition,
                 ),
               );
+            }
       }
       if (!isScoreHealthCorrelationValid && correspondingObservationDefinition) {
-        scoreHealthCorrelationRaw !== undefined ?
+        if (scoreHealthCorrelationRaw !== undefined) {
            issues.push(
                 issueFactories.observationDefinition.invalidScoreHealthCorrelation(
                   correspondingObservationDefinition,
                 ),
-              ) :
+              )}
+              else {
             issues.push(
                 issueFactories.observationDefinition.missingScoreHealthCorrelation(
                   correspondingObservationDefinition,
                 ),
-              );       
+              );  
+            }     
       }
 
       // Check if real range and scoreHealthCorrelation

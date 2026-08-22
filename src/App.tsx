@@ -122,22 +122,22 @@ function App() {
     fhirData: false,
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
-  const [smartPatient, setSmartPatient] = useState<any>(null);
-  const [mockPatient, setMockPatient] = useState<any>(undefined);
+  const [smartPatient, setSmartPatient] = useState<unknown>(null);
+  const [mockPatient, setMockPatient] = useState<unknown>(undefined);
   const [smartLaunchError, setSmartLaunchError] = useState<string | null>(null);
   const [config, setConfig] = useState<Config.PromConfig>();
   const [configError, setConfigError] = useState<string | null>(null);
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
 
   // Data pipeline
-  const [fhirQuestionnaires, setFhirQuestionnaires] = useState<any[]>([]);
+  const [fhirQuestionnaires, setFhirQuestionnaires] = useState<unknown[]>([]);
   const [fhirQuestionnaireResponses, setFhirQuestionnaireResponses] = useState<
-    any[]
+    unknown[]
   >([]);
   const [fhirObservationDefinitions, setFhirObservationDefinitions] = useState<
-    any[]
+    unknown[]
   >([]);
-  const [fhirObservations, setFhirObservations] = useState<any[]>([]);
+  const [fhirObservations, setFhirObservations] = useState<unknown[]>([]);
   const [questionnaires, setQuestionnaires] = useState<Mapping.Questionnaire[]>(
     [],
   );
@@ -179,12 +179,12 @@ function App() {
   const [tableDataByQuestionnaire, setTableDataByQuestionnaire] = useState<
     Record<string, Visualization.ChartData>
   >({});
-  const [heatmapDataByDomain, setHeatmapDataByDomain] = useState<
-    Record<string, Visualization.ChartData>
-  >({});
-  const [questionnaireCardData, setQuestionnaireCardData] = useState<
-    Record<string, [string, string[]]>
-  >({});
+  // const [heatmapDataByDomain, setHeatmapDataByDomain] = useState<
+  //   Record<string, Visualization.ChartData>
+  // >({});
+  // const [questionnaireCardData, setQuestionnaireCardData] = useState<
+  //   Record<string, [string, string[]]>
+  // >({});
   // const [
   //   questionnairesWithMostRecentResponseDate,
   //   setQuestionnairesWithMostRecentResponseDate,
@@ -209,12 +209,12 @@ function App() {
   const [dimensionsByDomain, setDimensionsByDomain] = useState<
     Record<string, string[]>
   >({});
-  const [
-    lengthOfLongestQuestionnaireName,
-    setLengthOfLongestQuestionnaireName,
-  ] = useState<number>(0);
-  const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
-    useState<Record<string, Errors.DataIssue[]>>({});
+  // const [
+  //   lengthOfLongestQuestionnaireName,
+  //   setLengthOfLongestQuestionnaireName,
+  // ] = useState<number>(0);
+  // const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
+  //   useState<Record<string, Errors.DataIssue[]>>({});
   const [
     allDatesOfQuestionnaireResponses,
     setAllDatesOfQuestionnaireResponses,
@@ -542,8 +542,6 @@ function App() {
     /* ----------------------- Add config data ------------------------ */
     /* Questionnaire */
     let promDataQuestionnairesWithConfigurations = promDataQuestionnaires;
-    let promDataQuestionnaireResponsesWithConfigurations =
-      promDataQuestionnaireResponses;
     let domainsFromConfig: string[] = [];
     if (config !== undefined) {
       const promDataQuestionnairesWithConfigurationsAndErrorMessages =
@@ -580,7 +578,7 @@ function App() {
             config,
           ),
         );
-      promDataQuestionnaireResponsesWithConfigurations =
+      const promDataQuestionnaireResponsesWithConfigurations =
         promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
           (response) => response.data,
         );
@@ -728,6 +726,7 @@ function App() {
     dataLoaded,
     smartPatient,
     mockPatient,
+    config,
   ]);
 
   // Data visualization
@@ -1027,8 +1026,8 @@ function App() {
         ? getDatesWithinRange(selectedDates, [dateRange.start, dateRange.end])
         : selectedDates;
     const filteredQuestionnaires = Object.entries(datesByQuestionnaire)
-      .filter(([_, dates]) => dates.some((d) => filteredDates.includes(d)))
-      .map(([qId, _]) => qId);
+      .filter(([, dates]) => dates.some((d) => filteredDates.includes(d)))
+      .map(([qId,]) => qId);
     const filteredSelectedQuestionnaires = _.intersection(
       selectedQuestionnaires,
       filteredQuestionnaires,
@@ -1046,8 +1045,8 @@ function App() {
 
     const datesOfSelectedQuestionnaires = _.uniq(
       Object.entries(datesByQuestionnaire)
-        .filter(([qId, _]) => filteredSelectedQuestionnaires.includes(qId))
-        .flatMap(([_, dates]) => dates),
+        .filter(([qId,]) => filteredSelectedQuestionnaires.includes(qId))
+        .flatMap(([, dates]) => dates),
     );
     const datesForRadarChart = _.intersection(
       datesOfSelectedQuestionnaires,
@@ -1066,12 +1065,12 @@ function App() {
     setGlobalScoresDataSeries(globalScoresDataSeries);
     setDimensionScoresDataSeriesByDomain(dimensionScoresDataSeriesByDomain);
     setItemDataSeriesByDomainAndDimension(domainDimensionItemsDataSeriesRecord);
-    setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
+    // setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
     setQuestionnaireNamesByDate(questionnaireNamesByDate);
-    setHeatmapDataByDomain(heatmapDataByDomain);
+    // setHeatmapDataByDomain(heatmapDataByDomain);
     setTableDataByQuestionnaire(tableDataByQuestionnaire);
-    setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
-    setQuestionnaireCardData(questionnaireCardData);
+    // setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
+    // setQuestionnaireCardData(questionnaireCardData);
     setSelectedDimensionsByDomain(selectedDimensionsByDomain);
     setShowItemsForDomain(showItemsFlagByDomain);
     setDimensionsWithQuestionnaireByDomain(
@@ -1101,6 +1100,7 @@ function App() {
     selectedQuestionnaires,
     dateRange,
     selectedDates,
+    radarChartDate
   ]);
 
   useEffect(() => {
@@ -1440,7 +1440,7 @@ function App() {
                     <div className="tw:pt-4">
                       <Collapse
                         title="Domain-to-Dimension Mapping"
-                        children={
+                        constrainWidth={true}>
                           <>
                             <div className="tw:flex tw:justify-start tw:pb-4">
                               <div data-tooltip-id="mapping-info">
@@ -1483,9 +1483,7 @@ function App() {
                               />
                             </div>
                           </>
-                        }
-                        constrainWidth={true}
-                      />
+                      </Collapse>
                     </div>
                   )}
                   {/* <div className="tw:pt-2 tw:lg:hidden">
@@ -1512,8 +1510,10 @@ function App() {
                         <div className="tw:flex tw:justify-center tw:md:px-8 tw:lg:px-0">
                           <Collapse
                             title={`Explanation`}
-                            children={
-                              <>
+                            constrainWidth={true}
+                            name={"Domains Radar"}
+                          >
+                            <>
                                 <div className="tw:text-sm">
                                   <p className="h5">About this Diagram</p>
                                   <p>
@@ -1592,10 +1592,7 @@ function App() {
                                   </ul>
                                 </div>
                               </>
-                            }
-                            constrainWidth={true}
-                            name={"Domains Radar"}
-                          />
+                              </Collapse>
                         </div>
                       )}
                     </div>
@@ -1658,6 +1655,7 @@ function App() {
                         <>
                           <div className="tw:flex tw:justify-center">
                             <RadarChart
+                              id="domains-radar-chart"
                               height={400}
                               data={dimensionScoresDataSeriesByDomain}
                               dates={chartXData}
@@ -1690,6 +1688,7 @@ function App() {
                         <>
                           <div className="tw:flex tw:justify-center tw:overflow-visible">
                             <LineChart
+                              id="global-scores-line-chart"
                               height={400}
                               data={{
                                 xData: chartXData,
@@ -1774,6 +1773,7 @@ function App() {
                               <h3>{domain}</h3>
                               <LineChartGroup
                                 name={domain}
+                                id={domain + Math.random().toString(36).substring(2, 9)}
                                 hasReferenceValues={dimensionScoresDataSeriesByDomain[
                                   domain
                                 ].some(
@@ -1794,6 +1794,7 @@ function App() {
                               tw:h-25`}
                                         >
                                           <LineChart
+                                            id={domain + "-yaxis-" + dataSeries.id}
                                             data={{
                                               xData: [""],
                                               yData: [
@@ -1836,6 +1837,7 @@ function App() {
                                         >
                                           {/* cell with dimension score */}
                                           <LineChart
+                                            id={domain + "-" + dataSeries.id}
                                             key={domain + "-" + dataSeries.id}
                                             data={{
                                               xData: chartXData,
@@ -1890,6 +1892,7 @@ function App() {
                                         >
                                           {/* empty data cell if number of dimensions is odd */}
                                           <LineChart
+                                            id={domain + "-empty-" + Math.random().toString(36).substring(2, 9)}
                                             data={{
                                               xData: chartXData,
                                               yData: [
@@ -1927,6 +1930,7 @@ function App() {
                                     >
                                       {/* left cell with x axis*/}
                                       <LineChart
+                                        id={domain + "-xaxis-" + Math.random().toString(36).substring(2, 9)}
                                         data={{
                                           xData: chartXData,
                                           yData: [
@@ -1965,6 +1969,7 @@ function App() {
                                       >
                                         {/* right cell with x axis */}
                                         <LineChart
+                                          id={domain + "-xaxis-right-" + Math.random().toString(36).substring(2, 9)}
                                           data={{
                                             xData: chartXData,
                                             yData: [
@@ -2124,6 +2129,7 @@ function App() {
                                                     name={
                                                       domain + "-" + dimension
                                                     }
+                                                    id={domain + "-" + dimension + Math.random().toString(36).substring(2, 15)}
                                                     hasReferenceValues={itemDataSeriesByDomainAndDimension[
                                                       domain
                                                     ][dimension].some(
@@ -2201,6 +2207,7 @@ function App() {
                                                               >
                                                                 {/* cell with dimension score */}
                                                                 <LineChart
+                                                                  id={domain + "-" + dimension + "-" + dataSeries.id}
                                                                   key={
                                                                     domain +
                                                                     "-" +
@@ -2277,6 +2284,7 @@ function App() {
                                                         >
                                                           {/* left cell with x axis*/}
                                                           <LineChart
+                                                            id={domain + "-" + dimension + "-xaxis-" + Math.random().toString(36).substring(2, 9)}
                                                             data={{
                                                               xData:
                                                                 filterDataSeriesDataAndDatesForCommonNullValues(
@@ -2361,8 +2369,8 @@ function App() {
                             <>
                               <Collapse
                                 title={questionnaire.name}
-                                children={
-                                  <>
+                              >
+                                 <>
                                     <DataTable
                                       data={
                                         tableDataByQuestionnaire[
@@ -2382,13 +2390,13 @@ function App() {
                                           ),
                                         )
                                       }
+                                      id={questionnaire.id}
                                       disabled={false}
                                       className="tw:mt-2 tw:text-right"
                                       tooltipText="Save as CSV"
                                     />
                                   </>
-                                }
-                              />
+                                  </Collapse>
                             </>
                           )}
                         </React.Fragment>

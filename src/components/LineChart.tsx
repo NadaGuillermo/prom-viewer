@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import { ShowReferenceValuesContext } from "@components/LineChartGroup";
+import { ShowReferenceValuesContext } from "@components/ShowReferenceValuesContext";
 import { type Charts, tolColorPalette, referenceColors } from "@utils/charts";
 import * as echarts from "echarts/core";
 import {
@@ -23,10 +23,11 @@ import type {
 } from "echarts";
 
 interface Props {
+  id: string;
+  data: Visualization.ChartData;
   title?: string;
   subtitle?: string;
   height?: number;
-  data: Visualization.ChartData;
   colors?: string[];
   titleOptions?: TitleComponentOption;
   legendOptions?: LegendComponentOption;
@@ -50,10 +51,11 @@ interface Props {
 
 
 const LineChart = ({
+  id,
+  data,
   title,
   subtitle,
   height = 400,
-  data,
   colors = tolColorPalette,
   titleOptions,
   legendOptions,
@@ -166,7 +168,7 @@ const buildReferenceMarkArea = (
     return seriesList;
   };
 
-  const yAxisFormatter = (value: number, _index: number) => {
+  const yAxisFormatter = (value: number,) => {
     if (value === Math.max(0, minMaxYValues[0])) {
       return minMaxYLabels ? `{health|${minMaxYLabels[0]}}` : value.toString();
     }
@@ -268,7 +270,7 @@ const buildReferenceMarkArea = (
       ...tooltipOptions,
       formatter: (params: any) => tooltipFormatter(params),
     },
-    // @ts-ignore
+    // @ts-expect-error: Seems to be a bug in ECharts types
     xAxis: {
       ...xAxisOptions,
       type: "category",
@@ -276,15 +278,15 @@ const buildReferenceMarkArea = (
     },
     yAxis: {
       ...yAxisOptions,
-      // @ts-ignore
+      // @ts-expect-error: Seems to be a bug in ECharts types
       type: "value",
       min: minMaxYValues[0],
       max: minMaxYValues[1],
       axisLabel: {
         ...yAxisOptions?.axisLabel,
         customValues: minMaxYValuesPosition,
-        formatter: (value: number, index: number) =>
-          yAxisFormatter(value, index),
+        formatter: (value: number,) =>
+          yAxisFormatter(value,),
         rich: {
           health: {
             // fontWeight: "bold",
@@ -305,6 +307,7 @@ const buildReferenceMarkArea = (
   return (
     <>
       <ReactEChartsWrapper
+        chartId={id}
         option={options}
         chartHeight={height}
         enableExport={enableExport}
