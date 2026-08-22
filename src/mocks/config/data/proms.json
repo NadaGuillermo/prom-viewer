@@ -1,5 +1,5 @@
 {
-  "$schema": "./ProViewerConfigSchema.json",
+  "$schema": "./proms.schema.json",
   "scoreDefinitions": [
     {
       "id": "eq5d-index",
