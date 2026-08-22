@@ -4,13 +4,13 @@
 
 ## Description / Overview
 
-PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction). However, for type checking the application uses the FHIR R4 types of the [Definitely Typed](https://definitelytyped.org/) project.
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It's built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction). For type checking, the app uses the FHIR R4 types from [Definitely Typed](https://definitelytyped.org/).
 
-The app supports two data modes, toggled via the [`.env`](#environment-variables-env) file: `mock` (default), which runs against mock FHIR resources and configuration files served through [Mock Service Worker](#mocking-with-msw) (MSW), and `smart`, which launches the app as a SMART on FHIR application and fetches real patient data from a FHIR server. See [SMART on FHIR Launch Configuration](#smart-on-fhir-launch-configuration) for details.
+The app supports two data modes, toggled via `.env`: `mock` (default), which runs against mock FHIR resources served through Mock Service Worker, and `smart`, which launches the app as a SMART on FHIR application and fetches real patient data from a FHIR server. See [Configuration](docs/CONFIGURATION.md) for details on both modes.
 
 ## Demo
 
-There is a demo showing the current state of the app (mock data with no clinical meaning):
+A demo showing the current state of the app (mock data with no clinical meaning):
 🔗 [PROM Viewer Demo](https://nadaguillermo.github.io/prom-viewer/)
 
 ## Installation
@@ -38,7 +38,7 @@ yarn dev
 
 Other available commands:
 
-| Command               | Description                          |
+| Command              | Description                          |
 | --------------------- | ------------------------------------ |
 | `yarn dev`            | Start the dev server with hot reload |
 | `yarn build`          | Type-check and build for production  |
@@ -51,83 +51,19 @@ Other available commands:
 | `yarn test:watch`     | Run tests in watch mode              |
 | `yarn test:coverage`  | Run tests with a coverage report     |
 
-If the `yarn dev` command was executed successfully, the console output should look similar to this one:
+If `yarn dev` started successfully, the console output should look similar to this:
 
 <img src="docs/images/dev-server-start.png" alt="Dev server start successful" width="500">
 
 ## Configuration
 
-### Mocking with MSW
+The app runs in `mock` mode by default (no backend needed) or as a `smart` SMART on FHIR app against a real server, toggled via `.env`. Covers MSW mocking, SMART on FHIR launch setup, and all environment variables.
 
-In `mock` mode, the app doesn't hit a real backend. Instead, [Mock Service Worker](https://mswjs.io/) (MSW) intercepts the app's `fetch()` calls in the browser and answers them from local fixtures — the app code itself is unaware it's being mocked, since the request/response shape is the same one a real FHIR server or config server would produce.
-
-```text
-src/mocks/
-  fhir/
-    data/                     # FHIR fixtures, grouped by resource type
-      bundles/
-      questionnaires/
-      questionnaireResponses/
-      observationDefinitions/
-      observations/           # empty for now
-      patients/                # empty for now
-    handlers.ts                # MSW handlers serving GET {BASE_URL}<folder>/:name.json
-  config/
-    data/                      # proms.json, colors.json, dateFormat.json, ProViewerConfigSchema.json
-    handlers.ts                 # MSW handlers serving GET {BASE_URL}config/:name.json
-  handlers.ts                   # combines fhir + config handlers
-  browser.ts                    # setupWorker(...handlers)
-  enableMocking.ts               # starts the worker; called at the top of main.tsx's bootstrap()
-```
-
-Each handler answers with the matching fixture's JSON content and a `200`, or a JSON error body with a `404` if no fixture matches the requested name — the same shape a real API failure would take, so error-handling code is exercised too.
-
-**Starting/stopping mocking:** mocking is controlled per domain by the existing `.env` switches, not by a separate MSW flag:
-
-- `VITE_DATA_SOURCE=mock` (default) enables the FHIR fixture handlers; `VITE_DATA_SOURCE=smart` disables them (the app talks to a real FHIR/SMART server instead).
-- `VITE_CONFIG_SOURCE=local` (default) enables the config fixture handlers; `VITE_CONFIG_SOURCE=remote` disables them (the app fetches config from `VITE_CONFIG_SERVER_URL` instead).
-
-`enableMocking()` (`src/mocks/enableMocking.ts`) checks both flags at startup and only registers the MSW worker if at least one domain still needs local mocking; this runs in both `yarn dev` and a production build, since mock mode can also be used for a deployed demo.
-
-**Adding new mock data:** drop a new `.json` fixture into the relevant `src/mocks/fhir/data/<folder>/` or `src/mocks/config/data/` directory — handlers pick up new files automatically via `import.meta.glob`, no handler code changes needed. To mock a new endpoint/domain entirely, add a new `handlers.ts` (or extend an existing one) and include it in `src/mocks/handlers.ts`.
-
-The MSW browser worker script (`public/mockServiceWorker.js`) is generated infrastructure, not mock data — regenerate it with `yarn msw init public --save` if it's ever missing (e.g. after a clean checkout that doesn't track it, or an MSW version bump).
-
-*Note:* If you add mock questionnaire responses or bundles and you want them to be displayed in the app, you must add their names in `src/services/fhir/mockFhirDataSource.ts`.
-
-### SMART on FHIR Launch Configuration
-
-SMART on FHIR launch behavior is configured across three places:
-
-| Location                                                                 | Purpose                                                                                                                                                                                                                   |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`.env`](#environment-variables-env)                                     | Selects `mock` vs `smart` data mode and, for `smart` mode, sets the FHIR server base URLs, the SMART client id, and the standalone-launch server url                                                                      |
-| `launch.html` → [`src/launch.ts`](src/launch.ts)                         | Entry point for an **EHR launch**: the app is opened from within an EHR, which supplies the launch context (patient, server) via the `iss` and `launch` query parameters                                                  |
-| `launch-patient.html` → [`src/launch-patient.ts`](src/launch-patient.ts) | Entry point for a **standalone patient launch**: the app is opened directly (not from an EHR); the FHIR server is fixed to `VITE_SMART_STANDALONE_SERVER_URL` and a single patient is in context (`launch/patient` scope) |
-
-Both entry points call `FHIR.oauth2.authorize()` (from the `fhirclient` package) with the same `VITE_SMART_CLIENT_ID` and read scopes for `Patient`, `QuestionnaireResponse` and `Observation`, then redirect back to `index.html`, which completes the OAuth2 handshake and renders the app ([src/main.tsx](src/main.tsx)).
-
-Both `launch.html` and `launch-patient.html` are registered as build entries in [`vite.config.ts`](vite.config.ts), so both flows are included in production builds (`yarn build`).
-
-### Environment Variables (`.env`)
-
-Copy or edit the `.env` file at the project root to configure the app. All variables are read at build/dev-server start time (Vite `import.meta.env`).
-
-| Variable                           | Default | Description                                                                                                                                                                               |
-| ---------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VITE_DATA_SOURCE`                 | `mock`  | `mock` reads FHIR data from `src/mocks/` fixtures via MSW; `smart` fetches it via SMART on FHIR from a real server                                                                         |
-| `VITE_FHIR_QUESTIONNAIRE_BASE_URL` | —       | Base url of the FHIR server hosting `Questionnaire` resources. Required when `VITE_DATA_SOURCE=smart`                                                                                     |
-| `VITE_FHIR_OBSDEF_BASE_URL`        | —       | Base url of the FHIR server hosting `ObservationDefinition` resources. Required when `VITE_DATA_SOURCE=smart`                                                                             |
-| `VITE_SMART_CLIENT_ID`             | —       | SMART on FHIR client id used by `launch.html` and `launch-patient.html`. Required when `VITE_DATA_SOURCE=smart`                                                                           |
-| `VITE_SMART_STANDALONE_SERVER_URL` | —       | Base url of the FHIR server used for a SMART standalone patient launch (`launch-patient.html`). Required when `VITE_DATA_SOURCE=smart` and the launch URI points to `launch-patient.html` |
-| `VITE_CONFIG_SOURCE`               | `local` | `local` reads config files (proms, colors, date format) from `src/mocks/config` via MSW; `remote` fetches them from `VITE_CONFIG_SERVER_URL` instead                                      |
-| `VITE_CONFIG_SERVER_URL`           | —       | Base url to fetch config files from when `VITE_CONFIG_SOURCE=remote`                                                                                                                      |
-
-In **mock mode** (`VITE_DATA_SOURCE=mock`), only `VITE_DATA_SOURCE` and, optionally, the `VITE_CONFIG_*` variables are relevant — the FHIR/SMART variables are unused. In **smart mode** (`VITE_DATA_SOURCE=smart`), the `VITE_FHIR_*`, `VITE_SMART_CLIENT_ID`, and (for standalone launch) `VITE_SMART_STANDALONE_SERVER_URL` variables must be set, and the app must be opened via `launch.html` or `launch-patient.html` rather than `index.html` directly so the SMART OAuth2 flow can run.
+📄 See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for full details.
 
 ## Testing
 
-Unit tests use [Vitest](https://vitest.dev/) with [React Testing Library](https://testing-library.com/react), colocated next to the code they test (`Component.test.tsx`, `utils.test.ts`).
+Unit tests use Vitest with React Testing Library, colocated next to the code they test.
 
 ```bash
 yarn test           # run once
@@ -135,28 +71,12 @@ yarn test:watch     # watch mode
 yarn test:coverage  # with a coverage report
 ```
 
-**Stack:**
-
-- **Runner:** Vitest, configured in `vite.config.ts` (`test`: `environment: "jsdom"`, `globals: true`, `setupFiles: ["./src/test/setup.ts"]`)
-- **Component testing:** `@testing-library/react` + `@testing-library/user-event`, with matchers from `@testing-library/jest-dom`
-- **API mocking:** a Node-side MSW server (`src/test/mocks/server.ts`) reuses the same fixture-backed handlers as browser dev-mode mocking (`src/mocks/handlers.ts`) — no separate test fixtures to maintain
-- **Global setup** (`src/test/setup.ts`): starts/stops the MSW server and resets React Testing Library after each test; also stubs a few things components rely on that don't exist by default in an isolated jsdom render — a `ResizeObserver` polyfill (needed by the ECharts wrapper), a `#portal-root` mount point mirroring `index.html` (needed by `Portal` and the react-tooltip-based components), and the FontAwesome icon registration that normally happens once in `App.tsx` (`library.add(fas)`)
-
-**Conventions:**
-
-- Prefer `screen.getByRole`/other accessible queries over `getByTestId`
-- Chart components (`LineChart`, `RadarChart`, `ReactEChartsWrapper`) are smoke-tested only: jsdom has no `<canvas>` 2D context, so `echarts/core`'s `init` is mocked in those test files, and assertions focus on the wrapper's own lifecycle/props (mount/unmount, export button, loading state) rather than actual chart rendering
-
-**Known coverage gaps:**
-
-- Ten domain/dimension/table-reshaping functions in `src/utils/visualization/utils.ts` (e.g. `createTableData`, `extractItemsDataSeries`, `createDomainDimensionsRecord`) are untested — each needs deeply-nested `Mapping.Questionnaire` fixtures with many optional flags (`isGlobalScore`, `isDomainScore`, `dimension`, …)
-- The interactive calendar widget inside `DateRangePicker` (a `cally` custom element) isn't exercised — only its static button label and Clear-button behavior are
-- ECharts chart-option payloads aren't asserted on (see chart smoke-testing note above)
+📄 See [docs/TESTING.md](docs/TESTING.md) for stack details, conventions, and known coverage gaps.
 
 ## Features
 
-- Visualizes FHIR questionnaire responses (mock data for now)
-- Domain centered approach: questionnaire scores are grouped into domains to facilitate better cross-questionnaire comparability
+- Visualizes FHIR questionnaire responses
+- Domain-centered approach: questionnaire scores are grouped into domains to facilitate better cross-questionnaire comparability
 - View responses of multiple different questionnaires simultaneously
 - Export charts as PNG and table data as CSV
 - Date and questionnaire filtering
