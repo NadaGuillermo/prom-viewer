@@ -268,7 +268,7 @@ function App() {
         setDataLoaded((prev) => ({ ...prev, config: true }));
       } catch (error) {
         console.error("Error fetching config file:", error);
-        setConfigError("Error fetching config file: " + error);
+        setConfigError(error === null ? "Unknown error" : String(error));
       }
     };
 
@@ -302,7 +302,7 @@ function App() {
         setDataLoaded((prev) => ({ ...prev, fhirData: true }));
       } catch (error) {
         console.error("Error loading FHIR data: ", error);
-        setFhirError("Error loading FHIR data: " + error);
+        setFhirError(error === null ? "Unknown error" : String(error));
       }
     };
 
@@ -1288,8 +1288,9 @@ function App() {
   if (configError)
     return (
       <ErrorPage
-        error={fhirError}
+        error={configError}
         heading={"Failed to load configuration file"}
+        message="We couldn&apos;t retrieve a configuration file from the server or it is invalid."
         onRetry={retryLoading}
       />
     );
@@ -1298,6 +1299,7 @@ function App() {
       <ErrorPage
         error={fhirError}
         heading={"Failed to load FHIR data"}
+        message="We couldn&apos;t retrieve any FHIR resources from the server."
         onRetry={retryLoading}
       />
     );
@@ -1306,6 +1308,7 @@ function App() {
       <ErrorPage
         error={smartLaunchError}
         heading={"SMART launch failed"}
+        message={"Launching the app in SMART mode failed. Please check your SMART launch configuration."}
         onRetry={retryLoading}
       />
     );

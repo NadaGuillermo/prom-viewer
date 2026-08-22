@@ -1,5 +1,5 @@
 {
-  "$schema": "./proms.schema.json",
+  "$schema": "../../../../schemas/proms.schema.json",
   "scoreDefinitions": [
     {
       "id": "eq5d-index",
