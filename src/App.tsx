@@ -1398,6 +1398,29 @@ function App() {
                 )}
                 <div className="section">
                   <h1>Overview</h1>
+                  <div className="tw:flex tw:justify-start tw:pb-2 tw:pl-2">
+                              <div data-tooltip-id="overview-table-info">
+                                <div className="tw:text-sm tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral">
+                                  About this Diagram
+                                </div>
+                              </div>
+                              <Portal>
+                                <Tooltip
+                                  id="overview-table-info"
+                                  opacity={1}
+                                  className="custom-tooltip tooltip-base"
+                                >
+                                  <div className="tw:w-64">
+                                    <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
+                                      <p>
+                                        The table shows for every questionnaire (rows) at which time points (columns) it was completed. 
+                                        A dot in the respective cell indicates a completed questionnaire at that time point. 
+                                      </p>
+                                    </div>
+                                  </div>
+                                </Tooltip>
+                              </Portal>
+                            </div>
                   <div className="tw:flex tw:justify-start">
                     {questionnaireNamesByDate && (
                       <GridTable data={questionnaireNamesByDate} />
