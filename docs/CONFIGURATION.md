@@ -25,18 +25,18 @@ src/mocks/
   enableMocking.ts               # starts the worker; called at the top of main.tsx's bootstrap()
 ```
 
-Each handler answers with the matching fixture's JSON content and a `200`, or a JSON error body with a `404` if no fixture matches — the same shape a real API failure would take, so error-handling code is exercised too.
+Each handler answers with the matching fixture's JSON content and a `200`, or a JSON error body with a `404` if no fixture matches, meaning in `mock` mode error-handling is done too.
 
 **Starting/stopping mocking:** controlled per domain by the `.env` switches, not a separate MSW flag:
 
-- `VITE_DATA_SOURCE=mock` (default) enables the FHIR fixture handlers; `VITE_DATA_SOURCE=smart` disables them (the app talks to a real FHIR/SMART server instead).
+- `VITE_DATA_SOURCE=mock` (default) enables the FHIR fixture handlers; `VITE_DATA_SOURCE=smart` disables them (the app runs as a SMART-on-FHIR app and talks to a real FHIR server instead).
 - `VITE_CONFIG_SOURCE=local` (default) enables the config fixture handlers; `VITE_CONFIG_SOURCE=remote` disables them (config is fetched from `VITE_CONFIG_SERVER_URL` instead).
 
 `enableMocking()` (`src/mocks/enableMocking.ts`) checks both flags at startup and only registers the MSW worker if at least one domain still needs local mocking; this runs in both `yarn dev` and a production build, since mock mode can also be used for a deployed demo.
 
-**Adding new mock data:** drop a new `.json` fixture into the relevant `src/mocks/fhir/data/<folder>/` or `src/mocks/config/data/` directory — handlers pick it up automatically via `import.meta.glob`, no handler code changes needed. To mock a new endpoint/domain entirely, add a new `handlers.ts` (or extend an existing one) and include it in `src/mocks/handlers.ts`.
+**Adding new mock data:** drop a new `.json` fixture into the relevant `src/mocks/fhir/data/<folder>/` or `src/mocks/config/data/` directory; handlers pick it up automatically via `import.meta.glob`, no handler code changes needed. To mock a new endpoint/domain entirely, add a new `handlers.ts` (or extend an existing one) and include it in `src/mocks/handlers.ts`.
 
-The MSW browser worker script (`public/mockServiceWorker.js`) is generated infrastructure, not mock data — regenerate it with `yarn msw init public --save` if it's ever missing (e.g. after a clean checkout that doesn't track it, or an MSW version bump).
+The MSW browser worker script (`public/mockServiceWorker.js`) is generated infrastructure, not mock data. Regenerate it with `yarn msw init public --save` if it's ever missing (e.g. after a clean checkout that doesn't track it, or an MSW version bump).
 
 > **Note:** New mock questionnaire responses, observations, or bundles must also be named in `src/services/fhir/mockFhirDataSource.ts` to appear in the app.
 

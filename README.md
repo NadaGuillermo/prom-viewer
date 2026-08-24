@@ -38,7 +38,7 @@ yarn dev
 
 Other available commands:
 
-| Command              | Description                          |
+| Command               | Description                          |
 | --------------------- | ------------------------------------ |
 | `yarn dev`            | Start the dev server with hot reload |
 | `yarn build`          | Type-check and build for production  |
@@ -53,7 +53,7 @@ Other available commands:
 
 If `yarn dev` started successfully, the console output should look similar to this:
 
-<img src="docs/images/dev-server-start.png" alt="Dev server start successful" width="500">
+![Dev server start successful](docs/images/dev-server-start.png)
 
 ## Configuration
 
