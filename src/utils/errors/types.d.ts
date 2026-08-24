@@ -14,7 +14,7 @@ export namespace Errors {
         resourceId: string;
         relatedResourceIds?: string[];
         field?: string;
-        value?: any;
+        value?: unknown;
     };
 
     type Result<T> = {

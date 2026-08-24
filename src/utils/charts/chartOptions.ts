@@ -92,8 +92,8 @@ const legendOption: LegendComponentOption = {
   show: true,
   orient: "horizontal",
   padding: 2,
-  itemGap: 12,
-  itemHeight: 14,
+  itemGap: 14,
+  itemHeight: 12,
   itemWidth: 25,
   textStyle: {
     color: chartColorRecord.text,
@@ -106,10 +106,10 @@ const legendOption: LegendComponentOption = {
 
 const gridOption: GridComponentOption = {
   show: false,
-  left: 0,
+  left: 10,
   top: 60,
-  right: 0,
-  bottom: 60,
+  right: 10,
+  bottom: 70,
 };
 
 /**
@@ -488,11 +488,10 @@ const radarTitleOption: TitleComponentOption = {
 
 const radarLegendOption: LegendComponentOption = {
   ...legendOption,
-  padding: 4,
+  padding: [8,2],
   itemGap: 8,
   type: "scroll",
   orient: 'vertical',
-  bottom: 4,
 }
 
 const radarGridOption: GridComponentOption = {

@@ -4,13 +4,13 @@
 
 ## Description / Overview
 
-PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It is built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by the [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction) project.
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It's built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction). For type checking, the app uses the FHIR R4 types from [Definitely Typed](https://definitelytyped.org/).
 
-Currently, the app does not connect to a real FHIR server. It runs against mock FHIR resources and configuration files served as static JSON from the `public/` folder.
+The app supports two data modes, toggled via `.env`: `mock` (default), which runs against mock FHIR resources served through Mock Service Worker, and `smart`, which launches the app as a SMART on FHIR application and fetches real patient data from a FHIR server. See [Configuration](docs/CONFIGURATION.md) for details on both modes.
 
 ## Demo
 
-There is a demo showing the current state of the app (mock data with no clinical meaning):
+A demo showing the current state of the app (mock data with no clinical meaning):
 🔗 [PROM Viewer Demo](https://nadaguillermo.github.io/prom-viewer/)
 
 ## Installation
@@ -38,29 +38,51 @@ yarn dev
 
 Other available commands:
 
-| Command          | Description                          |
-| ---------------- | ------------------------------------ |
-| `yarn dev`       | Start the dev server with hot reload |
-| `yarn build`     | Type-check and build for production  |
-| `yarn preview`   | Preview the production build locally |
-| `yarn lint`      | Lint the codebase                    |
-| `yarn lint:fix`  | Lint and auto-fix issues             |
-| `yarn format`    | Format code with Prettier            |
-| `yarn typecheck` | Run TypeScript type checking         |
+| Command               | Description                          |
+| --------------------- | ------------------------------------ |
+| `yarn dev`            | Start the dev server with hot reload |
+| `yarn build`          | Type-check and build for production  |
+| `yarn preview`        | Preview the production build locally |
+| `yarn lint`           | Lint the codebase                    |
+| `yarn lint:fix`       | Lint and auto-fix issues             |
+| `yarn format`         | Format code with Prettier            |
+| `yarn typecheck`      | Run TypeScript type checking         |
+| `yarn test`           | Run the test suite once              |
+| `yarn test:watch`     | Run tests in watch mode              |
+| `yarn test:coverage`  | Run tests with a coverage report     |
 
-If the `yarn dev` command was executed successfully, the console output should look similar to this one:
+If `yarn dev` started successfully, the console output should look similar to this:
 
-<img src="docs/images/dev-server-start.png" alt="Dev server start successful" width="500">
+![Dev server start successful](docs/images/dev-server-start.png)
+
+## Configuration
+
+The app runs in `mock` mode by default (no backend needed) or as a `smart` SMART on FHIR app against a real server, toggled via `.env`. Covers MSW mocking, SMART on FHIR launch setup, and all environment variables.
+
+📄 See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for full details.
+
+## Testing
+
+Unit tests use Vitest with React Testing Library, colocated next to the code they test.
+
+```bash
+yarn test           # run once
+yarn test:watch     # watch mode
+yarn test:coverage  # with a coverage report
+```
+
+📄 See [docs/TESTING.md](docs/TESTING.md) for stack details, conventions, and known coverage gaps.
 
 ## Features
 
-- Visualizes FHIR questionnaire responses (mock data for now)
-- Domain centered approach: questionnaire scores are grouped into domains to facilitate better cross-questionnaire comparability
+- Visualizes FHIR questionnaire responses
+- Domain-centered approach: questionnaire scores are grouped into domains to facilitate better cross-questionnaire comparability
 - View responses of multiple different questionnaires simultaneously
 - Export charts as PNG and table data as CSV
 - Date and questionnaire filtering
 - Display reference values in charts
 - Configurable colors and date formats via config files
+- Runs against mock JSON data or as a SMART on FHIR app (EHR launch or standalone patient launch), toggled via `.env`
 
 ## Tech Stack / Built With
 
@@ -70,7 +92,9 @@ If the `yarn dev` command was executed successfully, the console output should l
 - **Styling:** Tailwind CSS, daisyUI
 - **Charting:** ECharts
 - **Package manager:** Yarn
-- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash
+- **Testing:** Vitest, React Testing Library
+- **Mocking:** Mock Service Worker (MSW)
+- **Other libraries:** FontAwesome, react-tooltip, html-to-image, lodash-es, fhirclient
 
 ## License
 

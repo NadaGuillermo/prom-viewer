@@ -4,19 +4,20 @@ import { type IconProp } from "@fortawesome/fontawesome-svg-core";
 interface Props {
   error: string | null;
   heading?: string;
+  message?: string;
   onRetry?: () => void;
 }
 
-const ErrorPage = ({ error, heading, onRetry }: Props) => {
+const ErrorPage = ({ error, heading, message, onRetry }: Props) => {
   const errorMessage = typeof error === 'string' 
     ? error 
     : 'Unknown error occurred';
 
   return (
-    <div className={`tw:fixed tw:inset-0 tw:bg-base-300 tw:flex tw:items-center tw:justify-center tw:p-6 tw:z-10000`}>
+    <div className={`tw:fixed tw:inset-0 tw:bg-base-300 tw:flex tw:items-center tw:justify-center tw:p-4 tw:z-10000`}>
       <div className="tw:max-w-xl tw:w-full tw:text-center">
         {/* Icon */}
-        <div className="tw:text-7xl tw:mb-8 tw:opacity-90">
+        <div className="tw:text-7xl tw:mb-4 tw:opacity-90">
           <FontAwesomeIcon icon={["fas", "triangle-exclamation"] as IconProp} />
         </div>
 
@@ -26,9 +27,9 @@ const ErrorPage = ({ error, heading, onRetry }: Props) => {
         </h1>
 
         {/* Main message */}
-        <p className="tw:text-xl tw:mb-10 tw:leading-relaxed">
-          We couldn't connect to the backend server to retrieve the required data.
-        </p>
+        <p className="tw:text-xl tw:mb-8 tw:leading-relaxed">
+          {message ?? "We couldn't retrieve the required data from the backend server."}
+          </p>
 
         {/* Error details */}
         <div className="tw:bg-base-100 tw:border border-light tw:p-8 tw:mb-8 tw:text-left tw:shadow-sm border-rounded-prominent">
@@ -49,7 +50,7 @@ const ErrorPage = ({ error, heading, onRetry }: Props) => {
         )}
 
         {/* Support info */}
-        <div className="tw:mt-12">
+        <div className="tw:mt-8">
           <p>
             If the problem persists, please contact your IT administrator 
             and provide the error details above.

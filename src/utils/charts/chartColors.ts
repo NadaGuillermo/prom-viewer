@@ -9,11 +9,11 @@ export const chartColorRecord: Record<string, string> = buildChartColorRecord(
   DEFAULT_COLOR_CONFIG.theme,
 );
 
-export const mutedColorPalette: string[] = [
-  ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes.muted,
+export const tolColorPalette: string[] = [
+  ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes.tolMuted,
 ];
 
-export const colorPalette: string[] = [
+export const okabeItoColorPalette: string[] = [
   ...DEFAULT_COLOR_CONFIG.charts.categoricalPalettes.okabeIto,
 ];
 
@@ -24,14 +24,14 @@ export const referenceColors: Colors.ReferenceColors = {
 
 export function applyChartColorConfig(config: Colors.ColorConfig): void {
   Object.assign(chartColorRecord, buildChartColorRecord(config.theme));
-  mutedColorPalette.splice(
+  tolColorPalette.splice(
     0,
-    mutedColorPalette.length,
-    ...config.charts.categoricalPalettes.muted,
+    tolColorPalette.length,
+    ...config.charts.categoricalPalettes.tolMuted,
   );
-  colorPalette.splice(
+  okabeItoColorPalette.splice(
     0,
-    colorPalette.length,
+    okabeItoColorPalette.length,
     ...config.charts.categoricalPalettes.okabeIto,
   );
   referenceColors.line = config.charts.reference.line;

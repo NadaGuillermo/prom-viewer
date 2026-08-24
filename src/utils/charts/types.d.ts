@@ -1,4 +1,4 @@
-import type { ComposeOption, SetOptionOpts } from "echarts/core";
+import type { ComposeOption } from "echarts/core";
 import type {
   BarSeriesOption,
   LineSeriesOption,

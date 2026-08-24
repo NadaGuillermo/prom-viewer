@@ -20,7 +20,7 @@ export default defineConfig([
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
       prettier,
-      react/jsx-runtime,
+      react.configs.flat["jsx-runtime"],
     ],
     languageOptions: {
       ecmaVersion: 2020,
@@ -30,6 +30,11 @@ export default defineConfig([
     plugins: {
       react,
       prettier: pluginPrettier,
+    },
+    settings: {
+      react: {
+        version: "19.2.4",
+      },
     },
     rules: {
       // "prettier/prettier": "error",

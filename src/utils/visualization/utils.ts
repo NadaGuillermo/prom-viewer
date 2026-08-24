@@ -1,34 +1,9 @@
 import type { Visualization } from "./types";
-import { unspecifiedDimension, type Mapping } from "@utils/mapping";
+import { UNSPECIFIED_DOMAIN, UNSPECIFIED_DIMENSION, type Mapping } from "@utils/mapping";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 import { ITEM_TYPES } from "@utils/mapping";
 import { getDateFormatPattern, parseFormattedDate } from "@utils/dateFormat";
-
-export const isScoreSeries = (
-  series: Visualization.DataSeries[],
-  seriesName: string,
-) => {
-  return series.some(
-    (s) => s.name === seriesName || s.shortName === seriesName,
-  );
-};
-
-export const getLabelFromOriginalValueAndDataSeriesName = (
-  yData: Visualization.DataSeries[],
-  originalValue: GlobalTypes.NumberOrNull,
-  seriesName: string,
-) => {
-  const correspondingSeries = yData.find(
-    (series) => series.name === seriesName || series.shortName === seriesName,
-  );
-  // console.log("correspondingSeries: ", correspondingSeries, originalValue);
-  return correspondingSeries
-    ? correspondingSeries.dataLabels[
-        correspondingSeries.originalData.indexOf(originalValue)
-      ]
-    : "";
-};
 
 export const getLabelFromValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],
@@ -125,7 +100,7 @@ export const sortDomains = (
     globalHealthDomains?.includes(domain),
   );
   if (globalDomains.length > 0) {
-    for (let dim of globalDomains) {
+    for (const dim of globalDomains) {
       const index = sortedDomains.indexOf(dim);
       sortedDomains.splice(index, 1);
       sortedDomains.unshift(dim);
@@ -140,7 +115,7 @@ export const sortDomains = (
   // 4. Include domain "Unspecified" for items that were not assigned a domain in the configuration file
   if (addUnspecified) {
     // sortedDimensions.splice(dimensions.indexOf(unspecified), 1);
-    filteredDomains.push(unspecifiedDimension);
+    filteredDomains.push(UNSPECIFIED_DOMAIN);
   }
 
   // 5. Delete duplicates
@@ -148,10 +123,6 @@ export const sortDomains = (
   
   return uniqueDomains;
 };
-
-export const addUnspecifiedDimensionToDomains = (domains: string[]) => {
-  return [...domains, unspecifiedDimension];
-}
 
 // ok
 export const getMinAndMaxAnswerOptionValueForItem = (
@@ -184,7 +155,7 @@ export const getDatesWithinRange = (dates: string[], range: [string, string], da
 }
 
 // ok
-export const sortQuestionnaireResponsesByDate = (
+const sortQuestionnaireResponsesByDate = (
   questionnaireResponses: Mapping.QuestionnaireResponse[],
 ) => {
   return questionnaireResponses.sort((a, b) => {
@@ -271,24 +242,6 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
   return groupedQuestionnaireResponses;
 };
 
-export const calculatePeriodOfObservations = (
-  proms: Record<string, Mapping.QuestionnaireResponse>,
-) => {
-  const questionnaireResponses = Object.values(proms);
-  const years = questionnaireResponses.map((prom) => {
-    return new Date(prom.authored).getFullYear();
-  });
-  const uniqueYears = [...new Set(years)].sort();
-  if (uniqueYears.length < 2) {
-    return [uniqueYears[0].toString()];
-  } else {
-    return [
-      uniqueYears[0].toString(),
-      uniqueYears[uniqueYears.length - 1].toString(),
-    ];
-  }
-};
-
 export const createQuestionnaireDatesRecord = (
    questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
@@ -323,7 +276,7 @@ export const groupQuestionnaireNamesByDate = (
   });
   // console.log("questionnairesByDate: ", questionnairesByDate);
   // sort by key descending (newest first)
-  let sortedQuestionnairesByDate: Record<string, string[]> = {};
+  const sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
     .sort((a, b) => 
      {
@@ -639,29 +592,26 @@ export const extractItemsDataSeries = (
         }  
       }
     });
+    // items without a dimension
+    const dimensionScoreAndItemDataSeries: Visualization.DataSeries[] = [...dimensionScoresDataSeries];
+    Object.values(dimensionItemDataSeriesRecord).forEach((series) => {
+      series.forEach((s) => {
+        dimensionScoreAndItemDataSeries.push(s);
+      });
+    });
+    const itemsWithoutDimensionDataSeries: Visualization.DataSeries[] = _.difference(domainData, dimensionScoreAndItemDataSeries);
+
+    if (itemsWithoutDimensionDataSeries.length > 0) {
+      dimensionItemDataSeriesRecord[UNSPECIFIED_DIMENSION] = itemsWithoutDimensionDataSeries;
+    }
+
     return dimensionItemDataSeriesRecord;
   }
-
-export const createQuestionnaireMostRecentResponseDateRecord = (questionnaireNamesByDate: Record<string, string[]>) => {
-  const questionnaireMostRecentResponseDateRecord: Record<string, string> = {};
-  const sortedDates = Object.keys(questionnaireNamesByDate).sort(
-    (a, b) => {
-    return sortDates(a, b, "descending");
-    });
-  Object.entries(questionnaireNamesByDate).forEach(([date, names]) => {
-    for(let name of names) {
-      const mostRecentDate = sortedDates.find((d) => questionnaireNamesByDate[d].includes(name));
-      if (mostRecentDate !== undefined) {
-        questionnaireMostRecentResponseDateRecord[name] = date;
-      }
-    }
-  });
-  return questionnaireMostRecentResponseDateRecord;
-}
 
 export const createDomainDimensionsRecord = (
   questionnaires: Mapping.Questionnaire[],
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
+  addUnspecifiedDimension = true,
 ) => {
   const domainDimensionsRecord: Record<string, string[]> = {};
   Object.entries(dimensionScoresDataSeriesByDomain).forEach(([domain, dimensionScoresDataSeries]) => {
@@ -679,6 +629,10 @@ export const createDomainDimensionsRecord = (
     }
   );
     const uniqueDimensions = _.uniq(dimensions.filter((dim) => dim !== undefined));
+    // add unspecified dimension
+    if(addUnspecifiedDimension) {
+      uniqueDimensions.push(UNSPECIFIED_DIMENSION);
+    }
     domainDimensionsRecord[domain] = uniqueDimensions;
   });
   return domainDimensionsRecord;

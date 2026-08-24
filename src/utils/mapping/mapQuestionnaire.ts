@@ -1,10 +1,10 @@
-import type { NormalizedFHIR } from "@utils/fhir";
+import type { NormalizedFHIR } from "@utils/normalization";
 import type { Mapping } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
 // import * as _ from "lodash-es";
-import { unspecifiedDimension } from "./constants";
+import { UNSPECIFIED_DOMAIN } from "./constants";
 
-export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
+export const mapQuestionnaire = (
   questionnaire: NormalizedFHIR.Questionnaire,
 ): Errors.Result<Mapping.Questionnaire> => {
   const questionnaireId = questionnaire.id;
@@ -41,8 +41,18 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       };
     });
 
-    if (item.answerOptions?.some((opt) => opt.value !== undefined && isNaN(Number(opt.value)))) {
-      issues.push(issueFactories.questionnaire.invalidItemAnswerOption(questionnaire, linkId, item.answerOptions));
+    if (
+      item.answerOptions?.some(
+        (opt) => opt.value !== undefined && isNaN(Number(opt.value)),
+      )
+    ) {
+      issues.push(
+        issueFactories.questionnaire.invalidItemAnswerOption(
+          questionnaire,
+          linkId,
+          item.answerOptions,
+        ),
+      );
     }
 
     let filteredAnswerOptions: Mapping.AnswerOption[] = [];
@@ -71,9 +81,9 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
 
     items[linkId] = {
       linkId: linkId,
-      domain: unspecifiedDimension,
+      domain: UNSPECIFIED_DOMAIN,
       answerOptions: filteredAnswerOptions,
-      ...(item.text !== undefined && {text: item.text}),
+      ...(item.text !== undefined && { text: item.text }),
       ...(range !== undefined && { range: range }),
       // ...(scoreHealthCorrelation !== undefined && {
       //   scoreHealthCorrelation: scoreHealthCorrelation,
@@ -81,7 +91,9 @@ export const mapNormalizedQuestionnaireToPromDataQuestionnaire = (
       ...(referenceQuestionnaireItems !== undefined && {
         referenceQuestionnaireItems: referenceQuestionnaireItems,
       }),
-      ...(scoreExpression !== undefined && { scoreExpression: scoreExpression }),   
+      ...(scoreExpression !== undefined && {
+        scoreExpression: scoreExpression,
+      }),
     };
   });
 

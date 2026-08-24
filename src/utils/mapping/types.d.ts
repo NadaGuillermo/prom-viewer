@@ -1,5 +1,4 @@
 import { SCORE_HEALTH_CORRELATIONS } from "./constants";
-import type { NormalizedFHIR } from "@utils/fhir";
 
 export namespace Mapping {
   type Answer = number | null;
@@ -12,7 +11,6 @@ export namespace Mapping {
     shortText?: string;
     dimension?: string;
     isDimensionScore?: boolean;
-    thresholds?: number[];
   }
 
   /** Questionnaire */
@@ -25,17 +23,21 @@ export namespace Mapping {
     range: [number, number] | number;
     name: string;
     description?: string;
-  }
+  };
 
   interface QuestionnaireItem extends BaseItem {
     answerOptions: AnswerOption[];
     range?: [number, number];
-    scoreHealthCorrelation?: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
+    scoreHealthCorrelation?:
+      | SCORE_HEALTH_CORRELATIONS.increase
+      | SCORE_HEALTH_CORRELATIONS.decrease;
   }
 
   interface QuestionnaireScoreItem extends BaseItem {
     range: [number, number];
-    scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.increase | SCORE_HEALTH_CORRELATIONS.decrease;
+    scoreHealthCorrelation:
+      | SCORE_HEALTH_CORRELATIONS.increase
+      | SCORE_HEALTH_CORRELATIONS.decrease;
     isDomainScore?: boolean;
     isGlobalScore?: boolean;
     referenceQuestionnaireItems?: string[]; // linkIds
@@ -79,5 +81,13 @@ export namespace Mapping {
     value: Answer;
     questionnaireResponse: string; // QuestionnaireResponse.id
     observationDefinition: string; // ObservationDefinition.url
+  }
+
+  interface Patient {
+    id: string;
+    familyName: string;
+    givenName: string;
+    gender?: string;
+    birthDate?: string;
   }
 }

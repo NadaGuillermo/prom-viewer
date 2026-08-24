@@ -5,6 +5,7 @@ import { Tooltip } from "react-tooltip";
 
 interface Props {
   onClick: () => void;
+  id: string;
   disabled?: boolean;
   label?: string;
   className?: string;
@@ -13,12 +14,13 @@ interface Props {
 
 const DownloadImageButton = ({
   onClick,
+  id,
   disabled = false,
   label = "Save as image",
   tooltipText = "Download",
   className,
 }: Props) => {
-  const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   return (
     <div className={`${className}`}>
       <a data-tooltip-id={id}>

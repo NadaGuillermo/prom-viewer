@@ -1,8 +1,8 @@
-import type { NormalizedFHIR } from "@utils/fhir";
+import type { NormalizedFHIR } from "@utils/normalization";
 import type { Mapping } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
 
-export const mapNormalizedObservationToPromDataObservation = (
+export const mapObservation = (
   observation: NormalizedFHIR.Observation,
 ): Errors.Result<Mapping.Observation> => {
   const issues: Errors.DataIssue[] = [];
@@ -29,7 +29,9 @@ export const mapNormalizedObservationToPromDataObservation = (
   const answerNumber = Number(value);
 
   if (Number.isNaN(answerNumber) || value === null) {
-    issues.push(issueFactories.observation.invalidObservationValue(observation));
+    issues.push(
+      issueFactories.observation.invalidObservationValue(observation),
+    );
   }
 
   return {

@@ -1,5 +1,5 @@
 import * as _ from "lodash-es";
-import { colorPalette } from "@utils/charts";
+import { okabeItoColorPalette } from "@utils/charts";
 import React from "react";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 
 const MappingTable = ({ 
   data,
-  colors = colorPalette,
+  colors = okabeItoColorPalette,
 }: Props) => {
 
   const symbolRecord: Record<string, string> = {

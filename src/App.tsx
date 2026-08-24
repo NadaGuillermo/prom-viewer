@@ -7,6 +7,10 @@ library.add(fas);
 // React packages
 import React, { useState, useEffect } from "react";
 import * as _ from "lodash-es";
+import FHIR from "fhirclient";
+import type Client from "fhirclient/lib/Client";
+import type { Observation, Patient, Questionnaire, QuestionnaireResponse } from "fhir/r4";
+import type { ObservationDefinition } from "@services/fhir/types";
 
 // Components
 import LineChart from "@components/LineChart";
@@ -26,6 +30,7 @@ import NoData from "@components/NoData";
 import LineChartGroup from "@components/LineChartGroup";
 import DownloadImageButton from "@components/DownloadImageButton";
 import DateSlider from "@components/DateSlider";
+import PatientInfo from "@components/PatientInfo";
 
 // Types
 import { type Errors, forwardErrorsToUser } from "@utils/errors";
@@ -45,13 +50,7 @@ import {
 
 // Services
 import { loadConfig } from "@services/loadConfig";
-import {
-  loadFhirQuestionnaires,
-  loadFhirQuestionnaireResponses,
-  loadFhirBundles,
-  loadFhirObservationDefinitions,
-  loadFhirObservations,
-} from "@services/loadFhirData";
+import { getFhirDataSource, loadFhirData } from "@services/fhir";
 
 // Helper functions
 
@@ -61,15 +60,17 @@ import {
   normalizeQuestionnaire,
   normalizeObservation,
   normalizeObservationDefinition,
+  normalizePatient,
   // normalizeBundle,
-} from "@utils/fhir";
+} from "@utils/normalization";
 
 // Mapping
 import {
-  mapNormalizedObservationToPromDataObservation,
-  mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse,
-  mapNormalizedQuestionnaireToPromDataQuestionnaire,
-  mapNormalizedObservationDefinitionToPromDataObservationDefinition,
+  mapObservation,
+  mapQuestionnaireResponse,
+  mapQuestionnaire,
+  mapObservationDefinition,
+  mapPatient,
 } from "@utils/mapping";
 
 // Visualization
@@ -112,10 +113,7 @@ import {
 } from "@utils/config";
 
 // export
-import {
-  buildExportFileName,
-  createAndDownloadCSV,
-} from "@utils/export";
+import { buildExportFileName, createAndDownloadCSV } from "@utils/export";
 import { getDateFormatPattern } from "@utils/dateFormat";
 
 function App() {
@@ -126,19 +124,22 @@ function App() {
     fhirData: false,
   });
   const [fhirError, setFhirError] = useState<string | null>(null);
+  const [smartPatient, setSmartPatient] = useState<Patient | null>(null);
+  const [mockPatient, setMockPatient] = useState<Patient | undefined>(undefined);
+  const [smartLaunchError, setSmartLaunchError] = useState<string | null>(null);
   const [config, setConfig] = useState<Config.PromConfig>();
   const [configError, setConfigError] = useState<string | null>(null);
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
 
   // Data pipeline
-  const [fhirQuestionnaires, setFhirQuestionnaires] = useState<any[]>([]);
+  const [fhirQuestionnaires, setFhirQuestionnaires] = useState<Questionnaire[]>([]);
   const [fhirQuestionnaireResponses, setFhirQuestionnaireResponses] = useState<
-    any[]
+    QuestionnaireResponse[]
   >([]);
   const [fhirObservationDefinitions, setFhirObservationDefinitions] = useState<
-    any[]
+    ObservationDefinition[]
   >([]);
-  const [fhirObservations, setFhirObservations] = useState<any[]>([]);
+  const [fhirObservations, setFhirObservations] = useState<Observation[]>([]);
   const [questionnaires, setQuestionnaires] = useState<Mapping.Questionnaire[]>(
     [],
   );
@@ -153,6 +154,9 @@ function App() {
   const [showItemsForDomain, setShowItemsForDomain] = useState<
     Record<string, boolean>
   >({});
+  const [patient, setPatient] = useState<Mapping.Patient | undefined>(
+    undefined,
+  );
 
   // Data transformation
   const [questionnaireNamesByDate, setQuestionnaireNamesByDate] = useState<
@@ -177,12 +181,12 @@ function App() {
   const [tableDataByQuestionnaire, setTableDataByQuestionnaire] = useState<
     Record<string, Visualization.ChartData>
   >({});
-  const [heatmapDataByDomain, setHeatmapDataByDomain] = useState<
-    Record<string, Visualization.ChartData>
-  >({});
-  const [questionnaireCardData, setQuestionnaireCardData] = useState<
-    Record<string, [string, string[]]>
-  >({});
+  // const [heatmapDataByDomain, setHeatmapDataByDomain] = useState<
+  //   Record<string, Visualization.ChartData>
+  // >({});
+  // const [questionnaireCardData, setQuestionnaireCardData] = useState<
+  //   Record<string, [string, string[]]>
+  // >({});
   // const [
   //   questionnairesWithMostRecentResponseDate,
   //   setQuestionnairesWithMostRecentResponseDate,
@@ -207,12 +211,12 @@ function App() {
   const [dimensionsByDomain, setDimensionsByDomain] = useState<
     Record<string, string[]>
   >({});
-  const [
-    lengthOfLongestQuestionnaireName,
-    setLengthOfLongestQuestionnaireName,
-  ] = useState<number>(0);
-  const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
-    useState<Record<string, Errors.DataIssue[]>>({});
+  // const [
+  //   lengthOfLongestQuestionnaireName,
+  //   setLengthOfLongestQuestionnaireName,
+  // ] = useState<number>(0);
+  // const [itemWarningsByQuestionnaireId, setItemWarningsByQuestionnaireId] =
+  //   useState<Record<string, Errors.DataIssue[]>>({});
   const [
     allDatesOfQuestionnaireResponses,
     setAllDatesOfQuestionnaireResponses,
@@ -227,7 +231,8 @@ function App() {
     Record<string, string[]>
   >({});
   // const [displayedQuestionnaires, setDisplayedQuestionnaires] = useState<Mapping.Questionnaire[]>([]);
-  const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] = useState<Record<string, Mapping.QuestionnaireResponse>>({});
+  const [displayedQuestionnaireResponses, setDisplayedQuestionnaireResponses] =
+    useState<Record<string, Mapping.QuestionnaireResponse>>({});
   const [showErrors, setShowErrors] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
 
@@ -236,9 +241,14 @@ function App() {
     start: "",
     end: "",
   });
-  const [filteredSelectedQuestionnaires, setFilteredSelectedQuestionnaires] = useState<string[]>([]);
-  const [filteredSelectedDates, setFilteredSelectedDates] = useState<string[]>([]);
-  const [inactiveQuestionnaires, setInactiveQuestionnaires] = useState<string[]>([]);
+  const [filteredSelectedQuestionnaires, setFilteredSelectedQuestionnaires] =
+    useState<string[]>([]);
+  const [filteredSelectedDates, setFilteredSelectedDates] = useState<string[]>(
+    [],
+  );
+  const [inactiveQuestionnaires, setInactiveQuestionnaires] = useState<
+    string[]
+  >([]);
   const [inactiveDates, setInactiveDates] = useState<string[]>([]);
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [radarChartDate, setRadarChartDate] = useState<string>("");
@@ -253,65 +263,51 @@ function App() {
     const fetchConfig = async () => {
       try {
         const result = await loadConfig();
-       
+
         setConfig(result);
         setDataLoaded((prev) => ({ ...prev, config: true }));
-        
       } catch (error) {
         console.error("Error fetching config file:", error);
-        setConfigError("Error fetching config file: " + error);
+        setConfigError(error === null ? "Unknown error" : String(error));
       }
     };
 
-    // FHIR Data
-    const loadFhirData = async () => {
+    // FHIR Data: in "smart" mode, complete the SMART launch first and use the
+    // authenticated client + patient id to drive a patient-scoped fetch; in
+    // "mock" mode, load fixtures directly with no SMART round-trip.
+    const fetchFhirData = async () => {
       try {
-        const questionnaires = await loadFhirQuestionnaires();
-        const responses = await loadFhirQuestionnaireResponses();
-        const bundles = await loadFhirBundles();
-        const observationDefinitions = await loadFhirObservationDefinitions();
-        const observations = await loadFhirObservations();
+        let client: Client | undefined;
+        let patientId: string | undefined;
+        if (import.meta.env.VITE_DATA_SOURCE === "smart") {
+          try {
+            client = await FHIR.oauth2.ready();
+            const patient = await client.patient.read();
+            setSmartPatient(patient);
+            patientId = client.patient.id ?? undefined;
+          } catch (error) {
+            console.error("SMART launch error: ", error);
+            setSmartLaunchError(String(error));
+            throw error;
+          }
+        }
 
-        // extract bundles and add to questionnaires and responses
-        let bundleQuestionnaires: any[] = [];
-        let bundleResponses: any[] = [];
-        let bundleObservations: any[] = [];
-        bundles.forEach((bundle) => {
-          const questionnaireEntries = bundle.entry.filter(
-            (entry: any) => entry.resource.resourceType === "Questionnaire",
-          );
-          const responseEntries = bundle.entry.filter(
-            (entry: any) =>
-              entry.resource.resourceType === "QuestionnaireResponse",
-          );
-          const observationEntries = bundle.entry.filter(
-            (entry: any) => entry.resource.resourceType === "Observation",
-          );
-          bundleQuestionnaires.push(
-            ...questionnaireEntries.map((entry: any) => entry.resource),
-          );
-          bundleResponses.push(
-            ...responseEntries.map((entry: any) => entry.resource),
-          );
-          bundleObservations.push(
-            ...observationEntries.map((entry: any) => entry.resource),
-          );
-        });
-
-        // set variables
-        setFhirQuestionnaires([...questionnaires, ...bundleQuestionnaires]);
-        setFhirQuestionnaireResponses([...responses, ...bundleResponses]);
-        setFhirObservations([...observations, ...bundleObservations]);
-        setFhirObservationDefinitions([...observationDefinitions]);
+        const dataSource = getFhirDataSource(client);
+        const result = await loadFhirData(dataSource, patientId);
+        setFhirQuestionnaires(result.questionnaires);
+        setFhirQuestionnaireResponses(result.responses);
+        setFhirObservations(result.observations);
+        setFhirObservationDefinitions(result.observationDefinitions);
+        setMockPatient(result.patient);
         setDataLoaded((prev) => ({ ...prev, fhirData: true }));
       } catch (error) {
         console.error("Error loading FHIR data: ", error);
-        setFhirError("Error loading FHIR data: " + error);
+        setFhirError(error === null ? "Unknown error" : String(error));
       }
     };
 
     fetchConfig();
-    loadFhirData();
+    fetchFhirData();
   }, []);
 
   // Process data through pipeline
@@ -323,9 +319,25 @@ function App() {
     const errors: Errors.DataIssue[] = [];
 
     // only questionnaires and responses that are defined in config file
-    const questionnairesInConfig: string[] = config !== undefined ? extractQuestionnairesFromConfig(config) : [];
+    const questionnairesInConfig: string[] =
+      config !== undefined ? extractQuestionnairesFromConfig(config) : [];
 
     /* ----------------------- Normalize FHIR data ------------------------*/
+    /* Patient */
+    // SMART mode: smartPatient -> patient state. Mock mode: mockPatient (extracted from mock FHIR data) -> patient state.
+    console.log("SMART Patient: ", smartPatient);
+    console.log("Mock Patient: ", mockPatient);
+    const rawFhirPatient =
+      import.meta.env.VITE_DATA_SOURCE === "smart"
+        ? smartPatient !== null
+          ? smartPatient
+          : undefined
+        : mockPatient;
+    const normalizedFhirPatient =
+      rawFhirPatient !== undefined
+        ? normalizePatient(rawFhirPatient)
+        : undefined;
+    console.log("Normalized FHIR Patient: ", normalizedFhirPatient);
     /* Questionnaires */
     const normalizedFhirQuestionnairesResult = fhirQuestionnaires
       .map((questionnaire) => normalizeQuestionnaire(questionnaire))
@@ -416,10 +428,20 @@ function App() {
     );
 
     /* ----------------------- Mapping ------------------------ */
+    /* Patient */
+    const promDataPatientResult =
+      normalizedFhirPatient !== undefined
+        ? mapPatient(normalizedFhirPatient)
+        : undefined;
+    const promDataPatient = promDataPatientResult?.data;
+    const promDataPatientIssues = promDataPatientResult?.issues;
+    if (promDataPatientIssues !== undefined) {
+      errors.push(...promDataPatientIssues);
+    }
+    console.log("Mapping Patient: ", promDataPatient);
     /* Questionnaires */
     const promDataQuestionnairesResult = normalizedFhirQuestionnaires.map(
-      (questionnaire) =>
-        mapNormalizedQuestionnaireToPromDataQuestionnaire(questionnaire),
+      (questionnaire) => mapQuestionnaire(questionnaire),
     );
     const promDataQuestionnaires = promDataQuestionnairesResult.map(
       (questionnaire) => questionnaire.data,
@@ -433,10 +455,7 @@ function App() {
     /* QuestionnaireResponses */
     const questionnaireResponsesResult =
       normalizedFhirQuestionnaireResponses.map((response) =>
-        mapNormalizedQuestionnaireResponseToPromDataQuestionnaireResponse(
-          response,
-          promDataQuestionnaires,
-        ),
+        mapQuestionnaireResponse(response, promDataQuestionnaires),
       );
     const promDataQuestionnaireResponses = questionnaireResponsesResult.map(
       (questionnaireResponse) => questionnaireResponse.data,
@@ -453,9 +472,7 @@ function App() {
 
     /* Observations */
     const promDataObservationsResult = normalizedFhirObservations
-      .map((observation) =>
-        mapNormalizedObservationToPromDataObservation(observation),
-      )
+      .map((observation) => mapObservation(observation))
       .filter((result) =>
         promDataQuestionnaireResponses
           .map((response) => response.id)
@@ -477,17 +494,14 @@ function App() {
 
     /* ObservationDefinitions */
     const promDataObservationDefinitionsResult =
-      normalizedFhirObservationDefinitions
-        .map((observationDefinition) =>
-          mapNormalizedObservationDefinitionToPromDataObservationDefinition(
-            observationDefinition,
-          ),
-        )
-        .filter((result) =>
-          promDataObservations
-            .map((observation) => observation.observationDefinition)
-            .includes(result.data.url),
-        );
+      normalizedFhirObservationDefinitions.map((observationDefinition) =>
+        mapObservationDefinition(observationDefinition),
+      );
+    // .filter((result) =>
+    //   promDataObservations
+    //     .map((observation) => observation.observationDefinition)
+    //     .includes(result.data.url),
+    // );
 
     const promDataObservationDefinitions =
       promDataObservationDefinitionsResult.map(
@@ -530,75 +544,74 @@ function App() {
     /* ----------------------- Add config data ------------------------ */
     /* Questionnaire */
     let promDataQuestionnairesWithConfigurations = promDataQuestionnaires;
-    let promDataQuestionnaireResponsesWithConfigurations = promDataQuestionnaireResponses;
-    let domainsFromConfig: string[] = []
+    let domainsFromConfig: string[] = [];
     if (config !== undefined) {
-    const promDataQuestionnairesWithConfigurationsAndErrorMessages =
-      promDataQuestionnaires.map((questionnaire) => {
-        const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
-        const observations = promDataObservations.filter((obs) => responses.map((res) => res.id).includes(obs.questionnaireResponse));
-        const observationDefinitions = promDataObservationDefinitions.filter((obsDef) => observations.map((obs) => obs.observationDefinition).includes(obsDef.url));
-        return addConfigurationsToQuestionnaire(
-          questionnaire,
-          observationDefinitions,
-          config,
+      const promDataQuestionnairesWithConfigurationsAndErrorMessages =
+        promDataQuestionnaires.map((questionnaire) => {
+          // const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
+          // const observations = promDataObservations.filter((obs) => responses.map((res) => res.id).includes(obs.questionnaireResponse));
+          const observationDefinitions = promDataObservationDefinitions; // .filter((obsDef) => observations.map((obs) => obs.observationDefinition).includes(obsDef.url));
+          return addConfigurationsToQuestionnaire(
+            questionnaire,
+            observationDefinitions,
+            config,
+          );
+        });
+      promDataQuestionnairesWithConfigurations =
+        promDataQuestionnairesWithConfigurationsAndErrorMessages.map(
+          (questionnaire) => questionnaire.data,
         );
-      });
-    promDataQuestionnairesWithConfigurations =
-      promDataQuestionnairesWithConfigurationsAndErrorMessages.map(
-        (questionnaire) => questionnaire.data,
+      const promDataQuestionnaireConfigurationIssues =
+        promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
+          (questionnaire) => questionnaire.issues,
+        );
+      errors.push(...promDataQuestionnaireConfigurationIssues);
+      console.log(
+        "Mapping Questionnaires with Configurations: ",
+        promDataQuestionnairesWithConfigurations,
       );
-    const promDataQuestionnaireConfigurationIssues =
-      promDataQuestionnairesWithConfigurationsAndErrorMessages.flatMap(
-        (questionnaire) => questionnaire.issues,
-      );
-    errors.push(...promDataQuestionnaireConfigurationIssues);
-    console.log(
-      "Mapping Questionnaires with Configurations: ",
-      promDataQuestionnairesWithConfigurations,
-    );
 
-    /* Questionnaire Response */
-    const promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages =
-      promDataQuestionnaireResponses.map((questionnaireResponse) =>
-        addConfigurationsToQuestionnaireResponse(
-          questionnaireResponse,
-          promDataObservations,
-          config,
-        ),
+      /* Questionnaire Response */
+      const promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages =
+        promDataQuestionnaireResponses.map((questionnaireResponse) =>
+          addConfigurationsToQuestionnaireResponse(
+            questionnaireResponse,
+            promDataObservations,
+            config,
+          ),
+        );
+      const promDataQuestionnaireResponsesWithConfigurations =
+        promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
+          (response) => response.data,
+        );
+      const promDataQuestionnaireResponsesConfigurationIssues =
+        promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.flatMap(
+          (response) => response.issues,
+        );
+      errors.push(...promDataQuestionnaireResponsesConfigurationIssues);
+      console.log(
+        "Mapping Questionnaire Responses with Configurations: ",
+        promDataQuestionnaireResponsesWithConfigurations,
       );
-    promDataQuestionnaireResponsesWithConfigurations =
-      promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
-        (response) => response.data,
-      );
-    const promDataQuestionnaireResponsesConfigurationIssues =
-      promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.flatMap(
-        (response) => response.issues,
-      );
-    errors.push(...promDataQuestionnaireResponsesConfigurationIssues);
-    console.log(
-      "Mapping Questionnaire Responses with Configurations: ",
-      promDataQuestionnaireResponsesWithConfigurations,
-    );
 
-    // Domains
-    // const globalHealthDimensionsFromConfig =
-    //   extractGlobalHealthDimensionsFromConfig(config);
-    const domainRecordFromConfig = extractDomainsFromConfig(config);
-    // const domainsFromConfig = Object.keys(domainCountFromConfig);
-    console.log("domains from config: ", domainRecordFromConfig)
-    const globalHealthDomainsFromConfig =
-      extractGlobalHealthDomainsFromConfig(config);
-    console.log(
-      "Global Health Domains from Config: ",
-      globalHealthDomainsFromConfig,
-    );
-    domainsFromConfig = sortDomains(
-      domainRecordFromConfig,
-      globalHealthDomainsFromConfig,
-    );
-    // const domainsWithUnspecifiedDomain = addUnspecifiedDimensionToDomains(domains);
-  }
+      // Domains
+      // const globalHealthDimensionsFromConfig =
+      //   extractGlobalHealthDimensionsFromConfig(config);
+      const domainRecordFromConfig = extractDomainsFromConfig(config);
+      // const domainsFromConfig = Object.keys(domainCountFromConfig);
+      console.log("domains from config: ", domainRecordFromConfig);
+      const globalHealthDomainsFromConfig =
+        extractGlobalHealthDomainsFromConfig(config);
+      console.log(
+        "Global Health Domains from Config: ",
+        globalHealthDomainsFromConfig,
+      );
+      domainsFromConfig = sortDomains(
+        domainRecordFromConfig,
+        globalHealthDomainsFromConfig,
+      );
+      // const domainsWithUnspecifiedDomain = addUnspecifiedDimensionToDomains(domains);
+    }
 
     /* ----------------------- Clean data ------------------------ */
     /* Questionnaire Response */
@@ -673,7 +686,7 @@ function App() {
       errorsForDisplay,
       (error) => error.userMessage,
     );
-    console.log("unique errors: ", uniqueErrors)
+    console.log("unique errors: ", uniqueErrors);
     console.log("Unique Errors for Display: ", uniqueErrorsForDisplay);
 
     /* Questionnaires */
@@ -704,6 +717,7 @@ function App() {
     setSelectedDates(allResponseDates);
     setRadarChartDates(allResponseDates);
     setDateFormatPattern(dateFormat);
+    setPatient(promDataPatient);
     // setDisplayedQuestionnaires(questionnaires);
     // setDisplayedQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
   }, [
@@ -712,6 +726,9 @@ function App() {
     fhirObservationDefinitions,
     fhirObservations,
     dataLoaded,
+    smartPatient,
+    mockPatient,
+    config,
   ]);
 
   // Data visualization
@@ -1002,22 +1019,44 @@ function App() {
     //   questionnaireResponses,
     // );
 
-    const datesByQuestionnaire = createQuestionnaireDatesRecord(questionnaireResponses);
+    const datesByQuestionnaire = createQuestionnaireDatesRecord(
+      questionnaireResponses,
+    );
 
-    const filteredDates = dateRange.start !== "" && dateRange.end !== "" ? getDatesWithinRange(selectedDates, [dateRange.start, dateRange.end]) : selectedDates;
-    const filteredQuestionnaires = Object.entries(datesByQuestionnaire).filter(([_, dates]) => 
-      dates.some((d) => filteredDates.includes(d))
-      ).map(([qId, _]) => qId);
-    const filteredSelectedQuestionnaires = _.intersection(selectedQuestionnaires, filteredQuestionnaires);
-    const filteredSelectedDates = filteredDates.filter((d) => filteredSelectedQuestionnaires.some((q) => datesByQuestionnaire[q].includes(d)));
+    const filteredDates =
+      dateRange.start !== "" && dateRange.end !== ""
+        ? getDatesWithinRange(selectedDates, [dateRange.start, dateRange.end])
+        : selectedDates;
+    const filteredQuestionnaires = Object.entries(datesByQuestionnaire)
+      .filter(([, dates]) => dates.some((d) => filteredDates.includes(d)))
+      .map(([qId,]) => qId);
+    const filteredSelectedQuestionnaires = _.intersection(
+      selectedQuestionnaires,
+      filteredQuestionnaires,
+    );
+    const filteredSelectedDates = filteredDates.filter((d) =>
+      filteredSelectedQuestionnaires.some((q) =>
+        datesByQuestionnaire[q].includes(d),
+      ),
+    );
     const inactiveDates = _.difference(selectedDates, filteredSelectedDates);
-    const inactiveQuestionnaires = _.difference(selectedQuestionnaires, filteredSelectedQuestionnaires);
-    
-    const datesOfSelectedQuestionnaires = _.uniq(Object.entries(datesByQuestionnaire).filter(([qId, _]) => 
-      filteredSelectedQuestionnaires.includes(qId)
-    ).flatMap(([_, dates]) => dates));
-    const datesForRadarChart = _.intersection(datesOfSelectedQuestionnaires, filteredSelectedDates).sort((a, b) => sortDates(a, b, "ascending"));
-    const dateForRadarChart = datesForRadarChart.includes(radarChartDate) ? radarChartDate : datesForRadarChart[datesForRadarChart.length - 1];
+    const inactiveQuestionnaires = _.difference(
+      selectedQuestionnaires,
+      filteredSelectedQuestionnaires,
+    );
+
+    const datesOfSelectedQuestionnaires = _.uniq(
+      Object.entries(datesByQuestionnaire)
+        .filter(([qId,]) => filteredSelectedQuestionnaires.includes(qId))
+        .flatMap(([, dates]) => dates),
+    );
+    const datesForRadarChart = _.intersection(
+      datesOfSelectedQuestionnaires,
+      filteredSelectedDates,
+    ).sort((a, b) => sortDates(a, b, "ascending"));
+    const dateForRadarChart = datesForRadarChart.includes(radarChartDate)
+      ? radarChartDate
+      : datesForRadarChart[datesForRadarChart.length - 1];
 
     // set variables
     // setDisplayedQuestionnaires(questionnairesForChart);
@@ -1028,12 +1067,12 @@ function App() {
     setGlobalScoresDataSeries(globalScoresDataSeries);
     setDimensionScoresDataSeriesByDomain(dimensionScoresDataSeriesByDomain);
     setItemDataSeriesByDomainAndDimension(domainDimensionItemsDataSeriesRecord);
-    setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
+    // setLengthOfLongestQuestionnaireName(lengthOfLongestQuestionnaireName);
     setQuestionnaireNamesByDate(questionnaireNamesByDate);
-    setHeatmapDataByDomain(heatmapDataByDomain);
+    // setHeatmapDataByDomain(heatmapDataByDomain);
     setTableDataByQuestionnaire(tableDataByQuestionnaire);
-    setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
-    setQuestionnaireCardData(questionnaireCardData);
+    // setItemWarningsByQuestionnaireId(itemWarningsByQuestionnaireId);
+    // setQuestionnaireCardData(questionnaireCardData);
     setSelectedDimensionsByDomain(selectedDimensionsByDomain);
     setShowItemsForDomain(showItemsFlagByDomain);
     setDimensionsWithQuestionnaireByDomain(
@@ -1063,15 +1102,15 @@ function App() {
     selectedQuestionnaires,
     dateRange,
     selectedDates,
+    radarChartDate
   ]);
 
   useEffect(() => {
-    const isFilterActive = Object.keys(displayedQuestionnaireResponses).length !== Object.keys(questionnaireResponses).length;
+    const isFilterActive =
+      Object.keys(displayedQuestionnaireResponses).length !==
+      Object.keys(questionnaireResponses).length;
     setIsFilterActive(isFilterActive);
-  }, [
-    displayedQuestionnaireResponses,
-    questionnaireResponses,
-  ]);
+  }, [displayedQuestionnaireResponses, questionnaireResponses]);
 
   // Handlers
 
@@ -1145,7 +1184,7 @@ function App() {
     setSelectedDates((prev) => {
       const index = prev.indexOf(date);
       if (index === -1) {
-        return [...prev, date].sort((a, b,) => sortDates(a, b, "ascending"));
+        return [...prev, date].sort((a, b) => sortDates(a, b, "ascending"));
       } else {
         return prev.filter((d) => d !== date);
       }
@@ -1207,32 +1246,35 @@ function App() {
     setDateValue(target.value);
   };
 
-  const selectDateForRadarChart = (date: string, dates: string[], direction: "previous" | "next") => {
-  console.log("in selectDate: ", date, direction)
-  let newDate: string = "";
-  if (direction === "previous") {
-    const index = dates.indexOf(date);
-    if (index > -1) {
-      if (index === 0) {
-        newDate = dates[index];
-      } else {
-        newDate = dates[index - 1];
+  const selectDateForRadarChart = (
+    date: string,
+    dates: string[],
+    direction: "previous" | "next",
+  ) => {
+    console.log("in selectDate: ", date, direction);
+    let newDate: string = "";
+    if (direction === "previous") {
+      const index = dates.indexOf(date);
+      if (index > -1) {
+        if (index === 0) {
+          newDate = dates[index];
+        } else {
+          newDate = dates[index - 1];
+        }
+      }
+    } else {
+      const index = dates.indexOf(date);
+      if (index > -1) {
+        if (index === dates.length - 1) {
+          newDate = dates[index];
+        } else {
+          newDate = dates[index + 1];
+        }
       }
     }
-  } else {
-    const index = dates.indexOf(date);
-    if (index > - 1 ) {
-      if (index === dates.length - 1) {
-        newDate = dates[index];
-      } else {
-        newDate = dates[index + 1];
-      }
-    }
-  }
-  console.log("new Date: ", newDate)
-  setRadarChartDate(newDate);
-}
-
+    console.log("new Date: ", newDate);
+    setRadarChartDate(newDate);
+  };
 
   const toggleShowSidebar = () => {
     setShowSidebar((prev) => !prev);
@@ -1246,8 +1288,9 @@ function App() {
   if (configError)
     return (
       <ErrorPage
-        error={fhirError}
+        error={configError}
         heading={"Failed to load configuration file"}
+        message="We couldn&apos;t retrieve a configuration file from the server or it is invalid."
         onRetry={retryLoading}
       />
     );
@@ -1256,9 +1299,20 @@ function App() {
       <ErrorPage
         error={fhirError}
         heading={"Failed to load FHIR data"}
+        message="We couldn&apos;t retrieve any FHIR resources from the server."
         onRetry={retryLoading}
       />
     );
+  if (import.meta.env.VITE_DATA_SOURCE === "smart" && smartLaunchError)
+    return (
+      <ErrorPage
+        error={smartLaunchError}
+        heading={"SMART launch failed"}
+        message={"Launching the app in SMART mode failed. Please check your SMART launch configuration."}
+        onRetry={retryLoading}
+      />
+    );
+
   if (!dataLoaded.config || !dataLoaded.fhirData)
     return <DataLoadingScreen message="Loading" animation="spinner" />;
 
@@ -1270,12 +1324,11 @@ function App() {
     <div className="tw:@container">
       {/* <div className="tw:min-h-screen"> */}
       <main>
-            <div className="tw:lg:hidden">
-              
-                <label
-                  htmlFor="filter-drawer"
-                  data-tooltip-id="filters"
-                  className={`tw:btn tw:bg-base-300 tw:rounded-none tw:border-none tw:text-accent 
+        <div className="tw:lg:hidden">
+          <label
+            htmlFor="filter-drawer"
+            data-tooltip-id="filters"
+            className={`tw:btn tw:bg-base-300 tw:rounded-none tw:border-none tw:text-accent 
                     tw:text-md
                     tw:flex tw:items-center tw:justify-center
                     tw:h-11 tw:w-11
@@ -1284,35 +1337,41 @@ function App() {
                     tw:top-0 tw:right-0
                     tw:hover:text-base-content                     
                   `}
-                >
-                  {/* <span>Filters</span> */}
+          >
+            {/* <span>Filters</span> */}
+            {isFilterActive ? (
+              <span aria-label="Show filters, some filters are active">
+                <FontAwesomeIcon
+                  icon={["fas", "filter-circle-xmark"] as IconProp}
+                />
+              </span>
+            ) : (
+              <span aria-label="Show filters">
+                <FontAwesomeIcon icon={["fas", "filter"] as IconProp} />
+              </span>
+            )}
+          </label>
+
+          <Portal>
+            <Tooltip
+              id="filters"
+              opacity={1}
+              className="custom-tooltip tooltip-light tw:z-10"
+              place="left"
+              positionStrategy="fixed"
+            >
+              <div className={`${isFilterActive ? "tw:w-44" : "tw:w-24"}`}>
+                <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">
                   {isFilterActive ? (
-                  <span aria-label="Show filters, some filters are active"><FontAwesomeIcon icon={["fas", "filter-circle-xmark"] as IconProp} /></span>                    
-                  ): 
-                  <span aria-label="Show filters"><FontAwesomeIcon icon={["fas", "filter"] as IconProp} /></span>                    
-                  }
-                </label>
-              
-              <Portal>
-                <Tooltip
-                  id="filters"
-                  opacity={1}
-                  className="custom-tooltip tooltip-light tw:z-10"
-                  place="left"
-                  positionStrategy="fixed"
-                >
-                  <div className={`${isFilterActive ? "tw:w-44" : "tw:w-24"}`}>
-                    <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">
-                        {isFilterActive ? 
-                          <span>Show filters, some are active</span>
-                        :
-                        <span>Show filters</span>
-                        }
-                    </div>
-                  </div>
-                </Tooltip>
-              </Portal>
-                  </div>
+                    <span>Show filters, some are active</span>
+                  ) : (
+                    <span>Show filters</span>
+                  )}
+                </div>
+              </div>
+            </Tooltip>
+          </Portal>
+        </div>
         <div className={`tw:drawer tw:drawer-end tw:lg:drawer-open`}>
           <input
             id="filter-drawer"
@@ -1329,13 +1388,42 @@ function App() {
             <section className="tw:bg-base-100">
               {/* <div className="tw:max-w-screen tw:xl:max-w-9/10 tw:mx-auto tw:h-full tw:justify-center tw:px-6"> */}
               <div className="layout tw:flex tw:flex-col tw:items-center tw:justify-center tw:text-base-content tw:min-h-screen">
+                {patient !== undefined && (
+                  <>
+                    <div className="section tw:pb-4! tw:border-b border-medium">
+                      <PatientInfo patient={patient} />
+                    </div>
+                    {/* <div className="tw:divider divider-border-medium tw:opacity-60 tw:m-0"></div> */}
+                  </>
+                )}
                 <div className="section">
                   <h1>Overview</h1>
+                  <div className="tw:flex tw:justify-start tw:pb-2 tw:pl-2">
+                              <div data-tooltip-id="overview-table-info">
+                                <div className="tw:text-sm tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral">
+                                  About this Diagram
+                                </div>
+                              </div>
+                              <Portal>
+                                <Tooltip
+                                  id="overview-table-info"
+                                  opacity={1}
+                                  className="custom-tooltip tooltip-base"
+                                >
+                                  <div className="tw:w-64">
+                                    <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
+                                      <p>
+                                        The table shows for every questionnaire (rows) at which time points (columns) it was completed. 
+                                        A dot in the respective cell indicates a completed questionnaire at that time point. 
+                                      </p>
+                                    </div>
+                                  </div>
+                                </Tooltip>
+                              </Portal>
+                            </div>
                   <div className="tw:flex tw:justify-start">
                     {questionnaireNamesByDate && (
-                      <GridTable
-                        data={questionnaireNamesByDate}
-                      />
+                      <GridTable data={questionnaireNamesByDate} />
                     )}
                   </div>
                   {dataIssuesForUser.length > 0 && (
@@ -1380,39 +1468,42 @@ function App() {
                     <div className="tw:pt-4">
                       <Collapse
                         title="Domain-to-Dimension Mapping"
-                        children={
+                        constrainWidth={true}>
                           <>
-                            <div className="tw:flex tw:justify-start tw:pb-4">                              
+                            <div className="tw:flex tw:justify-start tw:pb-4">
                               <div data-tooltip-id="mapping-info">
-                                <div
-                                className="tw:text-sm tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral"                                
-                                >
+                                <div className="tw:text-sm tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral">
                                   About this Diagram
                                 </div>
                               </div>
-                              <Portal>                    
-                              <Tooltip id="mapping-info" opacity={1} className="custom-tooltip tooltip-base"> 
-                                <div className="tw:w-64">
-                                  <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
-                                    <p>
-                                      This grid shows how{" "}
-                                      {
-                                        Object.keys(
-                                          dimensionsWithQuestionnaireByDomain,
-                                        ).length
-                                      }{" "}
-                                      domains (left) map to their
-                                      corresponding questionnaire scores
-                                      (right). 
-                                    </p>
-                                    <p>Greek letters indicate the
-                                      source questionnaire for each score
-                                      (see legend at the bottom).
-                                    </p>
+                              <Portal>
+                                <Tooltip
+                                  id="mapping-info"
+                                  opacity={1}
+                                  className="custom-tooltip tooltip-base"
+                                >
+                                  <div className="tw:w-64">
+                                    <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
+                                      <p>
+                                        This grid shows how{" "}
+                                        {
+                                          Object.keys(
+                                            dimensionsWithQuestionnaireByDomain,
+                                          ).length
+                                        }{" "}
+                                        domains (left) map to their
+                                        corresponding questionnaire scores
+                                        (right).
+                                      </p>
+                                      <p>
+                                        Greek letters indicate the source
+                                        questionnaire for each score (see legend
+                                        at the bottom).
+                                      </p>
+                                    </div>
                                   </div>
-                                </div>  
-                              </Tooltip>
-                              </Portal>                                               
+                                </Tooltip>
+                              </Portal>
                             </div>
                             <div className="tw:py-4">
                               <MappingTable
@@ -1420,9 +1511,7 @@ function App() {
                               />
                             </div>
                           </>
-                        }
-                        constrainWidth={true}
-                      />
+                      </Collapse>
                     </div>
                   )}
                   {/* <div className="tw:pt-2 tw:lg:hidden">
@@ -1449,8 +1538,10 @@ function App() {
                         <div className="tw:flex tw:justify-center tw:md:px-8 tw:lg:px-0">
                           <Collapse
                             title={`Explanation`}
-                            children={
-                              <>
+                            constrainWidth={true}
+                            name={"Domains Radar"}
+                          >
+                            <>
                                 <div className="tw:text-sm">
                                   <p className="h5">About this Diagram</p>
                                   <p>
@@ -1463,7 +1554,8 @@ function App() {
                                       ).length
                                     }{" "}
                                     domains per response date. Each axis
-                                    represents one domain. Use the arrows below to switch between dates.
+                                    represents one domain. Use the arrows below
+                                    to switch between dates.
                                   </p>
                                   <p className="h5">The Polygons</p>
                                   <p>
@@ -1493,8 +1585,9 @@ function App() {
                                     </li>
                                     <li>
                                       <span className="tw:italic">
-                                        Note: The (darker) shaded polygon will always sit
-                                        inside or match the thick line polygon.
+                                        Note: The (darker) shaded polygon will
+                                        always sit inside or match the thick
+                                        line polygon.
                                       </span>
                                     </li>
                                   </ul>
@@ -1527,64 +1620,71 @@ function App() {
                                   </ul>
                                 </div>
                               </>
-                            }
-                            constrainWidth={true}
-                            name={"Domains Radar"}
-                          />
+                              </Collapse>
                         </div>
                       )}
                     </div>
                     <div className="tw:row-start-6 tw:lg:row-start-2 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:flex tw:justify-start tw:lg:justify-center">
                       <div className="tw:md:px-8 tw:lg:px-0">
                         <div data-tooltip-id="global-scores-explanation">
-                                <div className="tw:text-md tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral">
-                                  About this Diagram
-                                </div>
-                              </div>
-                              <Portal>                                              
-                              <Tooltip id="global-scores-explanation" opacity={1} className="custom-tooltip tooltip-base"> 
-                                <div className="tw:w-64">
-                                  <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
-                                    <p>
+                          <div className="tw:text-md tw:hover:text-base-content tw:select-none tw:font-semibold tw:tracking-normal tw:text-neutral">
+                            About this Diagram
+                          </div>
+                        </div>
+                        <Portal>
+                          <Tooltip
+                            id="global-scores-explanation"
+                            opacity={1}
+                            className="custom-tooltip tooltip-base"
+                          >
+                            <div className="tw:w-64">
+                              <div className="tw:text-sm tw:text-left tw:whitespace-normal tw:break-normal">
+                                <p>
                                   This chart shows the progress over time of
                                   those scores which represent global or overall
-                                  health of the patient. 
+                                  health of the patient.
                                 </p>
-                                <p>
-                                  Negative scores are displayed as 0.
-                                </p>
-                                  </div>
-                                </div>  
-                              </Tooltip>                              
-                              </Portal> 
+                                <p>Negative scores are displayed as 0.</p>
+                              </div>
+                            </div>
+                          </Tooltip>
+                        </Portal>
                       </div>
                     </div>
-                    
-                      
-                          <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                            {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
-                      displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 && 
-                      radarChartDates.length > 0 && radarChartDate && radarChartDate.length > 0 && (
+
+                    <div className="tw:row-start-3 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
+                      {dimensionScoresDataSeriesByDomain &&
+                        Object.keys(dimensionScoresDataSeriesByDomain).length >
+                          0 &&
+                        displayedQuestionnaireResponses &&
+                        Object.keys(displayedQuestionnaireResponses).length >
+                          0 &&
+                        radarChartDates.length > 0 &&
+                        radarChartDate &&
+                        radarChartDate.length > 0 && (
                           <div className="tw:flex tw:justify-center tw:pt-4">
                             <DateSlider
-                            dates={radarChartDates}
-                            selectedDate={radarChartDate}
-                            changeDate={selectDateForRadarChart}
+                              dates={radarChartDates}
+                              selectedDate={radarChartDate}
+                              changeDate={selectDateForRadarChart}
                             />
                           </div>
-                          )
-                          }
-                          </div>
-                        
-                          
+                        )}
+                    </div>
+
                     <div className="tw:row-start-4 tw:lg:col-span-3 tw:lg:px-4 tw:2xl:col-span-2">
-                      {dimensionScoresDataSeriesByDomain && Object.keys(dimensionScoresDataSeriesByDomain).length > 0 &&
-                      displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 &&
-                      radarChartDate && radarChartDate.length > 0
-                         ? (
-                          <>
+                      {dimensionScoresDataSeriesByDomain &&
+                      Object.keys(dimensionScoresDataSeriesByDomain).length >
+                        0 &&
+                      displayedQuestionnaireResponses &&
+                      Object.keys(displayedQuestionnaireResponses).length > 0 &&
+                      radarChartDate &&
+                      radarChartDate.length > 0 ? (
+                        <>
                           <div className="tw:flex tw:justify-center">
                             <RadarChart
+                              id="domains-radar-chart"
+                              height={400}
                               data={dimensionScoresDataSeriesByDomain}
                               dates={chartXData}
                               date={radarChartDate}
@@ -1598,22 +1698,25 @@ function App() {
                               exportFileName="Domains Radar"
                             />
                           </div>
-                          </>
-                        ) : 
-                        <NoData 
+                        </>
+                      ) : (
+                        <NoData
                           title="No Data Found"
                           message="No data could be found for this visualization. Please try to adjust your filters. 
                           If this does not help, it is possible that there are no domains or dimension scores defined for the selected questionnaires."
-                          action={{label: "Reset Filters", onClick: () => resetFilters()}}
-                          />
-                          
-                        }
+                          action={{
+                            label: "Reset Filters",
+                            onClick: () => resetFilters(),
+                          }}
+                        />
+                      )}
                     </div>
                     <div className="tw:row-start-7 tw:lg:row-start-4 tw:lg:col-start-4 tw:lg:col-span-4 tw:lg:px-4 tw:2xl:col-span-3 tw:2xl:col-start-3">
                       {globalScoresDataSeries.length > 0 ? (
                         <>
                           <div className="tw:flex tw:justify-center tw:overflow-visible">
                             <LineChart
+                              id="global-scores-line-chart"
                               height={400}
                               data={{
                                 xData: chartXData,
@@ -1632,110 +1735,126 @@ function App() {
                             />
                           </div>
                         </>
-                      ) :
-                      <NoData
-                        title = "No Global Health Scores Available"
-                        message="No data could be found for this visualization. Please try to adjust your filters. 
+                      ) : (
+                        <NoData
+                          title="No Global Health Scores Available"
+                          message="No data could be found for this visualization. Please try to adjust your filters. 
                         If this does not help, it is possible that there are no global health scores defined for the selected questionnaires."
-                        action={{label: "Reset Filters", onClick: () => resetFilters()}}
+                          action={{
+                            label: "Reset Filters",
+                            onClick: () => resetFilters(),
+                          }}
                         />
-                      }
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="section">
                   <h1>Selected PROs by Domain</h1>
-                  {domainsForChart.length > 0 && displayedQuestionnaireResponses && Object.keys(displayedQuestionnaireResponses).length > 0 ? (
+                  {domainsForChart.length > 0 &&
+                  displayedQuestionnaireResponses &&
+                  Object.keys(displayedQuestionnaireResponses).length > 0 ? (
                     <>
-                  <div>
-                    <p>
-                      Please select one or more domains to view the scores
-                      belonging to them.
-                    </p>
-                  </div>
-                  <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
-                    {domainsForChart.map(
-                      (domain) =>
-                        dimensionScoresDataSeriesByDomain[domain] && dimensionScoresDataSeriesByDomain[domain].length >
-                          0 && (
-                          <label key={domain} className={`tw:label ${selectedDomains.includes(domain) ? "tw:text-base-content" : "tw:text-neutral"}`}>
-                            <input
-                              type="checkbox"
-                              checked={selectedDomains.includes(domain)}
-                              onChange={() => handleDomainSelection(domain)}
-                              className="tw:checkbox tw:checkbox-md tw:shadow-none border-rounded"
-                            />
-                            {domain}
-                          </label>
-                        ),
-                    )}
-                  </div>
-                  {domainsForChart.length > 1 && (
-                    <div className="tw:py-2">
-                      <button
-                        className="tw:btn button-neutral"
-                        onClick={() => selectAllDomains(domainsForChart)}
-                      >
-                        Select all
-                      </button>
-                    </div>
-                  )}
-                  {selectedDomains.map(
-                    (domain) =>
-                      dimensionScoresDataSeriesByDomain[domain] && dimensionScoresDataSeriesByDomain[domain].length > 0 && (
-                        <React.Fragment key={domain}>
-                          <h3>{domain}</h3>
-                          <LineChartGroup
-                            name={domain}
-                            hasReferenceValues={dimensionScoresDataSeriesByDomain[
-                              domain
-                            ].some(
-                              (series) =>
-                                (series.referenceValues?.length ?? 0) > 0,
-                            )}
+                      <div>
+                        <p>
+                          Please select one or more domains to view the scores
+                          belonging to them.
+                        </p>
+                      </div>
+                      <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
+                        {domainsForChart.map(
+                          (domain) =>
+                            dimensionScoresDataSeriesByDomain[domain] &&
+                            dimensionScoresDataSeriesByDomain[domain].length >
+                              0 && (
+                              <label
+                                key={domain}
+                                className={`tw:label ${selectedDomains.includes(domain) ? "tw:text-base-content" : "tw:text-neutral"}`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedDomains.includes(domain)}
+                                  onChange={() => handleDomainSelection(domain)}
+                                  className="tw:checkbox tw:checkbox-md tw:shadow-none border-rounded"
+                                />
+                                {domain}
+                              </label>
+                            ),
+                        )}
+                      </div>
+                      {domainsForChart.length > 1 && (
+                        <div className="tw:py-2">
+                          <button
+                            className="tw:btn button-neutral"
+                            onClick={() => selectAllDomains(domainsForChart)}
                           >
-                          <div className="tw:overflow-visible">
-                            <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
-                              {dimensionScoresDataSeriesByDomain[domain].map(
-                                (dataSeries, index) => (
-                                  <React.Fragment key={dataSeries.id}>
-                                    {/* cell with y axis */}
-                                    <div
-                                      className={`tw:col-span-1 
+                            Select all
+                          </button>
+                        </div>
+                      )}
+                      {selectedDomains.map(
+                        (domain) =>
+                          dimensionScoresDataSeriesByDomain[domain] &&
+                          dimensionScoresDataSeriesByDomain[domain].length >
+                            0 && (
+                            <React.Fragment key={domain}>
+                              <h3>{domain}</h3>
+                              <LineChartGroup
+                                name={domain}
+                                id={domain + Math.random().toString(36).substring(2, 9)}
+                                hasReferenceValues={dimensionScoresDataSeriesByDomain[
+                                  domain
+                                ].some(
+                                  (series) =>
+                                    (series.referenceValues?.length ?? 0) > 0,
+                                )}
+                              >
+                                <div className="tw:overflow-visible">
+                                  <div className="tw:grid tw:grid-cols-5 tw:md:grid-cols-9 tw:xl:grid-cols-11 tw:2xl:grid-cols-13 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
+                                    {dimensionScoresDataSeriesByDomain[
+                                      domain
+                                    ].map((dataSeries, index) => (
+                                      <React.Fragment key={dataSeries.id}>
+                                        {/* cell with y axis */}
+                                        <div
+                                          className={`tw:col-span-1 
                               ${index % 2 === 1 ? "tw:md:hidden" : ""}
                               tw:h-25`}
-                                    >
-                                      <LineChart
-                                        data={{
-                                          xData: [""],
-                                          yData: [createPseudoDataSeries(0)],
-                                        }}
-                                        height={100}
-                                        minMaxYLabels={["Worst", "Best"]}
-                                        minMaxYValues={[-0.15, 1.55]}
-                                        minMaxYValuesPosition={[0, 1]}
-                                        titleOptions={
-                                          justYAxisLineChartOptions.title
-                                        }
-                                        legendOptions={
-                                          justYAxisLineChartOptions.legend
-                                        }
-                                        gridOptions={
-                                          justYAxisLineChartOptions.grid
-                                        }
-                                        xAxisOptions={
-                                          justYAxisLineChartOptions.xAxis
-                                        }
-                                        yAxisOptions={
-                                          justYAxisLineChartOptions.yAxis
-                                        }
-                                        tooltipOptions={
-                                          justYAxisLineChartOptions.tooltip
-                                        }
-                                      />
-                                    </div>
-                                    <div
-                                      className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
+                                        >
+                                          <LineChart
+                                            id={domain + "-yaxis-" + dataSeries.id}
+                                            data={{
+                                              xData: [""],
+                                              yData: [
+                                                createPseudoDataSeries(0),
+                                              ],
+                                            }}
+                                            height={100}
+                                            minMaxYLabels={["Worst", "Best"]}
+                                            minMaxYValues={[-0.15, 1.55]}
+                                            minMaxYValuesPosition={[0, 1]}
+                                            titleOptions={
+                                              justYAxisLineChartOptions.title
+                                            }
+                                            legendOptions={
+                                              justYAxisLineChartOptions.legend
+                                            }
+                                            gridOptions={
+                                              justYAxisLineChartOptions.grid
+                                            }
+                                            xAxisOptions={
+                                              justYAxisLineChartOptions.xAxis
+                                            }
+                                            yAxisOptions={
+                                              justYAxisLineChartOptions.yAxis
+                                            }
+                                            tooltipOptions={
+                                              justYAxisLineChartOptions.tooltip
+                                            }
+                                          />
+                                        </div>
+                                        <div
+                                          className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
                                       ${index % 2 === 0 ? "tw:col-start-2 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2" : ""} 
                                       tw:border-l tw:border-r tw:border-b border-light
                                       ${index % 2 === 0 && dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:md:border-r-0" : ""}
@@ -1743,440 +1862,529 @@ function App() {
                                       ${index === 1 ? "tw:md:border-t" : ""} 
                                       tw:h-25
                                     `}
-                                    >
-                                      {/* cell with dimension score */}
-                                      <LineChart
-                                        key={domain + "-" + dataSeries.id}
-                                        data={{
-                                          xData: chartXData,
-                                          yData: [dataSeries],
-                                        }}
-                                        // title={domain}
-                                        height={100}
-                                        minMaxYValues={[-0.15, 1.55]}
-                                        minMaxYValuesPosition={[0, 1]}
-                                        titleOptions={
-                                          groupedLineChartOptions.title
-                                        }
-                                        legendOptions={
-                                          groupedLineChartOptions.legend
-                                        }
-                                        gridOptions={
-                                          groupedLineChartOptions.grid
-                                        }
-                                        xAxisOptions={
-                                          groupedLineChartOptions.xAxis
-                                        }
-                                        yAxisOptions={
-                                          groupedLineChartOptions.yAxis
-                                        }
-                                        tooltipOptions={
-                                          groupedLineChartOptions.tooltip
-                                        }
-                                        lineOption={
-                                          groupedLineChartOptions.series
-                                        }
-                                        markAreaOptions={
-                                          groupedLineChartOptions.markArea
-                                        }
-                                        markLineOptions={
-                                          groupedLineChartOptions.markLine
-                                        }
-                                      />
-                                    </div>
-                                  </React.Fragment>
-                                ),
-                              )}
-                              {dimensionScoresDataSeriesByDomain[domain]
-                                .length > 0 &&
-                                dimensionScoresDataSeriesByDomain[domain]
-                                  .length %
-                                  2 ===
-                                  1 && (
-                                  <div
-                                    className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
+                                        >
+                                          {/* cell with dimension score */}
+                                          <LineChart
+                                            id={domain + "-" + dataSeries.id}
+                                            key={domain + "-" + dataSeries.id}
+                                            data={{
+                                              xData: chartXData,
+                                              yData: [dataSeries],
+                                            }}
+                                            // title={domain}
+                                            height={100}
+                                            minMaxYValues={[-0.15, 1.55]}
+                                            minMaxYValuesPosition={[0, 1]}
+                                            titleOptions={
+                                              groupedLineChartOptions.title
+                                            }
+                                            legendOptions={
+                                              groupedLineChartOptions.legend
+                                            }
+                                            gridOptions={
+                                              groupedLineChartOptions.grid
+                                            }
+                                            xAxisOptions={
+                                              groupedLineChartOptions.xAxis
+                                            }
+                                            yAxisOptions={
+                                              groupedLineChartOptions.yAxis
+                                            }
+                                            tooltipOptions={
+                                              groupedLineChartOptions.tooltip
+                                            }
+                                            lineOption={
+                                              groupedLineChartOptions.series
+                                            }
+                                            markAreaOptions={
+                                              groupedLineChartOptions.markArea
+                                            }
+                                            markLineOptions={
+                                              groupedLineChartOptions.markLine
+                                            }
+                                          />
+                                        </div>
+                                      </React.Fragment>
+                                    ))}
+                                    {dimensionScoresDataSeriesByDomain[domain]
+                                      .length > 0 &&
+                                      dimensionScoresDataSeriesByDomain[domain]
+                                        .length %
+                                        2 ===
+                                        1 && (
+                                        <div
+                                          className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6
                                     ${dimensionScoresDataSeriesByDomain[domain].length > 1 ? "tw:border tw:border-b tw:border-l tw:border-r border-light" : ""} 
                                     tw:hidden tw:md:block
                                     tw:h-25`}
-                                  >
-                                    {/* empty data cell if number of dimensions is odd */}
-                                    <LineChart
-                                      data={{
-                                        xData: chartXData,
-                                        yData: [
-                                          createPseudoDataSeries(
-                                            chartXData.length,
-                                          ),
-                                        ],
-                                      }}
-                                      height={100}
-                                      titleOptions={emptyLineChartOptions.title}
-                                      legendOptions={
-                                        emptyLineChartOptions.legend
-                                      }
-                                      gridOptions={emptyLineChartOptions.grid}
-                                      xAxisOptions={emptyLineChartOptions.xAxis}
-                                      yAxisOptions={emptyLineChartOptions.yAxis}
-                                      tooltipOptions={
-                                        emptyLineChartOptions.tooltip
-                                      }
-                                    />
-                                  </div>
-                                )}
-                              <div className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 
-                              tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2
-                              tw:h-7.5">
-                                {/* left cell with x axis*/}
-                                <LineChart
-                                  data={{
-                                    xData: chartXData,
-                                    yData: [
-                                      createPseudoDataSeries(chartXData.length),
-                                    ],
-                                  }}
-                                  height={30}
-                                  titleOptions={justXAxisLineChartOptions.title}
-                                  legendOptions={
-                                    justXAxisLineChartOptions.legend
-                                  }
-                                  gridOptions={justXAxisLineChartOptions.grid}
-                                  xAxisOptions={justXAxisLineChartOptions.xAxis}
-                                  yAxisOptions={justXAxisLineChartOptions.yAxis}
-                                  tooltipOptions={
-                                    justXAxisLineChartOptions.tooltip
-                                  }
-                                />
-                              </div>
-                              {dimensionScoresDataSeriesByDomain[domain]
-                                .length > 1 && (
-                                <div
-                                  className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 
-                                    tw:hidden tw:md:block
-                                    tw:h-7.5`}
-                                >
-                                  {/* right cell with x axis */}
-                                  <LineChart
-                                    data={{
-                                      xData: chartXData,
-                                      yData: [
-                                        createPseudoDataSeries(
-                                          chartXData.length,
-                                        ),
-                                      ],
-                                    }}
-                                    height={30}
-                                    titleOptions={
-                                      justXAxisLineChartOptions.title
-                                    }
-                                    legendOptions={
-                                      justXAxisLineChartOptions.legend
-                                    }
-                                    gridOptions={justXAxisLineChartOptions.grid}
-                                    xAxisOptions={
-                                      justXAxisLineChartOptions.xAxis
-                                    }
-                                    yAxisOptions={
-                                      justXAxisLineChartOptions.yAxis
-                                    }
-                                    tooltipOptions={
-                                      justXAxisLineChartOptions.tooltip
-                                    }
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          </LineChartGroup>
-                          {/* children */}
-                          {Object.keys(
-                            itemDataSeriesByDomainAndDimension[domain],
-                          ) &&
-                            Object.keys(
-                              itemDataSeriesByDomainAndDimension[domain],
-                            ).length > 0 && (
-                              <div className="tw:md:px-8 tw:pb-4">
-                                <div className="tw:pb-4 tw:pt-2">
-                                  <button
-                                    className="tw:btn button-primary"
-                                    onClick={() =>
-                                      toggleShowItemsForDomain(domain)
-                                    }
-                                  >
-                                    {showItemsForDomain[domain]
-                                      ? "Hide Items"
-                                      : "Show Items"}
-                                  </button>
-                                </div>
-                                {showItemsForDomain[domain] && (
-                                  <React.Fragment>
-                                    <div className="tw:ml-0 tw:px-4 tw:py-2 tw:border border-medium border-rounded-prominent">
-                                      <div>
-                                        <p>
-                                          Please select one or more dimensions (scores)
-                                          to view the items belonging to them{" "}
-                                          <a data-tooltip-id={`${domain}-info`} className="tw:text-info">
-                                            <FontAwesomeIcon
-                                              icon={
-                                                [
-                                                  "fas",
-                                                  "circle-info",
-                                                ] as IconProp
-                                              }
-                                            />
-                                          </a>.
-                                          <Portal>                                                      
-                                          <Tooltip id={`${domain}-info`} opacity={1} className="custom-tooltip tooltip-info">                                                                
-                                            <div className="tw:w-52">
-                                              <div className="tw:text-left tw:whitespace-normal tw:break-normal">
-                                                <p>
-                                                  Only dimensions containing items are displayed.
-                                                </p>
-                                              </div>
-                                            </div>
-                                          </Tooltip>
-                                          </Portal>                                           
-                                        </p>
-                                      </div>
-                                      <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
-                                        {dimensionsByDomain[domain].map(
-                                          (dimension) =>
-                                            itemDataSeriesByDomainAndDimension[
-                                              domain
-                                            ][dimension] !== undefined && (
-                                              <label
-                                                key={domain + "-" + dimension}
-                                                className={`tw:label 
-                                                  ${selectedDimensionsByDomain[domain].includes(dimension) ? "tw:text-base-content" : "tw:text-neutral"}`}
-                                              >
-                                                <input
-                                                  type="checkbox"
-                                                  checked={selectedDimensionsByDomain[
-                                                    domain
-                                                  ].includes(dimension)}
-                                                  onChange={() =>
-                                                    handleDimensionSelection(
-                                                      domain,
-                                                      dimension,
-                                                    )
-                                                  }
-                                                  className="tw:checkbox tw:checkbox-md tw:shadow-none border-rounded"
-                                                />
-                                                {dimension}
-                                              </label>
-                                            ),
-                                        )}
-                                      </div>
-                                      {dimensionsByDomain[domain].length >
-                                        0 && (
-                                        <div className="tw:pb-4 tw:pt-2">
-                                          <button
-                                            className="tw:btn button-neutral"
-                                            onClick={() =>
-                                              selectAllDimensionsForDomain(
-                                                domain,
-                                                dimensionsByDomain[domain],
-                                              )
+                                        >
+                                          {/* empty data cell if number of dimensions is odd */}
+                                          <LineChart
+                                            id={domain + "-empty-" + Math.random().toString(36).substring(2, 9)}
+                                            data={{
+                                              xData: chartXData,
+                                              yData: [
+                                                createPseudoDataSeries(
+                                                  chartXData.length,
+                                                ),
+                                              ],
+                                            }}
+                                            height={100}
+                                            titleOptions={
+                                              emptyLineChartOptions.title
                                             }
-                                          >
-                                            Select all
-                                          </button>
+                                            legendOptions={
+                                              emptyLineChartOptions.legend
+                                            }
+                                            gridOptions={
+                                              emptyLineChartOptions.grid
+                                            }
+                                            xAxisOptions={
+                                              emptyLineChartOptions.xAxis
+                                            }
+                                            yAxisOptions={
+                                              emptyLineChartOptions.yAxis
+                                            }
+                                            tooltipOptions={
+                                              emptyLineChartOptions.tooltip
+                                            }
+                                          />
                                         </div>
                                       )}
-                                      {selectedDimensionsByDomain[domain].map(
-                                        (dimension) =>
-                                          itemDataSeriesByDomainAndDimension[
-                                            domain
-                                          ][dimension] !== undefined &&
-                                          itemDataSeriesByDomainAndDimension[
-                                            domain
-                                          ][dimension].length > 0 && (
-                                            <React.Fragment
-                                              key={domain + "-" + dimension}
-                                            >
-                                              <h5>{dimension}</h5>
-                                              <LineChartGroup
-                                                name={domain + "-" + dimension}
-                                                hasReferenceValues={itemDataSeriesByDomainAndDimension[
+                                    <div
+                                      className="tw:col-span-4 tw:col-start-2 tw:md:col-span-4 tw:xl:col-span-5 
+                              tw:2xl:col-span-6 tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2
+                              tw:h-7.5"
+                                    >
+                                      {/* left cell with x axis*/}
+                                      <LineChart
+                                        id={domain + "-xaxis-" + Math.random().toString(36).substring(2, 9)}
+                                        data={{
+                                          xData: chartXData,
+                                          yData: [
+                                            createPseudoDataSeries(
+                                              chartXData.length,
+                                            ),
+                                          ],
+                                        }}
+                                        height={30}
+                                        titleOptions={
+                                          justXAxisLineChartOptions.title
+                                        }
+                                        legendOptions={
+                                          justXAxisLineChartOptions.legend
+                                        }
+                                        gridOptions={
+                                          justXAxisLineChartOptions.grid
+                                        }
+                                        xAxisOptions={
+                                          justXAxisLineChartOptions.xAxis
+                                        }
+                                        yAxisOptions={
+                                          justXAxisLineChartOptions.yAxis
+                                        }
+                                        tooltipOptions={
+                                          justXAxisLineChartOptions.tooltip
+                                        }
+                                      />
+                                    </div>
+                                    {dimensionScoresDataSeriesByDomain[domain]
+                                      .length > 1 && (
+                                      <div
+                                        className={`tw:col-span-4 tw:md:col-span-4 tw:xl:col-span-5 tw:2xl:col-span-6 
+                                    tw:hidden tw:md:block
+                                    tw:h-7.5`}
+                                      >
+                                        {/* right cell with x axis */}
+                                        <LineChart
+                                          id={domain + "-xaxis-right-" + Math.random().toString(36).substring(2, 9)}
+                                          data={{
+                                            xData: chartXData,
+                                            yData: [
+                                              createPseudoDataSeries(
+                                                chartXData.length,
+                                              ),
+                                            ],
+                                          }}
+                                          height={30}
+                                          titleOptions={
+                                            justXAxisLineChartOptions.title
+                                          }
+                                          legendOptions={
+                                            justXAxisLineChartOptions.legend
+                                          }
+                                          gridOptions={
+                                            justXAxisLineChartOptions.grid
+                                          }
+                                          xAxisOptions={
+                                            justXAxisLineChartOptions.xAxis
+                                          }
+                                          yAxisOptions={
+                                            justXAxisLineChartOptions.yAxis
+                                          }
+                                          tooltipOptions={
+                                            justXAxisLineChartOptions.tooltip
+                                          }
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </LineChartGroup>
+                              {/* children */}
+                              {Object.keys(
+                                itemDataSeriesByDomainAndDimension[domain],
+                              ) &&
+                                Object.keys(
+                                  itemDataSeriesByDomainAndDimension[domain],
+                                ).length > 0 && (
+                                  <div className="tw:md:px-8 tw:pb-4">
+                                    <div className="tw:pb-4 tw:pt-2">
+                                      <button
+                                        className="tw:btn button-primary"
+                                        onClick={() =>
+                                          toggleShowItemsForDomain(domain)
+                                        }
+                                      >
+                                        {showItemsForDomain[domain]
+                                          ? "Hide Items"
+                                          : "Show Items"}
+                                      </button>
+                                    </div>
+                                    {showItemsForDomain[domain] && (
+                                      <React.Fragment>
+                                        <div className="tw:ml-0 tw:px-4 tw:py-2 tw:border border-medium border-rounded-prominent">
+                                          <div>
+                                            <p>
+                                              Please select one or more
+                                              dimensions (scores) to view the
+                                              items belonging to them{" "}
+                                              <a
+                                                data-tooltip-id={`${domain}-info`}
+                                                className="tw:text-info"
+                                              >
+                                                <FontAwesomeIcon
+                                                  icon={
+                                                    [
+                                                      "fas",
+                                                      "circle-info",
+                                                    ] as IconProp
+                                                  }
+                                                />
+                                              </a>
+                                              .
+                                              <Portal>
+                                                <Tooltip
+                                                  id={`${domain}-info`}
+                                                  opacity={1}
+                                                  className="custom-tooltip tooltip-info"
+                                                >
+                                                  <div className="tw:w-52">
+                                                    <div className="tw:text-left tw:whitespace-normal tw:break-normal">
+                                                      <p>
+                                                        Only dimensions
+                                                        containing items are
+                                                        displayed.
+                                                      </p>
+                                                    </div>
+                                                  </div>
+                                                </Tooltip>
+                                              </Portal>
+                                            </p>
+                                          </div>
+                                          <div className="tw:flex tw:flex-wrap tw:gap-4 tw:justify-start tw:py-4">
+                                            {dimensionsByDomain[domain].map(
+                                              (dimension) =>
+                                                itemDataSeriesByDomainAndDimension[
                                                   domain
-                                                ][dimension].some(
-                                                  (series) =>
-                                                    (series.referenceValues
-                                                      ?.length ?? 0) > 0,
-                                                )}
+                                                ][dimension] !== undefined && (
+                                                  <label
+                                                    key={
+                                                      domain + "-" + dimension
+                                                    }
+                                                    className={`tw:label 
+                                                  ${selectedDimensionsByDomain[domain].includes(dimension) ? "tw:text-base-content" : "tw:text-neutral"}`}
+                                                  >
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={selectedDimensionsByDomain[
+                                                        domain
+                                                      ].includes(dimension)}
+                                                      onChange={() =>
+                                                        handleDimensionSelection(
+                                                          domain,
+                                                          dimension,
+                                                        )
+                                                      }
+                                                      className="tw:checkbox tw:checkbox-md tw:shadow-none border-rounded"
+                                                    />
+                                                    {dimension}
+                                                  </label>
+                                                ),
+                                            )}
+                                          </div>
+                                          {dimensionsByDomain[domain].length >
+                                            0 && (
+                                            <div className="tw:pb-4 tw:pt-2">
+                                              <button
+                                                className="tw:btn button-neutral"
+                                                onClick={() =>
+                                                  selectAllDimensionsForDomain(
+                                                    domain,
+                                                    dimensionsByDomain[domain],
+                                                  )
+                                                }
                                               >
-                                              <div
-                                                className={`tw:w-full tw:overflow-visible tw:max-w-5xl`}
-                                              >
-                                                <div className="tw:grid tw:grid-cols-3 tw:xl:grid-cols-4 tw:2xl:grid-cols-5 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
-                                                  {itemDataSeriesByDomainAndDimension[
-                                                    domain
-                                                  ][dimension].map(
-                                                    (dataSeries, index) => (
-                                                      <React.Fragment
-                                                        key={dataSeries.id}
-                                                      >
-                                                        <div className="tw:col-span-1 tw:flex tw:h-12 tw:items-center tw:justify-start tw:border-b tw:first:border-t tw:md:border-none border-light">
-                                                          {dataSeries.name !== truncateAtWord(dataSeries.name, 80) ? (   
-                                                            <>
-                                                              <div data-tooltip-id={`${dataSeries.id}`} className="tw:text-xs tw:break-normal tw:mr-4">
-                                                                {
-                                                                truncateAtWord(dataSeries.name, 80)
-                                                                }
+                                                Select all
+                                              </button>
+                                            </div>
+                                          )}
+                                          {selectedDimensionsByDomain[
+                                            domain
+                                          ].map(
+                                            (dimension) =>
+                                              itemDataSeriesByDomainAndDimension[
+                                                domain
+                                              ][dimension] !== undefined &&
+                                              itemDataSeriesByDomainAndDimension[
+                                                domain
+                                              ][dimension].length > 0 && (
+                                                <React.Fragment
+                                                  key={domain + "-" + dimension}
+                                                >
+                                                  <h5>{dimension}</h5>
+                                                  <LineChartGroup
+                                                    name={
+                                                      domain + "-" + dimension
+                                                    }
+                                                    id={domain + "-" + dimension + Math.random().toString(36).substring(2, 15)}
+                                                    hasReferenceValues={itemDataSeriesByDomainAndDimension[
+                                                      domain
+                                                    ][dimension].some(
+                                                      (series) =>
+                                                        (series.referenceValues
+                                                          ?.length ?? 0) > 0,
+                                                    )}
+                                                  >
+                                                    <div
+                                                      className={`tw:w-full tw:overflow-visible tw:max-w-5xl`}
+                                                    >
+                                                      <div className="tw:grid tw:grid-cols-3 tw:xl:grid-cols-4 tw:2xl:grid-cols-5 tw:gap-0 tw:mt-2 tw:mb-8 tw:min-w-xs">
+                                                        {itemDataSeriesByDomainAndDimension[
+                                                          domain
+                                                        ][dimension].map(
+                                                          (
+                                                            dataSeries,
+                                                            index,
+                                                          ) => (
+                                                            <React.Fragment
+                                                              key={
+                                                                dataSeries.id
+                                                              }
+                                                            >
+                                                              <div className="tw:col-span-1 tw:flex tw:h-12 tw:items-center tw:justify-start tw:border-b tw:first:border-t tw:md:border-none border-light">
+                                                                {dataSeries.name !==
+                                                                truncateAtWord(
+                                                                  dataSeries.name,
+                                                                  80,
+                                                                ) ? (
+                                                                  <>
+                                                                    <div
+                                                                      data-tooltip-id={`${dataSeries.id}`}
+                                                                      className="tw:text-xs tw:break-normal tw:mr-4"
+                                                                    >
+                                                                      {truncateAtWord(
+                                                                        dataSeries.name,
+                                                                        80,
+                                                                      )}
+                                                                    </div>
+                                                                    <Portal>
+                                                                      <Tooltip
+                                                                        id={`${dataSeries.id}`}
+                                                                        place="top"
+                                                                        opacity={
+                                                                          1
+                                                                        }
+                                                                        className="custom-tooltip tooltip-base"
+                                                                      >
+                                                                        <div className="tw:w-52">
+                                                                          <div className="tw:text-left tw:text-xs tw:whitespace-pre-wrap tw:break-normal">
+                                                                            {
+                                                                              dataSeries.name
+                                                                            }
+                                                                          </div>
+                                                                        </div>
+                                                                      </Tooltip>
+                                                                    </Portal>
+                                                                  </>
+                                                                ) : (
+                                                                  <div className="tw:text-xs tw:break-normal tw:mr-4">
+                                                                    {dataSeries.name.slice(
+                                                                      0,
+                                                                      80,
+                                                                    )}
+                                                                  </div>
+                                                                )}
                                                               </div>
-                                                              <Portal>
-                                                              <Tooltip id={`${dataSeries.id}`} place="top" opacity={1} className="custom-tooltip tooltip-base">
-                                                                
-                                                                <div className="tw:w-52">
-                                                                   <div className="tw:text-left tw:text-xs tw:whitespace-pre-wrap tw:break-normal">
-                                                                    {
-                                                                       dataSeries.name
-                                                                     }
-                                                                   </div>
-                                                                 </div>
-                                                                   
-                                                                 </Tooltip>
-                                                                 </Portal>
-                                                                 
-                                                                
-                                                                 </>
-
-                                                          )
-                                                          :
-                                                          <div className="tw:text-xs tw:break-normal tw:mr-4">
-                                                            {
-                                                              dataSeries.name.slice(0, 80)
-                                                            }
-                                                          </div>
-
-                                                          }
-                                                          
-                                                        </div>
-                                                        <div
-                                                          className={`tw:col-span-2 tw:xl:col-span-3 tw:2xl:col-span-4 tw:col-start-2
+                                                              <div
+                                                                className={`tw:col-span-2 tw:xl:col-span-3 tw:2xl:col-span-4 tw:col-start-2
                                                             tw:border-b tw:border-l tw:border-r border-light
                                                             ${index < 1 ? "tw:border-t" : ""}
                                                             tw:h-12
                                                           `}
-                                                          >
-                                                          {/* cell with dimension score */}
+                                                              >
+                                                                {/* cell with dimension score */}
+                                                                <LineChart
+                                                                  id={domain + "-" + dimension + "-" + dataSeries.id}
+                                                                  key={
+                                                                    domain +
+                                                                    "-" +
+                                                                    dataSeries.id
+                                                                  }
+                                                                  data={{
+                                                                    xData:
+                                                                      filterDataSeriesDataAndDatesForCommonNullValues(
+                                                                        itemDataSeriesByDomainAndDimension[
+                                                                          domain
+                                                                        ][
+                                                                          dimension
+                                                                        ],
+                                                                        chartXData,
+                                                                      ).xData, // filter
+                                                                    yData: [
+                                                                      filterDataSeriesDataAndDatesForCommonNullValues(
+                                                                        itemDataSeriesByDomainAndDimension[
+                                                                          domain
+                                                                        ][
+                                                                          dimension
+                                                                        ],
+                                                                        chartXData,
+                                                                      )
+                                                                        .dataSeries[
+                                                                        index
+                                                                      ],
+                                                                    ],
+                                                                  }}
+                                                                  // title={domain}
+                                                                  height={48}
+                                                                  minMaxYValues={[
+                                                                    -0.2, 1.2,
+                                                                  ]}
+                                                                  //minMaxYValuesPosition={[0, 1]}
+                                                                  titleOptions={
+                                                                    groupedLineChartOptions.title
+                                                                  }
+                                                                  legendOptions={
+                                                                    emptyLineChartOptions.legend
+                                                                  }
+                                                                  gridOptions={
+                                                                    groupedLineChartOptions.grid
+                                                                  }
+                                                                  xAxisOptions={
+                                                                    groupedLineChartOptions.xAxis
+                                                                  }
+                                                                  yAxisOptions={
+                                                                    groupedLineChartOptions.yAxis
+                                                                  }
+                                                                  tooltipOptions={
+                                                                    groupedLineChartOptions.tooltip
+                                                                  }
+                                                                  lineOption={
+                                                                    groupedLineChartOptions.series
+                                                                  }
+                                                                  markAreaOptions={
+                                                                    groupedLineChartOptions.markArea
+                                                                  }
+                                                                  markLineOptions={
+                                                                    groupedLineChartOptions.markLine
+                                                                  }
+                                                                  displayNameInTooltip={
+                                                                    false
+                                                                  }
+                                                                />
+                                                              </div>
+                                                            </React.Fragment>
+                                                          ),
+                                                        )}
+                                                        <div
+                                                          className="tw:col-span-2 tw:col-start-2 tw:xl:col-span-3 tw:2xl:col-span-4 
+                                                  tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2 tw:h-7.5"
+                                                        >
+                                                          {/* left cell with x axis*/}
                                                           <LineChart
-                                                            key={
-                                                              domain +
-                                                              "-" +
-                                                              dataSeries.id
-                                                            }
+                                                            id={domain + "-" + dimension + "-xaxis-" + Math.random().toString(36).substring(2, 9)}
                                                             data={{
-                                                              xData: filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
-                                                    domain
-                                                  ][dimension], chartXData).xData, // filter
+                                                              xData:
+                                                                filterDataSeriesDataAndDatesForCommonNullValues(
+                                                                  itemDataSeriesByDomainAndDimension[
+                                                                    domain
+                                                                  ][dimension],
+                                                                  chartXData,
+                                                                ).xData, // filter
                                                               yData: [
-                                                                filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
-                                                    domain
-                                                  ][dimension], chartXData).dataSeries[index],
+                                                                createPseudoDataSeries(
+                                                                  filterDataSeriesDataAndDatesForCommonNullValues(
+                                                                    itemDataSeriesByDomainAndDimension[
+                                                                      domain
+                                                                    ][
+                                                                      dimension
+                                                                    ],
+                                                                    chartXData,
+                                                                  ).xData
+                                                                    .length,
+                                                                ),
                                                               ],
                                                             }}
-                                                            // title={domain}
-                                                            height={48}
-                                                            minMaxYValues={[
-                                                              -0.2, 1.2,
-                                                            ]}
-                                                            //minMaxYValuesPosition={[0, 1]}
+                                                            height={30}
                                                             titleOptions={
-                                                              groupedLineChartOptions.title
+                                                              justXAxisLineChartOptions.title
                                                             }
                                                             legendOptions={
-                                                              emptyLineChartOptions.legend
+                                                              justXAxisLineChartOptions.legend
                                                             }
                                                             gridOptions={
-                                                              groupedLineChartOptions.grid
+                                                              justXAxisLineChartOptions.grid
                                                             }
                                                             xAxisOptions={
-                                                              groupedLineChartOptions.xAxis
+                                                              justXAxisLineChartOptions.xAxis
                                                             }
                                                             yAxisOptions={
-                                                              groupedLineChartOptions.yAxis
+                                                              justXAxisLineChartOptions.yAxis
                                                             }
                                                             tooltipOptions={
-                                                              groupedLineChartOptions.tooltip
+                                                              justXAxisLineChartOptions.tooltip
                                                             }
-                                                            lineOption={
-                                                              groupedLineChartOptions.series
-                                                            }
-                                                            markAreaOptions={
-                                                              groupedLineChartOptions.markArea
-                                                            }
-                                                            markLineOptions={
-                                                              groupedLineChartOptions.markLine
-                                                            }
-                                                            displayNameInTooltip={false}
                                                           />
                                                         </div>
-                                                      </React.Fragment>
-                                                    ),
-                                                  )}
-                                                  <div className="tw:col-span-2 tw:col-start-2 tw:xl:col-span-3 tw:2xl:col-span-4 
-                                                  tw:md:col-start-2 tw:xl:col-start-2 tw:2xl:col-start-2 tw:h-7.5">
-                                                    {/* left cell with x axis*/}
-                                                    <LineChart
-                                                      data={{
-                                                        xData: filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
-                                                    domain
-                                                  ][dimension], chartXData).xData, // filter
-                                                        yData: [
-                                                          createPseudoDataSeries(
-                                                            filterDataSeriesDataAndDatesForCommonNullValues(itemDataSeriesByDomainAndDimension[
-                                                    domain
-                                                  ][dimension], chartXData).xData.length,
-                                                          ),
-                                                        ],
-                                                      }}
-                                                      height={30}
-                                                      titleOptions={
-                                                        justXAxisLineChartOptions.title
-                                                      }
-                                                      legendOptions={
-                                                        justXAxisLineChartOptions.legend
-                                                      }
-                                                      gridOptions={
-                                                        justXAxisLineChartOptions.grid
-                                                      }
-                                                      xAxisOptions={
-                                                        justXAxisLineChartOptions.xAxis
-                                                      }
-                                                      yAxisOptions={
-                                                        justXAxisLineChartOptions.yAxis
-                                                      }
-                                                      tooltipOptions={
-                                                        justXAxisLineChartOptions.tooltip
-                                                      }
-                                                    />
-                                                  </div>
-                                                </div>
-                                              </div>
-                                              </LineChartGroup>
-                                            </React.Fragment>
-                                          ),
-                                      )}
-                                    </div>
-                                  </React.Fragment>
+                                                      </div>
+                                                    </div>
+                                                  </LineChartGroup>
+                                                </React.Fragment>
+                                              ),
+                                          )}
+                                        </div>
+                                      </React.Fragment>
+                                    )}
+                                  </div>
                                 )}
-                              </div>
-                            )}
-                          {/* <div className="tw:divider"></div> */}
-                        </React.Fragment>
-                      ),
-                  )}
-                </>
-                  ): 
-                  <NoData
-                  title = "No Domain Data Available"
-                  message="No data could be found for this visualization. Please try to adjust your filters. 
+                              {/* <div className="tw:divider"></div> */}
+                            </React.Fragment>
+                          ),
+                      )}
+                    </>
+                  ) : (
+                    <NoData
+                      title="No Domain Data Available"
+                      message="No data could be found for this visualization. Please try to adjust your filters. 
                   If this does not help, it is possible that there are no domains defined for the selected questionnaires."
-                  action={{label: "Reset Filters", onClick: () => resetFilters()}}
-                  />
-                }
+                      action={{
+                        label: "Reset Filters",
+                        onClick: () => resetFilters(),
+                      }}
+                    />
+                  )}
                 </div>
-                
+
                 <div className="section">
                   <h1>Complete PROs by Questionnaire</h1>
                   <div className="tw:join tw:join-vertical tw:flex tw:justify-center tw:gap-y-2">
@@ -2187,29 +2395,37 @@ function App() {
                           {tableDataByQuestionnaire[questionnaire.id] !==
                             undefined && (
                             <>
-                            <Collapse
-                              title={questionnaire.name}
-                              children={
-                                <>
-                                
-                                <DataTable
-                                  data={
-                                    tableDataByQuestionnaire[questionnaire.id]
-                                  }
-                                />
-                                <DownloadImageButton
-                              onClick={() => createAndDownloadCSV(
-                              tableDataByQuestionnaire[questionnaire.id],
-                              buildExportFileName(questionnaire.name, "csv"))}
-                              disabled={false}
-                              className="tw:mt-2 tw:text-right"
-                              tooltipText="Save as CSV"
-                            />
+                              <Collapse
+                                title={questionnaire.name}
+                              >
+                                 <>
+                                    <DataTable
+                                      data={
+                                        tableDataByQuestionnaire[
+                                          questionnaire.id
+                                        ]
+                                      }
+                                    />
+                                    <DownloadImageButton
+                                      onClick={() =>
+                                        createAndDownloadCSV(
+                                          tableDataByQuestionnaire[
+                                            questionnaire.id
+                                          ],
+                                          buildExportFileName(
+                                            questionnaire.name,
+                                            "csv",
+                                          ),
+                                        )
+                                      }
+                                      id={questionnaire.id}
+                                      disabled={false}
+                                      className="tw:mt-2 tw:text-right"
+                                      tooltipText="Save as CSV"
+                                    />
+                                  </>
+                                  </Collapse>
                             </>
-                              }
-                            />
-      
-                              </>
                           )}
                         </React.Fragment>
                       ))}
@@ -2260,7 +2476,6 @@ function App() {
       {/* <Footer /> */}
       {/* </div> */}
     </div>
-    
   );
 }
 

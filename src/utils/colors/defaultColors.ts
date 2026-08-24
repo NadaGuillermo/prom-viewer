@@ -1,7 +1,7 @@
 import type { Colors } from "./types.d";
 
 // Mirrors the "prolight" daisyUI theme defined in src/index.css.
-// Used whenever /config/colors.json is missing, unreachable, or invalid.
+// Used whenever a color configuration file is missing, unreachable, or invalid.
 export const DEFAULT_THEME_COLORS: Colors.ThemeColors = {
   base100: "oklch(99.5% 0.002 240)",
   base200: "oklch(98.4% 0.003 247.858)",
@@ -28,7 +28,9 @@ export const DEFAULT_THEME_COLORS: Colors.ThemeColors = {
   borderMedium: "oklch(86.9% 0.022 252.894)",
 };
 
-// Tol Muted
+// Paul Tol color palette (Muted scheme):
+// https://sronpersonalpages.nl/~pault/
+// Default for line and radar charts
 const DEFAULT_MUTED_PALETTE: string[] = [
   "#332288",
   "#88ccee",
@@ -41,7 +43,9 @@ const DEFAULT_MUTED_PALETTE: string[] = [
   "#aa4499",
 ];
 
-// Okabe Ito
+// Okabe Ito palette
+// https://conceptviz.app/blog/okabe-ito-palette-hex-codes-complete-reference
+// Default colors for domain-to-dimension mapping
 const DEFAULT_OKABE_ITO_PALETTE: string[] = [
   "#E69F00",
   "#56B4E9",
@@ -54,10 +58,12 @@ const DEFAULT_OKABE_ITO_PALETTE: string[] = [
 ];
 
 export const DEFAULT_CATEGORICAL_PALETTES: Colors.CategoricalPalettes = {
-  muted: DEFAULT_MUTED_PALETTE,
+  tolMuted: DEFAULT_MUTED_PALETTE,
   okabeIto: DEFAULT_OKABE_ITO_PALETTE,
 };
 
+// light gray
+// default for reference ranges and values
 export const DEFAULT_REFERENCE_COLORS: Colors.ReferenceColors = {
   line: "#6B7280",
   box: {

@@ -1,6 +1,4 @@
-import type { GlobalTypes } from "@customTypes/globalTypes";
-import React from "react";
-import type { Errors } from "@utils/errors";
+import type { GlobalTypes } from "@customTypes/globalTypes"
 import { ITEM_TYPES } from "@utils/mapping";
 export namespace Visualization {
 
@@ -38,13 +36,6 @@ export namespace Visualization {
   interface ChartData {
     xData: string[];
     yData: DataSeries[];
-  }
-
-  interface ChartProps {
-    title?: string;
-    subtitle?: string;
-    height?: number;
-    data: ChartData;
   }
 
   interface RangeState {

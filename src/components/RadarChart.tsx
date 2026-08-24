@@ -1,6 +1,6 @@
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import type { Visualization } from "@utils/visualization/types";
-import { type Charts,  mutedColorPalette, } from "@utils/charts";
+import { type Charts,  tolColorPalette, } from "@utils/charts";
 import * as _ from "lodash-es";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as echarts from "echarts/core";
@@ -12,9 +12,11 @@ import type {
   TooltipComponentOption,
   RadarSeriesOption,
   RadarComponentOption,
+  DefaultLabelFormatterCallbackParams as CallbackDataParams,
 } from "echarts";
 
 interface Props {
+  id: string;
   data: Record<string, Visualization.DataSeries[]>;
   dates: string[];
   date: string;
@@ -34,13 +36,14 @@ interface Props {
 }
 
 const RadarChart = ({
+  id,
   data,
   dates,
   date,
   title,
   subtitle,
   height = 400,
-  colors = mutedColorPalette,
+  colors = tolColorPalette,
   titleOptions,
   legendOptions,
   gridOptions,
@@ -54,7 +57,7 @@ const RadarChart = ({
   
   const questionnaireNames = _.uniq(Object.values(data).flatMap((series) => series.map((item) => item.questionnaireName)))
 
-  const radarIndicators = Object.entries(data).filter(([_, series]) => series.length > 0).map(([domain, _]) => ({
+  const radarIndicators = Object.entries(data).filter(([, series]) => series.length > 0).map(([domain,]) => ({
     name: domain,
     max: 1,
   }));
@@ -63,12 +66,12 @@ const RadarChart = ({
 
   questionnaireNames.forEach((questionnaireName) => {
     // const questionnaireSeries = Object.values(data).flatMap((series) => series.filter((item) => item.questionnaireName === questionnaireName));
-    const questionnaireDomains = Object.entries(data).filter(([_, series]) => series.some((item) => item.questionnaireName === questionnaireName)).map(([domain, _]) => domain);
+    const questionnaireDomains = Object.entries(data).filter(([, series]) => series.some((item) => item.questionnaireName === questionnaireName)).map(([domain,]) => domain);
     const indexOfDate = dates.indexOf(date);
 
     chartData[questionnaireName] = {};
     if (indexOfDate > -1) {
-    Object.entries(data).filter(([_, series]) => series.length > 0).forEach(([domain, series]) => {
+    Object.entries(data).filter(([, series]) => series.length > 0).forEach(([domain, series]) => {
       let maxValue: GlobalTypes.NumberOrNull = null;
       let minValue: GlobalTypes.NumberOrNull = null;
       chartData[questionnaireName][domain] = [minValue, maxValue];
@@ -125,7 +128,7 @@ const RadarChart = ({
 
   
 
-  const tooltipFormatter = (params: any) => {
+  const tooltipFormatter = (params: CallbackDataParams) => {
     console.log("params: ", params)
     const { seriesName } = params;
     console.log("seriesName: ", seriesName)
@@ -135,7 +138,7 @@ const RadarChart = ({
     // if (mostRecentDate !== undefined) {
        return `
           <div class="tooltip-content">
-            ${echarts.format.encodeHTML(seriesName)}<br/>
+            ${echarts.format.encodeHTML(seriesName ?? "")}<br/>
             <b>${echarts.format.encodeHTML(date)}</b>
           </div>
           `;
@@ -150,14 +153,14 @@ const RadarChart = ({
 
 
   const generateSeriesList = () => {
-    const seriesList: any[] = [];
+    const seriesList: RadarSeriesOption[] = [];
     Object.entries(transformedData).forEach(([questionnaireName, data], i) => {
       const series = [
         // inner values
         {
         ...seriesOptions,
         name: questionnaireName,
-        type: "radar",
+        type: "radar" as const,
         z: 2,
         silent: true,
         // symbol: "circle",
@@ -191,7 +194,7 @@ const RadarChart = ({
         {
         ...seriesOptions,
         name: questionnaireName,
-        type: "radar",
+        type: "radar" as const,
         z: 1,
         // symbol: "circle",
         // symbolSize: 8,
@@ -234,7 +237,7 @@ const RadarChart = ({
     tooltip: {
       ...tooltipOptions,
       show: true,
-      formatter: (params) => tooltipFormatter(params)
+      formatter: (params) => tooltipFormatter(Array.isArray(params) ? params[0] : params)
     },
     legend: {
       ...legendOptions,
@@ -247,7 +250,7 @@ const RadarChart = ({
           }
         }
       }),
-      // @ts-ignore
+      // @ts-expect-error: Seems to be a bug in ECharts types
       tooltip: {
         ...tooltipOptions,
         show: showLegendTooltip,
@@ -260,7 +263,7 @@ const RadarChart = ({
       indicator: radarIndicators.map((indicator) => {
         const words = indicator.name.split(' ');
         let indicatorName = "";
-        for(let word of words) {
+        for(const word of words) {
           indicatorName += word;
           if (indicatorName.length > 3 && word.length > 3) {
             indicatorName += "\n";
@@ -290,6 +293,7 @@ const RadarChart = ({
   return (
     <>
       <ReactEChartsWrapper
+        chartId={id}
         option={options}
         chartHeight={height}
         enableExport={enableExport}
