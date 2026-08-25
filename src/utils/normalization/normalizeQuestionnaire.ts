@@ -248,9 +248,9 @@ export const normalizeQuestionnaire = (
   return {
     data: {
       id: resource.id!, // sollte immer gegeben sein
-      name: resource.title!, // optional
       url: resource.url!, // immer gegeben
-      description: resource.description!, // optional
+      title: resource.title, // optional
+      // description: resource.description, // optional
       items, // optional
     },
     issues: issues,

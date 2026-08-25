@@ -221,7 +221,7 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
       });
 
       const nullQuestionnaireResponse: Mapping.QuestionnaireResponse = {
-        id: `null-${groupedQuestionnaireResponses[key][0].questionnaire.name}-${date}`,
+        id: `null-${groupedQuestionnaireResponses[key][0].questionnaire.title}-${date}`,
         questionnaire: groupedQuestionnaireResponses[key][0].questionnaire,
         authored: date,
         items: nullItems,
@@ -265,7 +265,7 @@ export const groupQuestionnaireNamesByDate = (
 ) => {
   const questionnairesByDate: Record<string, string[]> = {};
   Object.values(questionnaireResponses).forEach((questionnaireResponse) => {
-    const questionnaireName = questionnaireResponse.questionnaire.name;
+    const questionnaireName = questionnaireResponse.questionnaire.title;
     const date = questionnaireResponse.authored;
     if (!questionnairesByDate[date]) {
       questionnairesByDate[date] = [];

@@ -158,13 +158,12 @@ describe("getDatesWithinRange", () => {
 
 const questionnaire = (
   id: string,
-  name: string,
+  title: string,
   items: Record<string, Mapping.Item> = {},
 ): Mapping.Questionnaire => ({
   id,
-  name,
+  title,
   url: `https://example.org/${id}`,
-  description: "",
   items,
 });
 

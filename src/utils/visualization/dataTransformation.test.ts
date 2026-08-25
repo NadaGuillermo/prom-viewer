@@ -5,9 +5,8 @@ import { SCORE_HEALTH_CORRELATIONS, type Mapping } from "@utils/mapping";
 
 const q1: Mapping.Questionnaire = {
   id: "q1",
-  name: "Q1",
+  title: "Q1",
   url: "https://example.org/q1",
-  description: "",
   items: {
     plain: {
       linkId: "plain",
@@ -63,9 +62,8 @@ const q1: Mapping.Questionnaire = {
 
 const q2: Mapping.Questionnaire = {
   id: "q2",
-  name: "Q2",
+  title: "Q2",
   url: "https://example.org/q2",
-  description: "",
   items: {
     y: {
       linkId: "y",

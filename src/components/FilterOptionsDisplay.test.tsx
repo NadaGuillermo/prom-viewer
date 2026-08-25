@@ -8,16 +8,14 @@ import type { Mapping } from "@utils/mapping";
 const questionnaires: Mapping.Questionnaire[] = [
   {
     id: "q1",
-    name: "PHQ-9",
+    title: "PHQ-9",
     url: "https://example.org/q1",
-    description: "",
     items: {},
   },
   {
     id: "q2",
-    name: "PROMIS-29",
+    title: "PROMIS-29",
     url: "https://example.org/q2",
-    description: "",
     items: {},
   },
 ];

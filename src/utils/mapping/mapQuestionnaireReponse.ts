@@ -81,9 +81,8 @@ export const mapQuestionnaireResponse = (
 
   const emptyQuestionnaire: Mapping.Questionnaire = {
     id: "",
-    name: "",
+    title: "",
     url: "",
-    description: "",
     items: {},
   };
 

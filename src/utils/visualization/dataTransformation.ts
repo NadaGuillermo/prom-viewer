@@ -197,7 +197,7 @@ export const createChartData = (
         dataLabels: dataLabels,
         seriesType: seriesType,
         questionnaireId: questionnaire.id,
-        questionnaireName: questionnaire.name,
+        questionnaireName: questionnaire.title,
         ...(referenceValues.length > 0 && {referenceValues: referenceValues}),
       });
     });

@@ -48,9 +48,9 @@ export namespace Mapping {
 
   interface Questionnaire {
     id: string;
-    name: string;
     url: string;
-    description: string;
+    title: string;
+    // description: string;
     items: Record<string, Item>; // key = linkId
   }
 

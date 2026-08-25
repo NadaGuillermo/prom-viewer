@@ -8,9 +8,9 @@ export const mapQuestionnaire = (
   questionnaire: NormalizedFHIR.Questionnaire,
 ): Errors.Result<Mapping.Questionnaire> => {
   const questionnaireId = questionnaire.id;
-  const name = questionnaire.name;
+  const title = questionnaire.title;
   const url = questionnaire.url;
-  const description = questionnaire.description;
+  // const description = questionnaire.description;
   const items: Record<string, Mapping.Item> = {};
   const issues: Errors.DataIssue[] = [];
 
@@ -100,9 +100,9 @@ export const mapQuestionnaire = (
   return {
     data: {
       id: questionnaireId,
-      name: name ?? questionnaireId,
       url: url,
-      description: description ?? "",
+      title: title ?? questionnaireId,
+      // description: description ?? "",
       items: items, // kann leer sein
     },
     issues: issues,

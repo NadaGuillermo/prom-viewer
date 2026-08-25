@@ -2396,7 +2396,7 @@ function App() {
                             undefined && (
                             <>
                               <Collapse
-                                title={questionnaire.name}
+                                title={questionnaire.title}
                               >
                                  <>
                                     <DataTable
@@ -2413,7 +2413,7 @@ function App() {
                                             questionnaire.id
                                           ],
                                           buildExportFileName(
-                                            questionnaire.name,
+                                            questionnaire.title,
                                             "csv",
                                           ),
                                         )

@@ -55,7 +55,7 @@ const FilterOptionsDisplay = ({
               className="tw:checkbox tw:bg-base-100 tw:border border-medium tw:checkbox-md tw:shadow-none border-rounded"
             />
             <div className="tw:whitespace-normal tw:break-normal">
-              {questionnaire.name}
+              {questionnaire.title}
             </div>
           </label>
         ))}
