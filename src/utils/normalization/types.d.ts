@@ -1,19 +1,36 @@
 export namespace NormalizedFHIR {
-  type Answer = string | number | boolean | null;
+  type Value = string | number | boolean | null;
+  type Range = [Value, Value];
 
   /** Questionnaire */
-  interface AnswerOption {
-    value: Answer;
-    label: string;
-    code?: string;
+  interface AnswerOptionCode {
+    code: string;
+    value?: Value;
+    label?: string;
   }
+
+  interface AnswerOptionValue {
+    value: Value;
+  }
+
+  type AnswerOption = AnswerOptionCode | AnswerOptionValue;
+
+  interface AnswerCode {
+    code: string;
+  }
+
+  interface AnswerValue {
+    value: Value;
+  }
+
+  type Answer = AnswerCode | AnswerValue;
 
   interface QuestionnaireItem {
     linkId: string;
-    text: string;
+    text?: string;
     answerOptions?: AnswerOption[];
     referenceQuestionnaireItems?: string[];
-    range?: [number, number];
+    range?: Range;
     // observationCode?: string; // from Observation
     observationDefinition?: string; // id for ObservationDefinition
     // scoreHealthCorrelation?: string; // from ObservationDefinition
@@ -61,17 +78,17 @@ export namespace NormalizedFHIR {
   interface Observation {
     id: string;
     // code: string;
-    value: Answer;
-    questionnaireResponse: string | undefined; // QuestionnaireResponse.id
-    observationDefinition: string | undefined; // ObservationDefinition.id
+    value: Value;
+    questionnaireResponse?: string; // QuestionnaireResponse.id
+    observationDefinition?: string; // ObservationDefinition.id
   }
 
 /* Patient */
   interface Patient {
     id: string;
-    familyName: string | undefined;
-    givenName: string | undefined;
-    gender: string | undefined;
-    birthDate: string | undefined;
+    familyName?: string;
+    givenName?: string;
+    gender?: string;
+    birthDate?: string;
   }
 }

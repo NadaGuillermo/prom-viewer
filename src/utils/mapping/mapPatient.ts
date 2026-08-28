@@ -22,10 +22,8 @@ export const mapPatient = (
       id: patient.id,
       familyName: patient.familyName ?? "Unknown",
       givenName: patient.givenName ?? "",
-      ...(patient.gender !== undefined && { gender: patient.gender }),
-      ...(formattedBirthDate !== undefined && {
-        birthDate: formattedBirthDate,
-      }),
+      gender: patient.gender,
+      birthDate: formattedBirthDate,
     },
     issues: issues,
   };

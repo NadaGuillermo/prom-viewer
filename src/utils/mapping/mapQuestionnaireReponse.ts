@@ -3,6 +3,7 @@ import type { Mapping } from "./types";
 import { convertFhirDateTimeToDateFormat } from "./utils";
 import { issueFactories, type Errors } from "@utils/errors";
 import { isQuestionnaireItem } from "./utils";
+import { isAnswerCode, isAnswerOptionCode } from "@utils/normalization/utils";
 
 export const mapQuestionnaireResponse = (
   questionnaireResponse: NormalizedFHIR.QuestionnaireResponse,
@@ -32,51 +33,56 @@ export const mapQuestionnaireResponse = (
     (q) => q.url === questionnaireUrl,
   );
 
+  if (correspondingQuestionnaire === undefined) {
+    issues.push(
+      issueFactories.questionnaireResponse.missingQuestionnaire(questionnaireResponse)
+    );
+  }
+
   Object.entries(questionnaireResponse.items).forEach(([linkId, item]) => {
-    const answer = item.answer;
-    const answerNumber = Number(answer);
-    let answerShouldBeNull = false;
+    let answerNumber: Mapping.Value | undefined = undefined;
 
-    if (answer === null) {
-      answerShouldBeNull = true;
+    if (isAnswerCode(item.answer)) {
+      const answerCode = (item.answer as NormalizedFHIR.AnswerCode).code;
+      if (correspondingQuestionnaire !== undefined && isQuestionnaireItem(correspondingQuestionnaire.items[linkId])) {
+        const questionnaireItem = correspondingQuestionnaire.items[linkId];
+        const answerOptions = (questionnaireItem as Mapping.QuestionnaireItem).answerOptions;
+        const value = answerOptions.find((opt) => isAnswerOptionCode(opt) && (opt as Mapping.AnswerOptionCode).code === answerCode)?.value;
+        if (value === undefined) {
+           issues.push(
+          issueFactories.questionnaireResponse.invalidItemValue(
+            questionnaireResponse,
+            linkId,
+            answerCode,
+          ),
+        );
+        }
+        answerNumber = value === null ? null : Number(value);
+      }
+    } else {
+      const answer = (item.answer as NormalizedFHIR.AnswerValue).value;
+      // Transform to number | string
+      answerNumber = answer === null ? null : Number(answer);
     }
+    //const answer = typeof item.answer === "boolean" ? Number(item.answer) : item.answer;
+    // const answerNumber = Number(answer);
 
-    // Error: answer is not a number
+    // // Error: answer is not a number
     if (Number.isNaN(answerNumber)) {
       issues.push(
         issueFactories.questionnaireResponse.invalidItemValueType(
           questionnaireResponse,
           linkId,
-          answer,
+          item.answer,
         ),
       );
-      answerShouldBeNull = true;
     }
-
-    // Error: answer not in answerOptions
-    if (
-      correspondingQuestionnaire &&
-      isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
-    ) {
-      const answerOptionsValues = (
-        correspondingQuestionnaire?.items[linkId] as Mapping.QuestionnaireItem
-      ).answerOptions.map((opt) => opt.value);
-      if (!answerOptionsValues.includes(answerNumber)) {
-        issues.push(
-          issueFactories.questionnaireResponse.invalidItemValue(
-            questionnaireResponse,
-            linkId,
-            answer,
-          ),
-        );
-        answerShouldBeNull = true;
-      }
+    if (answerNumber !== undefined) {
+      items[linkId] = {
+        linkId: linkId,
+        answer: answerNumber,
+      };
     }
-
-    items[linkId] = {
-      linkId: linkId,
-      answer: answerShouldBeNull ? null : answerNumber,
-    };
   });
 
   const emptyQuestionnaire: Mapping.Questionnaire = {

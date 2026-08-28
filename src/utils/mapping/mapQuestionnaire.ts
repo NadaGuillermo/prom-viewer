@@ -3,6 +3,7 @@ import type { Mapping } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
 // import * as _ from "lodash-es";
 import { UNSPECIFIED_DOMAIN } from "./constants";
+import { isAnswerOptionCode } from "@utils/normalization/utils";
 
 export const mapQuestionnaire = (
   questionnaire: NormalizedFHIR.Questionnaire,
@@ -32,30 +33,60 @@ export const mapQuestionnaire = (
   // Potential errors: answerOption not convertible to number
 
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
-    const answerOptions = item.answerOptions?.map((opt) => {
+    const answerOptions: Mapping.AnswerOption[] = [];
+    item.answerOptions?.forEach((opt) => {
+      if (isAnswerOptionCode(opt)) {
+        const option = opt as NormalizedFHIR.AnswerOptionCode;
+        // Convert value to number
+        const valueNumber = option.value === null ? null : option.value !== undefined ? Number(option.value) : Number(option.code);
+        // error: valueNumber is NaN
+        if (valueNumber !== null && isNaN(valueNumber)) {
+          issues.push(
+            issueFactories.questionnaire.invalidItemAnswerOption(
+              questionnaire, linkId, option.value ?? option.code
+            )
+          )
+        }
+        answerOptions.push({
+          code: option.code,
+          value: valueNumber,
+          label: option.label ?? option.code,
+        })
+      } else {
+        const option = (opt as NormalizedFHIR.AnswerOptionValue);
+        const valueNumber = option.value === null ? null : Number(option.value);
+        const label = option.value === null ? "null" : option.value.toString();
+        // error: valueNumber isNaN
+        if (valueNumber !== null && isNaN(valueNumber)) {
+          issues.push(
+            issueFactories.questionnaire.invalidItemAnswerOption(
+              questionnaire, linkId, option.value
+            )
+          )
+        }
+       answerOptions.push({
+          value: valueNumber,
+          label: label,
+        });
+      }
+      
       // Error: answerOptions are not numbers
-      const answerOptionNumber = Number(opt.value);
-      return {
-        value: answerOptionNumber, // NaN possible
-        label: opt.label,
-      };
+    //   const answerOptionNumber = Number(opt.codeValue);
+    //   if (isNaN(answerOptionNumber)) {
+    //     issues.push(
+    //       issueFactories.questionnaire.invalidItemAnswerOption(
+    //         questionnaire,
+    //         linkId,
+    //         opt.codeValue,
+    //       ),
+    //     );
+    //   } else {
+    //     answerOptions.push({
+    //       value: answerOptionNumber,
+    //       label: opt.label ?? "N/A",
+    //     });
+    //   }
     });
-
-    if (
-      item.answerOptions?.some(
-        (opt) => opt.value !== undefined && isNaN(Number(opt.value)),
-      )
-    ) {
-      issues.push(
-        issueFactories.questionnaire.invalidItemAnswerOption(
-          questionnaire,
-          linkId,
-          item.answerOptions,
-        ),
-      );
-    }
-
-    let filteredAnswerOptions: Mapping.AnswerOption[] = [];
 
     // if (answerOptions === undefined || answerOptions.length === 0) {
     //   // Fehler werfen: keine answer options
@@ -69,12 +100,19 @@ export const mapQuestionnaire = (
     //     linkId: linkId,
     //   });
     // }
-    if (answerOptions !== undefined) {
-      // Filter answerOptions, only take those which are a number
-      filteredAnswerOptions = answerOptions.filter((opt) => !isNaN(opt.value));
-    }
 
-    const range = item.range;
+    let rangeNumber = item.range !== undefined ? [Number(item.range[0]), Number(item.range[1])] as [number, number] : undefined;
+    if (item.range !== undefined && rangeNumber !== undefined && (isNaN(rangeNumber[0]) || isNaN(rangeNumber[1]))) {
+      rangeNumber = undefined;
+      // push error
+      issues.push(
+        issueFactories.questionnaire.invalidItemRange(
+          questionnaire,
+          linkId,
+          item.range,
+        )
+      )
+    }
     // const scoreHealthCorrelation = item.scoreHealthCorrelation;
     const referenceQuestionnaireItems = item.referenceQuestionnaireItems;
     const scoreExpression = item.scoreExpression;
@@ -82,18 +120,14 @@ export const mapQuestionnaire = (
     items[linkId] = {
       linkId: linkId,
       domain: UNSPECIFIED_DOMAIN,
-      answerOptions: filteredAnswerOptions,
-      ...(item.text !== undefined && { text: item.text }),
-      ...(range !== undefined && { range: range }),
+      answerOptions: answerOptions,
+      text: item.text,
+      range: rangeNumber,
       // ...(scoreHealthCorrelation !== undefined && {
       //   scoreHealthCorrelation: scoreHealthCorrelation,
       // }),
-      ...(referenceQuestionnaireItems !== undefined && {
-        referenceQuestionnaireItems: referenceQuestionnaireItems,
-      }),
-      ...(scoreExpression !== undefined && {
-        scoreExpression: scoreExpression,
-      }),
+      referenceQuestionnaireItems: referenceQuestionnaireItems,
+      scoreExpression: scoreExpression,
     };
   });
 

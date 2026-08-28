@@ -1,8 +1,19 @@
 import { SCORE_HEALTH_CORRELATIONS } from "./constants";
 
 export namespace Mapping {
-  type Answer = number | null;
+  type Value = number | null;
   type Item = QuestionnaireItem | QuestionnaireScoreItem;
+
+  interface AnswerOptionValue {
+    value: Value;
+    label: string;
+  }
+
+  interface AnswerOptionCode extends AnswerOptionValue {
+    code: string;
+  }
+
+  type AnswerOption = AnswerOptionCode | AnswerOptionValue;
 
   interface BaseItem {
     linkId: string;
@@ -14,10 +25,6 @@ export namespace Mapping {
   }
 
   /** Questionnaire */
-  interface AnswerOption {
-    value: Answer;
-    label: string;
-  }
 
   type ReferenceRange = {
     range: [number, number] | number;
@@ -66,7 +73,7 @@ export namespace Mapping {
   /** Response */
   interface ResponseItem {
     linkId: string; // linkId of Item
-    answer: Answer;
+    answer: Value;
   }
 
   interface QuestionnaireResponse {
@@ -78,9 +85,9 @@ export namespace Mapping {
 
   interface Observation {
     id: string;
-    value: Answer;
-    questionnaireResponse: string; // QuestionnaireResponse.id
-    observationDefinition: string; // ObservationDefinition.url
+    value: Value;
+    questionnaireResponse?: string; // QuestionnaireResponse.id
+    observationDefinition?: string; // ObservationDefinition.url
   }
 
   interface Patient {

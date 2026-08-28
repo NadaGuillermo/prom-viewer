@@ -3,8 +3,8 @@ import type { Observation, QuestionnaireResponse, QuestionnaireResponseItemAnswe
 import type { Errors } from "./types";
 import {
   DataIssueCode,
-  userMessageMissingResponse,
-  userMessageMissingQuestionnaire,
+  userMessageResponseNotDisplayed,
+  userMessageQuestionnaireNotDisplayed,
 } from "./constants";
 import type { Mapping } from "@utils/mapping";
 import type { NormalizedFHIR } from "@utils/normalization";
@@ -100,7 +100,7 @@ export const issueFactories = {
     invalidItemValue: (
       resource: NormalizedFHIR.QuestionnaireResponse,
       linkId: string,
-      value: NormalizedFHIR.Answer,
+      value: NormalizedFHIR.Value,
     ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE,
@@ -126,7 +126,7 @@ export const issueFactories = {
         level: "error",
 
         message: `QuestionnaireResponse has no items.`,
-        userMessage: userMessageMissingResponse,
+        userMessage: userMessageResponseNotDisplayed,
 
         // resourceId: resource.id,
         resourceType: "QuestionnaireResponse",
@@ -137,13 +137,13 @@ export const issueFactories = {
           resourceId: resource.id,
         },
       }),
-    missingQuestionnaire: (resource: QuestionnaireResponse): Errors.DataIssue =>
+    missingQuestionnaire: (resource: NormalizedFHIR.QuestionnaireResponse): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.MISSING_RESOURCE_LINK,
         level: "error",
 
-        message: `Questionnaire referenced by QuestionnaireResponse is missing. The URL is probably invalid.`,
-        userMessage: userMessageMissingResponse,
+        message: `Questionnaire referenced by QuestionnaireResponse could not be found. Either the questionnaire does not exist on the server or the URL is invalid.`,
+        userMessage: userMessageResponseNotDisplayed,
 
         // resourceId: resource.id,
         resourceType: "QuestionnaireResponse",
@@ -151,7 +151,7 @@ export const issueFactories = {
         showUser: true,
 
         context: {
-          resourceId: resource.id!,
+          resourceId: resource.id,
           value: resource.questionnaire,
         },
       }),
@@ -180,7 +180,7 @@ export const issueFactories = {
     invalidItemAnswerOption: (
       resource: NormalizedFHIR.Questionnaire,
       linkId: string,
-      value: NormalizedFHIR.AnswerOption[],
+      value: NormalizedFHIR.Value,
     ): Errors.DataIssue =>
       createIssue({
         code: DataIssueCode.INVALID_VALUE_TYPE,
@@ -199,6 +199,30 @@ export const issueFactories = {
           value: value,
         },
       }),
+    invalidItemRange: (
+      resource: NormalizedFHIR.Questionnaire,
+      linkId: string,
+      value: NormalizedFHIR.Range,
+    ): Errors.DataIssue => 
+      createIssue({
+        code: DataIssueCode.INVALID_VALUE_TYPE,
+        level: "warning",
+
+        message: `Invalid type for range of item ${linkId} in Questionnaire. Expected type: convertible to number`,
+
+        // resourceId: resource.id,
+        resourceType: "Questionnaire",
+
+        showUser: false,
+
+        context: {
+          resourceId: resource.id,
+          field: linkId,
+          value: value,
+        },
+
+      }
+      ),
     missingInConfig: (
       resource: NormalizedFHIR.Questionnaire,
     ): Errors.DataIssue =>
@@ -207,7 +231,7 @@ export const issueFactories = {
         level: "error",
 
         message: `Questionnaire is missing in the configuration file.`,
-        userMessage: userMessageMissingQuestionnaire,
+        userMessage: userMessageQuestionnaireNotDisplayed,
 
         // resourceId: resource.id,
         resourceType: "Questionnaire",

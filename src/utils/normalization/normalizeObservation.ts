@@ -34,7 +34,7 @@ export const normalizeObservation = (
       questionnaireResponse: questionnaireResponse, // id or undefined
       observationDefinition: observationDefinition, // url or undefined
       // code: observationCode, // immer geben
-      value: observationValue, // optional
+      value: observationValue,
     },
     issues: issues,
   };

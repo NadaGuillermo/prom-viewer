@@ -10,9 +10,9 @@ export const createAndDownloadCSV = (
   xData.unshift("Item");
   const yValues = _.cloneDeep(data.yData.map((series) => series.originalData));
   const rowNames = _.cloneDeep(data.yData.map((series) => series.name));
-  const csvArray: (string | Mapping.Answer)[][] = [xData];
+  const csvArray: (string | Mapping.Value)[][] = [xData];
   rowNames.forEach((name, i) => {
-    const row: (string | Mapping.Answer)[] = yValues[i];
+    const row: (string | Mapping.Value)[] = yValues[i];
     row.unshift(name);
     csvArray.push(row);
   });

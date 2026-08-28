@@ -12,5 +12,5 @@ export const DataIssueCode = {
         DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG: "DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG",
     } as const;
 
-export const userMessageMissingResponse = "Some questionnaire responses could not be processed and will not be displayed.";
-export const userMessageMissingQuestionnaire = "Some questionnaires are not configured correctly and will not be displayed."
+export const userMessageResponseNotDisplayed = "Some questionnaire responses could not be processed and will not be displayed.";
+export const userMessageQuestionnaireNotDisplayed = "Some questionnaires are not configured correctly and will not be displayed."

@@ -367,8 +367,6 @@ function App() {
     const normalizedFhirQuestionnaireResponsesResult =
       allNormalizedFhirQuestionnaireResponsesResult.filter(
         (result) =>
-          result.data !== undefined &&
-          result.data.questionnaire !== undefined &&
           questionnairesInConfig.includes(result.data.questionnaire),
       );
     const normalizedFhirQuestionnaireResponses =
@@ -474,6 +472,7 @@ function App() {
     const promDataObservationsResult = normalizedFhirObservations
       .map((observation) => mapObservation(observation))
       .filter((result) =>
+        result.data.questionnaireResponse !== undefined &&
         promDataQuestionnaireResponses
           .map((response) => response.id)
           .includes(result.data.questionnaireResponse),
@@ -620,7 +619,7 @@ function App() {
         (error) =>
           error.level === "error" &&
           error.resourceType === "QuestionnaireResponse" &&
-          error.context.field === undefined,
+          error.context.field === undefined
       )
       .map((error) => error.context.resourceId);
     const linkIdsWithErrors = errors

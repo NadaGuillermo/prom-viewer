@@ -1,4 +1,5 @@
 import type { Observation } from "fhir/r4";
+import type { NormalizedFHIR } from "./types";
 
 /**
  * @param resource - a raw FHIR Observation resource
@@ -27,4 +28,16 @@ export const getQuestionnaireResponseIdFromObservationReferenceAttribute = (reso
   }
 
   return questionnaireResponse.slice(splitPosition + 1);
+}
+
+export const isAnswerOptionCode = (
+  answerOption: NormalizedFHIR.AnswerOption
+) => {
+  return (answerOption as NormalizedFHIR.AnswerOptionCode).code !== undefined;
+}
+
+export const isAnswerCode = (
+  answer: NormalizedFHIR.Answer
+) => {
+  return (answer as NormalizedFHIR.AnswerCode).code !== undefined;
 }

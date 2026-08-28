@@ -25,11 +25,9 @@ export const mapObservationDefinition = (
     data: {
       id: normalizedObservationDefinition.id,
       url: normalizedObservationDefinition.url,
-      ...(range && { range: range }),
-      ...(scoreHealthCorrelation && {
-        scoreHealthCorrelation: scoreHealthCorrelation,
-      }),
-      ...(referenceRange && { referenceRange: referenceRange }),
+      range: range,
+      scoreHealthCorrelation: scoreHealthCorrelation,
+      referenceRange: referenceRange,
       // ...(referenceValue && {referenceValue: referenceValue}),
     },
     issues: issues,

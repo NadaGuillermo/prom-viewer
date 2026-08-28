@@ -7,7 +7,7 @@ export const mapObservation = (
 ): Errors.Result<Mapping.Observation> => {
   const issues: Errors.DataIssue[] = [];
   const observationId = observation.id;
-  const value = observation.value;
+  const observationValue = observation.value;
   const questionnaireResponse = observation.questionnaireResponse;
   const observationDefinition = observation.observationDefinition;
 
@@ -26,21 +26,20 @@ export const mapObservation = (
   //     });
   // }
 
-  const answerNumber = Number(value);
+  const value = observationValue === null || Number.isNaN(Number(observationValue)) ? null : Number(observationValue);
 
-  if (Number.isNaN(answerNumber) || value === null) {
+  if (value === null) {
     issues.push(
       issueFactories.observation.invalidObservationValue(observation),
     );
   }
-
+  
   return {
     data: {
       id: observationId,
-      value:
-        value === null || Number.isNaN(answerNumber) ? null : Number(value),
-      questionnaireResponse: questionnaireResponse ?? "",
-      observationDefinition: observationDefinition ?? "",
+      value: value,
+      questionnaireResponse: questionnaireResponse,
+      observationDefinition: observationDefinition,
     },
     issues: issues,
   };

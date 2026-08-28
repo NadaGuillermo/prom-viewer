@@ -6,6 +6,7 @@ import type {
 
 import type { NormalizedFHIR } from "./types";
 import { issueFactories, type Errors } from "@utils/errors";
+import { isAnswerOptionCode } from "./utils";
 
 export const normalizeQuestionnaireResponse = (
   resource: QuestionnaireResponse,
@@ -14,38 +15,38 @@ export const normalizeQuestionnaireResponse = (
   const items: Record<string, NormalizedFHIR.ResponseItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractValue = (answer: QuestionnaireResponseItemAnswer, linkId: string): NormalizedFHIR.Answer => {
-    if (!answer) return null;
-
+  const extractValue = (answer: QuestionnaireResponseItemAnswer, linkId: string): NormalizedFHIR.AnswerCode | NormalizedFHIR.AnswerValue => {
+    
     const answerValue =
       answer.valueInteger ??
       answer.valueDecimal ??
       answer.valueString ??
-      answer.valueBoolean ??
-      answer.valueDate ??
-      answer.valueDateTime ??
-      answer.valueTime ??
+      answer.valueBoolean;
       // answer.valueCoding?.code ?? // Code: lookup needed: questionnaire.answerOptions.find((opt) => opt.code === answer.valueCoding.code).value
-      // answer.valueCoding?.display ??
-      null;
-    if (answerValue !== null) {
-      return answerValue;
+      // null;
+    if (answerValue !== undefined) {
+      return {
+        value: answerValue
+      };
     }
+    // check if answer is part of coding system
     const questionnaire = normalizedQuestionnaires.find(
       (q) => q.url === resource.questionnaire,
     );
-    if (questionnaire === undefined) {
-      issues.push(issueFactories.questionnaireResponse.missingQuestionnaire(resource));
-    }
     const item = questionnaire?.items[linkId];
     // lookup in answerOptions
-    const value = item?.answerOptions?.find(
-      (opt) => opt.code === answer.valueCoding?.code,
-    )?.value;
-    if (value !== undefined) {
-      return value;
+    const answerOption = item?.answerOptions?.find(
+      (opt) => isAnswerOptionCode(opt) && (opt as NormalizedFHIR.AnswerOptionCode).code === answer.valueCoding?.code,
+    );
+    const code = answerOption !== undefined ? (answerOption as NormalizedFHIR.AnswerOptionCode).code : undefined;
+    if (code !== undefined) {
+      return {
+        code: code
+      };
     }
-    return null;
+    return {
+      value: null
+    };
   };
 
   const traverse = (itemsInput: QuestionnaireResponseItem[] | undefined) => {
@@ -85,7 +86,7 @@ export const normalizeQuestionnaireResponse = (
       id: resource.id!, // sollte immer gegeben sein
       questionnaire: resource.questionnaire!, // immer gegeben
       authored: resource.authored!, // immer gegeben in ISO Format
-      items, // optional
+      items, // kann leer sein
     },
     issues: issues,
   };

@@ -5,69 +5,45 @@ import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
 import { type Errors } from "@utils/errors";
 
-type RawAnswerOption = {
-  value: NormalizedFHIR.Answer | undefined;
-  label: string | undefined;
-  code: string | undefined;
-};
-
 export const normalizeQuestionnaire = (
   resource: Questionnaire,
 ): Errors.Result<NormalizedFHIR.Questionnaire> => {
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractAnswerOptions = (item: QuestionnaireItem): NormalizedFHIR.AnswerOption[] | undefined => {
-    let answerOptions: RawAnswerOption[] | undefined = undefined;
+  const extractAnswerOptions = (item: QuestionnaireItem): NormalizedFHIR.AnswerOption[] => {
+    const answerOptions: NormalizedFHIR.AnswerOption[] = [];
 
-    if (item.answerOption) {
-      answerOptions = item.answerOption.map((opt) => {
-        // omit preselected answer option
-        const initialSelected = opt.initialSelected;
-        if (initialSelected) {
-          return {
-            value: undefined,
-            label: undefined,
-            code: undefined,
-          };
+    // Option 1: answer options stored in answerOption attribute
+    if (item.answerOption && item.answerOption.length > 0) {
+      for (const opt of item.answerOption) {
+        const value = opt.valueInteger ?? opt.valueString;
+        // only value exists for answer option
+        if (value !== undefined && opt.initialSelected === false) { // otherwise error with EQ-5D-5L
+          answerOptions.push(
+            {
+            value: value,
+          });
+          continue;
         }
-        const display = opt.valueCoding?.display;
-        let value: NormalizedFHIR.Answer | undefined;
-        // search for extension with value
-        const extension = opt.extension?.find((ext) => {
-          return (
-            ext.valueDecimal !== undefined ||
-            ext.valueInteger !== undefined ||
-            ext.valueString !== undefined ||
-            ext.valueBoolean !== undefined ||
-            ext.valueDate !== undefined ||
-            ext.valueDateTime !== undefined ||
-            ext.valueTime !== undefined
-          );
-        });
-        if (extension !== undefined) {
-          value =
-            extension.valueDecimal ??
-            extension.valueInteger ??
-            extension.valueString ??
-            extension.valueBoolean ??
-            extension.valueDate ??
-            extension.valueDateTime ??
-            extension.valueTime ??
-            undefined; // will be sorted out in mapping step
-        } else if (opt.valueCoding !== undefined) {
-          value = opt.valueCoding.code; // Code, manchmal auch Wert
-        } else {
-          value = undefined; // sorted out in mapping
+
+        // check if value is part of coding system
+        if (opt.valueCoding) {
+          const code = opt.valueCoding.code;
+          const label = opt.valueCoding.display;
+          const valueExtension = opt.extension?.find((ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/ordinalValue");
+          const value = valueExtension?.valueDecimal ?? valueExtension?.valueInteger ?? valueExtension?.valueString ?? valueExtension?.valueBoolean;
+          if (code !== undefined) {
+            answerOptions.push({
+              code: code,
+              label: label,
+              value: value,
+            })
+          }
         }
-        return {
-          value: value,
-          label: display,
-          code: opt.valueCoding?.code, // ist Code <=> code !== undefined && code !== value
-        };
-      });
+      }
+      // Option 2: answer options are stored in seperate resource of type ValueSet
     } else if (item.answerValueSet) {
-      // answerValueSet instead
       const answerValueSet = resource.contained?.find(
         (containedObj): containedObj is ValueSet => {
           return (
@@ -76,37 +52,43 @@ export const normalizeQuestionnaire = (
           );
         },
       );
-      const codeSystemArray = resource.contained?.find(
-        (containedObj): containedObj is CodeSystem => {
-          return containedObj.resourceType === "CodeSystem";
-        },
-      )?.concept;
-      if (answerValueSet !== undefined && codeSystemArray !== undefined) {
-        const answerValueSetArray = answerValueSet.compose?.include?.find(
-          (includedObj) => {
-            return (includedObj.concept?.length ?? 0) > 0;
-          },
-        )?.concept;
-
-        if (answerValueSetArray !== undefined) {
-          answerOptions = answerValueSetArray.map((answerVal) => {
-            const codeValue = codeSystemArray
-              .find((elem) => {
-                return elem.code === answerVal.code;
-              })
-              ?.extension?.find(
-                (ext) => ext.valueDecimal !== undefined,
-              )?.valueDecimal;
-            return {
-              value: codeValue,
-              label: answerVal.display ?? answerVal.code,
-              code: answerVal.code,
-            };
-          });
-        }
+      const valueSetConcept = answerValueSet?.compose?.include.find((vsc) => vsc.system?.includes("CodeSystem"))?.concept;
+      const codeSystem = resource.contained?.find((resource) => resource.resourceType === "CodeSystem") as (CodeSystem | undefined);
+      const codes = valueSetConcept?.map((valset) => valset.code);
+      if (valueSetConcept !== undefined && codes !== undefined) {
+        if (codeSystem !== undefined && codeSystem.concept !== undefined) {
+          const codeLabelValueRecord: Record<string, {label?: string, value?: NormalizedFHIR.Value}> = {};
+          for (const valSet of valueSetConcept) {
+            const code = valSet.code;
+            const label = valSet.display;
+            if (code !== undefined) {
+              codeLabelValueRecord[code] = {label: label};
+            }
+          }
+          const codeSystemConcepts = codeSystem.concept;
+          Object.keys(codeLabelValueRecord).forEach((code) => {
+            const valueExtension = codeSystemConcepts.find((concept) => concept.code === code)?.extension?.find((ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/ordinalValue");
+            const value = valueExtension?.valueDecimal ?? valueExtension?.valueInteger ?? valueExtension?.valueString ?? valueExtension?.valueBoolean;
+            codeLabelValueRecord[code] = {...codeLabelValueRecord[code], value: value}
+          })
+          Object.entries(codeLabelValueRecord).forEach(([key, val]) => {
+            answerOptions.push({
+              code: key,
+              label: val.label,
+              value: val.value,
+            })
+          })
+      } else {
+        valueSetConcept.forEach((valset) => {
+          answerOptions.push({
+            code: valset.code,
+            label: valset.display
+          })
+        })
+      }
       }
     }
-    return answerOptions as NormalizedFHIR.AnswerOption[] | undefined; // can be empty
+    return answerOptions; // can be empty
   };
 
   const extractReferenceQuestionnaireItemsAndScoreExpression = (item: QuestionnaireItem): {
@@ -155,7 +137,7 @@ export const normalizeQuestionnaire = (
     }
   };
 
-  const extractRange = (item: QuestionnaireItem): [number, number] | undefined => {
+  const extractRange = (item: QuestionnaireItem): NormalizedFHIR.Range | undefined => {
     const extensionMinVal = item.extension?.find((ext) =>
       ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
     );
@@ -169,27 +151,17 @@ export const normalizeQuestionnaire = (
     const low =
       extensionMinVal.valueDecimal ??
       extensionMinVal.valueInteger ??
-      extensionMinVal.valueDecimal ??
       extensionMinVal.valueString ??
-      extensionMinVal.valueBoolean ??
-      extensionMinVal.valueDate ??
-      extensionMinVal.valueDateTime ??
-      extensionMinVal.valueTime ??
-      undefined;
+      extensionMinVal.valueBoolean;
 
     const high =
       extensionMaxVal.valueDecimal ??
       extensionMaxVal.valueInteger ??
-      extensionMaxVal.valueDecimal ??
       extensionMaxVal.valueString ??
-      extensionMaxVal.valueBoolean ??
-      extensionMaxVal.valueDate ??
-      extensionMaxVal.valueDateTime ??
-      extensionMaxVal.valueTime ??
-      undefined;
+      extensionMaxVal.valueBoolean;
 
     if (low !== undefined && high !== undefined) {
-      return [low, high] as [number, number];
+      return [low, high];
     }
     return undefined;
   };
@@ -209,15 +181,11 @@ export const normalizeQuestionnaire = (
 
       items[item.linkId] = {
         linkId: item.linkId, // immer gegeben
-        text: item.text!, // optional
-        ...(itemAnswerOptions !== undefined && {answerOptions: itemAnswerOptions}),
-        ...(referenceQuestionnaireItems !== undefined && {
-          referenceQuestionnaireItems: referenceQuestionnaireItems,
-        }),
-        ...(itemValueRange !== undefined && { range: itemValueRange }),
-        ...(scoreExpression !== undefined && {
-          scoreExpression: scoreExpression,
-        }),
+        answerOptions: itemAnswerOptions.length > 0 ? itemAnswerOptions : undefined,
+        text: item.text,
+        referenceQuestionnaireItems: referenceQuestionnaireItems,
+        range: itemValueRange,
+        scoreExpression: scoreExpression,
       };
 
       if (item.item) {
