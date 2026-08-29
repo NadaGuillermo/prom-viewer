@@ -26,7 +26,7 @@ export namespace Mapping {
 
   /** Questionnaire */
 
-  type ReferenceRange = {
+  interface ReferenceRange {
     range: [number, number] | number;
     name: string;
     description?: string;

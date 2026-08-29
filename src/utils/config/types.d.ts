@@ -1,11 +1,11 @@
 export namespace Config {
-  type ReferenceRange = {
+  interface ReferenceRange {
     range: number[];
     name: string;
     description?: string;
   }
 
-  type Question = {
+  interface Question {
     itemId: string;
     shortName?: string;
     observationDefinition?: string;
@@ -14,25 +14,25 @@ export namespace Config {
     dimension?: string;
   }
 
-  type DomainItemMapping = {
+  interface DomainItemMapping {
     domain?: string;
     questions?: Question[];
   }
 
-  type ScoreDefinition = {
+  interface ScoreDefinition {
     id: string;
     range: number[];
     scoreHealthCorrelation: string;
     referenceRange?: ReferenceRange[];
   }
 
-  type Questionnaire = {
+  interface Questionnaire {
     questionnaire: string;
     domainItemMapping: DomainItemMapping[];
     globalScores?: string[];
   }
 
-  type PromConfig = {
+  interface PromConfig {
     scoreDefinitions: ScoreDefinition[];
     questionnaires: Questionnaire[];
   }

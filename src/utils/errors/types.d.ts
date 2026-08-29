@@ -1,5 +1,5 @@
 export namespace Errors {
-    type DataIssue = {
+    interface DataIssue {
         id: string;
         code: DataIssueCode;
         level: 'warning' | 'error';
@@ -10,14 +10,14 @@ export namespace Errors {
         showUser?: boolean;
     };
 
-    type issueContext = {
+    interface issueContext {
         resourceId: string;
         relatedResourceIds?: string[];
         field?: string;
         value?: unknown;
     };
 
-    type Result<T> = {
+    interface Result<T> {
         data: T;
         issues: DataIssue[];
     };

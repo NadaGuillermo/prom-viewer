@@ -1,6 +1,7 @@
 import type { NormalizedFHIR } from "@utils/normalization";
 import type { Mapping } from "./types";
-import { issueFactories, type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 // import * as _ from "lodash-es";
 import { UNSPECIFIED_DOMAIN } from "./constants";
 import { isAnswerOptionCode } from "@utils/normalization/utils";

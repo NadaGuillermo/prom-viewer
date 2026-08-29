@@ -6,7 +6,7 @@ export namespace Visualization {
   type NumberOrTuple = number | [number, number];
 
   /** Charts generell */
-  type ReferenceRange = {
+  interface ReferenceRange {
     value: NumberOrTuple;
     normalizedValue: NumberOrTuple;
     name: string;

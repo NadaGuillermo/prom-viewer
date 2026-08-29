@@ -32,12 +32,12 @@ export const getQuestionnaireResponseIdFromObservationReferenceAttribute = (reso
 
 export const isAnswerOptionCode = (
   answerOption: NormalizedFHIR.AnswerOption
-) => {
+): answerOption is NormalizedFHIR.AnswerOptionCode => {
   return (answerOption as NormalizedFHIR.AnswerOptionCode).code !== undefined;
 }
 
 export const isAnswerCode = (
   answer: NormalizedFHIR.Answer
-) => {
+): answer is NormalizedFHIR.AnswerCode => {
   return (answer as NormalizedFHIR.AnswerCode).code !== undefined;
 }

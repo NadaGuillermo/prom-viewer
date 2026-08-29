@@ -1,7 +1,8 @@
 import type { Observation } from "fhir/r4";
 
 import type { NormalizedFHIR } from "./types";
-import { issueFactories, type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import {
   getQuestionnaireResponseIdFromObservationReferenceAttribute,
   getObservationDefinitionCanonicalUrlFromObservation,

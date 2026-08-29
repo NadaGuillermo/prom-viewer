@@ -1,6 +1,7 @@
 import type { Mapping } from "@utils/mapping/types";
 import { addObservationItemsToQuestionnaireResponse } from "./utils";
-import { issueFactories, type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import * as _ from "lodash-es";
 import type { Config } from "./types";
 

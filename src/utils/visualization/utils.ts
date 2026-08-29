@@ -1,5 +1,6 @@
 import type { Visualization } from "./types";
-import { UNSPECIFIED_DOMAIN, UNSPECIFIED_DIMENSION, type Mapping } from "@utils/mapping";
+import type { Mapping } from "@utils/mapping";
+import { UNSPECIFIED_DOMAIN, UNSPECIFIED_DIMENSION } from "@utils/mapping";
 import type { GlobalTypes } from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 import { ITEM_TYPES } from "@utils/mapping";

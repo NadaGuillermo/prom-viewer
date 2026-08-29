@@ -1,11 +1,12 @@
 // import * as _ from "lodash-es";
+import type { Mapping } from "@utils/mapping";
 import {
-  type Mapping,
   SCORE_HEALTH_CORRELATIONS,
   isScoreItem,
 } from "@utils/mapping";
 // import type { NormalizedFHIR } from "@utils/fhir";
-import { issueFactories, type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import type { Config } from "./types";
 
 export const addDomainToQuestionnaireItems = (

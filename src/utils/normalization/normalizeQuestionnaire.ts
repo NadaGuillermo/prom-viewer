@@ -3,7 +3,7 @@ import type { Questionnaire, QuestionnaireItem, ValueSet, CodeSystem } from "fhi
 import type { NormalizedFHIR } from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
-import { type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
 
 export const normalizeQuestionnaire = (
   resource: Questionnaire,

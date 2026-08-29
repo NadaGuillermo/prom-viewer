@@ -1,6 +1,6 @@
 import type { NormalizedFHIR } from "@utils/normalization";
 import type { Mapping } from "./types";
-import { type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
 
 export const mapObservationDefinition = (
   normalizedObservationDefinition: NormalizedFHIR.ObservationDefinition,

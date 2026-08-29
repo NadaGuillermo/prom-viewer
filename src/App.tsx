@@ -1,6 +1,7 @@
 // Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { library, type IconProp } from "@fortawesome/fontawesome-svg-core";
+import type { IconProp } from "@fortawesome/fontawesome-svg-core";
+import { library } from "@fortawesome/fontawesome-svg-core";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 library.add(fas);
 
@@ -33,7 +34,8 @@ import DateSlider from "@components/DateSlider";
 import PatientInfo from "@components/PatientInfo";
 
 // Types
-import { type Errors, forwardErrorsToUser } from "@utils/errors";
+import type { Errors } from "@utils/errors";
+import { forwardErrorsToUser } from "@utils/errors";
 import type { Visualization } from "@utils/visualization";
 import type { Mapping } from "@utils/mapping";
 import type { Config } from "@utils/config";

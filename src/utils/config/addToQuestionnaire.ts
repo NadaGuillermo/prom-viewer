@@ -1,5 +1,6 @@
 import type { Mapping } from "@utils/mapping";
-import { issueFactories, type Errors } from "@utils/errors";
+import type { Errors } from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import {
   addDomainToQuestionnaireItems,
   addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems,
