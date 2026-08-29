@@ -19,7 +19,7 @@ export const normalizeQuestionnaire = (
       for (const opt of item.answerOption) {
         const value = opt.valueInteger ?? opt.valueString;
         // only value exists for answer option
-        if (value !== undefined && opt.initialSelected === false) { // otherwise error with EQ-5D-5L
+        if (value !== undefined) {
           answerOptions.push(
             {
             value: value,

@@ -58,7 +58,7 @@
   ],
   "questionnaires": [
     {
-      "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable",
+      "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-minimal",
       "domainItemMapping": [
         {
           "domain": "Physical Health",
@@ -109,7 +109,7 @@
           "domain": "Quality of Life",
           "questions": [
             {
-              "itemId": "euroqol-eq5d5l-vas",
+              "itemId": "euroqol-eq5d5l-q06-vas",
               "shortName": "EQ VAS",
               "isDimensionScore": true,
               "scoreDefinitionId": "eq5d-vas"
@@ -123,7 +123,7 @@
           ]
         }
       ],
-      "globalScores": ["euroqol-eq5d5l-score-index", "euroqol-eq5d5l-vas"]
+      "globalScores": ["euroqol-eq5d5l-score-index", "euroqol-eq5d5l-q06-vas"]
     },
     {
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
