@@ -1,9 +1,9 @@
-import type { Mapping } from "@utils/mapping/types";
+import type * as Mapping from "@utils/mapping/types";
 import { addObservationItemsToQuestionnaireResponse } from "./utils";
-import type { Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
 import * as _ from "lodash-es";
-import type { Config } from "./types";
+import type * as Config from "./types";
 
 export const addConfigurationsToQuestionnaireResponse = (
   response: Mapping.QuestionnaireResponse,

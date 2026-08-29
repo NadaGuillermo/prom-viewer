@@ -1,4 +1,4 @@
-import type { Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
 
 interface Props {
   patient: Mapping.Patient;

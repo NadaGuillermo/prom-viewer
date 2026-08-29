@@ -1,9 +1,9 @@
 import type { Questionnaire, QuestionnaireItem, ValueSet, CodeSystem } from "fhir/r4";
 
-import type { NormalizedFHIR } from "./types";
+import type * as NormalizedFHIR from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
-import type { Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
 
 export const normalizeQuestionnaire = (
   resource: Questionnaire,

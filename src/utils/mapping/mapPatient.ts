@@ -1,7 +1,7 @@
-import type { NormalizedFHIR } from "@utils/normalization";
-import type { Mapping } from "./types";
+import type * as NormalizedFHIR from "@utils/normalization";
+import type * as Mapping from "./types";
 import { convertFhirDateTimeToDateFormat } from "./utils";
-import type { Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
 
 export const mapPatient = (

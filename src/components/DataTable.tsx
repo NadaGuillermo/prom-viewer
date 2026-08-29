@@ -1,6 +1,5 @@
-import type { Visualization } from "@utils/visualization";
+import type * as Visualization from "@utils/visualization";
 import React from "react";
-import { ITEM_TYPES } from "@utils/mapping";
 import { truncateAtWord } from "@utils/visualization";
 import { Tooltip } from "react-tooltip";
 import Portal from "@components/Portal";
@@ -46,7 +45,7 @@ const DataTable = ({
               className={`tw:sticky tw:left-0 tw:z-10 tw:border-b border-light tw:bg-base-100
             tw:py-2 tw:px-2`}
             >
-              <div className={`tw:text-sm tw:whitespace-pre-wrap tw:break-normal ${row.seriesType === ITEM_TYPES.score ? "tw:font-bold" : "tw:font-normal"}`}>
+              <div className={`tw:text-sm tw:whitespace-pre-wrap tw:break-normal ${row.seriesType === "score" ? "tw:font-bold" : "tw:font-normal"}`}>
                 {row.name !== truncateAtWord(row.name, 80) ? (   
                   <>
                     <div data-tooltip-id={`${row.id}`}>
@@ -83,7 +82,7 @@ const DataTable = ({
               tw:items-center tw:border-b border-light
               tw:py-2 `}
               >
-                <div className={`tw:text-sm ${row.seriesType === ITEM_TYPES.score ? "tw:font-bold" : "tw:font-normal"}`}>
+                <div className={`tw:text-sm ${row.seriesType === "score" ? "tw:font-bold" : "tw:font-normal"}`}>
                   {row.originalData[index] !== null ?
                     row.originalData[index]
                     : ""

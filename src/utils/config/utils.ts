@@ -1,13 +1,14 @@
 // import * as _ from "lodash-es";
-import type { Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
+import { isScoreHealthCorrelation } from "@utils/mapping";
 import {
-  SCORE_HEALTH_CORRELATIONS,
   isScoreItem,
 } from "@utils/mapping";
 // import type { NormalizedFHIR } from "@utils/fhir";
-import type { Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
-import type { Config } from "./types";
+import type * as Config from "./types";
+
 
 export const addDomainToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
@@ -304,7 +305,7 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
       }
 
       const isRangeValid = rangeRaw !== undefined  && !isNaN(rangeRaw[0]) && !isNaN(rangeRaw[1]);
-      const isScoreHealthCorrelationValid = scoreHealthCorrelationRaw !== undefined && scoreHealthCorrelationRaw in SCORE_HEALTH_CORRELATIONS;
+      const isScoreHealthCorrelationValid = scoreHealthCorrelationRaw !== undefined && isScoreHealthCorrelation(scoreHealthCorrelationRaw);
 
       if (!isRangeValid && correspondingObservationDefinition) {
         if (rangeRaw !== undefined) {

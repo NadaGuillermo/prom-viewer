@@ -1,6 +1,6 @@
 import type { ObservationDefinition } from "@services/fhir/types";
-import type { NormalizedFHIR } from "./types";
-import type { Errors } from "@utils/errors";
+import type * as NormalizedFHIR from "./types";
+import type * as Errors from "@utils/errors";
 
 export const normalizeObservationDefinition = (
   resource: ObservationDefinition,

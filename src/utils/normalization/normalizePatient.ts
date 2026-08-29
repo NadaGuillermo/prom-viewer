@@ -1,6 +1,6 @@
 import type { Patient } from "fhir/r4";
 
-import type { NormalizedFHIR } from "./types";
+import type * as NormalizedFHIR from "./types";
 
 export const normalizePatient = (resource: Patient): NormalizedFHIR.Patient => {
 

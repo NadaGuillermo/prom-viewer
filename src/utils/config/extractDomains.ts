@@ -1,5 +1,5 @@
 import * as _ from "lodash-es";
-import type { Config } from "./types";
+import type * as Config from "./types";
 
 export const extractDomainsFromConfig = (config: Config.PromConfig): Record<string, number> => {
      // const domains: string[] = [];

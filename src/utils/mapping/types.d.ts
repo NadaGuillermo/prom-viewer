@@ -1,100 +1,95 @@
-import { SCORE_HEALTH_CORRELATIONS } from "./constants";
+import { SCORE_HEALTH_CORRELATIONS, ITEM_TYPES } from "./constants";
 
-export namespace Mapping {
-  type Value = number | null;
-  type Item = QuestionnaireItem | QuestionnaireScoreItem;
+export type Value = number | null;
+export type Item = QuestionnaireItem | QuestionnaireScoreItem;
+export type ScoreHealthCorrelation = typeof SCORE_HEALTH_CORRELATIONS[number];
+export type ItemType = typeof ITEM_TYPES[number];
+export interface AnswerOptionValue {
+  value: Value;
+  label: string;
+}
 
-  interface AnswerOptionValue {
-    value: Value;
-    label: string;
-  }
+export interface AnswerOptionCode extends AnswerOptionValue {
+  code: string;
+}
 
-  interface AnswerOptionCode extends AnswerOptionValue {
-    code: string;
-  }
+export type AnswerOption = AnswerOptionCode | AnswerOptionValue;
 
-  type AnswerOption = AnswerOptionCode | AnswerOptionValue;
+export interface BaseItem {
+  linkId: string;
+  domain: string;
+  text?: string;
+  shortText?: string;
+  dimension?: string;
+  isDimensionScore?: boolean;
+}
 
-  interface BaseItem {
-    linkId: string;
-    domain: string;
-    text?: string;
-    shortText?: string;
-    dimension?: string;
-    isDimensionScore?: boolean;
-  }
+/** Questionnaire */
 
-  /** Questionnaire */
+export interface ReferenceRange {
+  range: [number, number] | number;
+  name: string;
+  description?: string;
+}
 
-  interface ReferenceRange {
-    range: [number, number] | number;
-    name: string;
-    description?: string;
-  };
+export interface QuestionnaireItem extends BaseItem {
+  answerOptions: AnswerOption[];
+  range?: [number, number];
+  scoreHealthCorrelation?: ScoreHealthCorrelation;
+}
 
-  interface QuestionnaireItem extends BaseItem {
-    answerOptions: AnswerOption[];
-    range?: [number, number];
-    scoreHealthCorrelation?:
-      | SCORE_HEALTH_CORRELATIONS.increase
-      | SCORE_HEALTH_CORRELATIONS.decrease;
-  }
+export interface QuestionnaireScoreItem extends BaseItem {
+  range: [number, number];
+  scoreHealthCorrelation: ScoreHealthCorrelation;
+  isDomainScore?: boolean;
+  isGlobalScore?: boolean;
+  referenceQuestionnaireItems?: string[]; // linkIds
+  scoreExpression?: string;
+  referenceRange?: ReferenceRange[];
+  // referenceValue?: ReferenceRange[];
+}
 
-  interface QuestionnaireScoreItem extends BaseItem {
-    range: [number, number];
-    scoreHealthCorrelation:
-      | SCORE_HEALTH_CORRELATIONS.increase
-      | SCORE_HEALTH_CORRELATIONS.decrease;
-    isDomainScore?: boolean;
-    isGlobalScore?: boolean;
-    referenceQuestionnaireItems?: string[]; // linkIds
-    scoreExpression?: string;
-    referenceRange?: ReferenceRange[];
-    // referenceValue?: ReferenceRange[];
-  }
+export interface Questionnaire {
+  id: string;
+  url: string;
+  title: string;
+  // description: string;
+  items: Record<string, Item>; // key = linkId
+}
 
-  interface Questionnaire {
-    id: string;
-    url: string;
-    title: string;
-    // description: string;
-    items: Record<string, Item>; // key = linkId
-  }
+export interface ObservationDefinition {
+  id: string;
+  url: string;
+  range?: [number, number];
+  scoreHealthCorrelation?: string;
+  referenceRange?: ReferenceRange[];
+  // referenceValue?: NormalizedFHIR.ReferenceRange[];
+}
 
-  interface ObservationDefinition {
-    id: string;
-    url: string;
-    range?: [number, number];
-    scoreHealthCorrelation?: string;
-    referenceRange?: ReferenceRange[];
-    // referenceValue?: NormalizedFHIR.ReferenceRange[];
-  }
+/** Response */
+export interface ResponseItem {
+  linkId: string; // linkId of Item
+  answer: Value;
+}
 
-  /** Response */
-  interface ResponseItem {
-    linkId: string; // linkId of Item
-    answer: Value;
-  }
+export interface QuestionnaireResponse {
+  id: string;
+  questionnaire: Questionnaire;
+  authored: string;
+  items: Record<string, ResponseItem>; // key = linkId
+}
 
-  interface QuestionnaireResponse {
-    id: string;
-    questionnaire: Questionnaire;
-    authored: string;
-    items: Record<string, ResponseItem>; // key = linkId
-  }
+export interface Observation {
+  id: string;
+  value: Value;
+  questionnaireResponse?: string; // QuestionnaireResponse.id
+  observationDefinition?: string; // ObservationDefinition.url
+}
 
-  interface Observation {
-    id: string;
-    value: Value;
-    questionnaireResponse?: string; // QuestionnaireResponse.id
-    observationDefinition?: string; // ObservationDefinition.url
-  }
-
-  interface Patient {
-    id: string;
-    familyName: string;
-    givenName: string;
-    gender?: string;
-    birthDate?: string;
-  }
+export interface Patient {
+  id: string;
+  familyName: string;
+  givenName: string;
+  gender?: string;
+  birthDate?: string;
 }

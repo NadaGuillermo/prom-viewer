@@ -1,4 +1,4 @@
-import type { DateFormat } from "./types.d";
+import type * as DateFormat from "./types.d";
 import { DEFAULT_DATE_FORMAT_CONFIG } from "./defaultDateFormat";
 import { validateDateFormatConfig } from "./validateDateFormatConfig";
 

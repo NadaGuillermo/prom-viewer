@@ -1,5 +1,5 @@
-import type { Visualization } from "@utils/visualization";
-import type { Mapping } from "@utils/mapping";
+import type * as Visualization from "@utils/visualization";
+import type * as Mapping from "@utils/mapping";
 import * as _ from "lodash-es";
 
 export const createAndDownloadCSV = (

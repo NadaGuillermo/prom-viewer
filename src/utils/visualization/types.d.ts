@@ -1,46 +1,42 @@
-import type { GlobalTypes } from "@customTypes/globalTypes"
-import { ITEM_TYPES } from "@utils/mapping";
-export namespace Visualization {
+import type * as GlobalTypes from "@customTypes/globalTypes"
+import type { ItemType } from "@utils/mapping";
 
-  type ItemType = ITEM_TYPES.item | ITEM_TYPES.score;
-  type NumberOrTuple = number | [number, number];
+export type NumberOrTuple = number | [number, number];
 
-  /** Charts generell */
-  interface ReferenceRange {
-    value: NumberOrTuple;
-    normalizedValue: NumberOrTuple;
-    name: string;
-    description?: string;
-  }
-
-  interface DataSeries {
-    id: string; // linkId
-    name: string;
-    shortName: string;
-    data: GlobalTypes.NumberOrNull[];
-    originalData: GlobalTypes.NumberOrNull[];
-    dataLabels: string[];
-    seriesType: ItemType;
-    // originalReferenceValues?: ReferenceRange[];
-    // domain: string;
-    questionnaireId: string; // questionnaireId
-    questionnaireName: string;
-    referenceValues?: ReferenceRange[];
-    // isDomainScore: boolean;
-    // isDimensionScore: boolean;
-    // isGlobalScore: boolean;
-    // referencedItems?: string[]; // linkIds of items used for score calculation
-    // dimension?: string;
-  }
-
-  interface ChartData {
-    xData: string[];
-    yData: DataSeries[];
-  }
-
-  interface RangeState {
-  start: string;
-  end: string;
+/** Charts generell */
+export interface ReferenceRange {
+  value: NumberOrTuple;
+  normalizedValue: NumberOrTuple;
+  name: string;
+  description?: string;
 }
 
+export interface DataSeries {
+  id: string; // linkId
+  name: string;
+  shortName: string;
+  data: GlobalTypes.NumberOrNull[];
+  originalData: GlobalTypes.NumberOrNull[];
+  dataLabels: string[];
+  seriesType: ItemType;
+  // originalReferenceValues?: ReferenceRange[];
+  // domain: string;
+  questionnaireId: string; // questionnaireId
+  questionnaireName: string;
+  referenceValues?: ReferenceRange[];
+  // isDomainScore: boolean;
+  // isDimensionScore: boolean;
+  // isGlobalScore: boolean;
+  // referencedItems?: string[]; // linkIds of items used for score calculation
+  // dimension?: string;
+}
+
+export interface ChartData {
+  xData: string[];
+  yData: DataSeries[];
+}
+
+export interface RangeState {
+  start: string;
+  end: string;
 }

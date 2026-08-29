@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import PatientInfo from "@components/PatientInfo";
-import type { Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
 
 const patient = (overrides: Partial<Mapping.Patient>): Mapping.Patient => ({
   id: "patient-1",

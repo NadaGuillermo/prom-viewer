@@ -19,8 +19,8 @@ import {
   sortDomains,
   getMinAndMaxAnswerOptionValueForItem,
 } from "@utils/visualization/utils";
-import { ITEM_TYPES, type Mapping } from "@utils/mapping";
-import type { Visualization } from "@utils/visualization";
+import type * as Mapping from "@utils/mapping";
+import type * as Visualization from "@utils/visualization";
 
 describe("truncateAtWord", () => {
   it("returns the string unchanged when within maxLength", () => {
@@ -52,7 +52,7 @@ const series = (
   data: [0.5, null],
   originalData: [10, null],
   dataLabels: ["ten", ""],
-  seriesType: ITEM_TYPES.item as Visualization.ItemType,
+  seriesType: "item",
   questionnaireId: "q1",
   questionnaireName: "PHQ-9",
   ...overrides,

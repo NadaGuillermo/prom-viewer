@@ -1,13 +1,12 @@
 import type { Observation, QuestionnaireResponse, QuestionnaireResponseItemAnswer } from "fhir/r4";
 
-import type { Errors } from "./types";
+import type * as Errors from "./types";
 import {
-  DataIssueCode,
   userMessageResponseNotDisplayed,
   userMessageQuestionnaireNotDisplayed,
 } from "./constants";
-import type { Mapping } from "@utils/mapping";
-import type { NormalizedFHIR } from "@utils/normalization";
+import type * as Mapping from "@utils/mapping";
+import type * as NormalizedFHIR from "@utils/normalization";
 
 const createIssue = (base: Omit<Errors.DataIssue, "id">): Errors.DataIssue => {
   return {
@@ -20,7 +19,7 @@ export const issueFactories = {
   patient: {
     missingName: (resource: NormalizedFHIR.Patient): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_VALUE,
+        code: "MISSING_VALUE",
         level: "warning",
         message: `Patient ${resource.id} is missing a name.`,
         userMessage: `Patient has no name.`,
@@ -36,7 +35,7 @@ export const issueFactories = {
       linkId: string,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_REFERENCE,
+        code: "INVALID_REFERENCE",
         level: "error",
 
         message: `Item ${linkId} does not exist in Questionnaire but in QuestionnaireResponse.`,
@@ -58,7 +57,7 @@ export const issueFactories = {
       value: NormalizedFHIR.Answer,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_VALUE_TYPE,
+        code: "INVALID_VALUE_TYPE",
         level: "error",
 
         message: `Invalid type for item ${linkId} in QuestionnaireResponse. Expected type: convertible to number.`,
@@ -81,7 +80,7 @@ export const issueFactories = {
       values: QuestionnaireResponseItemAnswer[],
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_NUMBER_OF_VALUES,
+        code: "INVALID_NUMBER_OF_VALUES",
         level: "warning",
 
         message: `Item ${linkId} in QuestionnaireResponse has multiple values. Only the first one is used.`,
@@ -103,7 +102,7 @@ export const issueFactories = {
       value: NormalizedFHIR.Value,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_VALUE,
+        code: "INVALID_VALUE",
         level: "warning",
 
         message: `Invalid value for item ${linkId} in QuestionnaireResponse.`,
@@ -122,7 +121,7 @@ export const issueFactories = {
       resource: NormalizedFHIR.QuestionnaireResponse,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.EMPTY_RESOURCE,
+        code: "EMPTY_RESOURCE",
         level: "error",
 
         message: `QuestionnaireResponse has no items.`,
@@ -139,7 +138,7 @@ export const issueFactories = {
       }),
     missingQuestionnaire: (resource: NormalizedFHIR.QuestionnaireResponse): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_RESOURCE_LINK,
+        code: "MISSING_RESOURCE_LINK",
         level: "error",
 
         message: `Questionnaire referenced by QuestionnaireResponse could not be found. Either the questionnaire does not exist on the server or the URL is invalid.`,
@@ -162,7 +161,7 @@ export const issueFactories = {
       linkId: string,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_FIELD,
+        code: "MISSING_FIELD",
         level: "error",
 
         message: `For item ${linkId} in Questionnaire no answerOptions could be found.`,
@@ -183,7 +182,7 @@ export const issueFactories = {
       value: NormalizedFHIR.Value,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_VALUE_TYPE,
+        code: "INVALID_VALUE_TYPE",
         level: "warning",
 
         message: `Invalid type for at least one answerOption of item ${linkId} in Questionnaire. Expected type: convertible to number`,
@@ -205,7 +204,7 @@ export const issueFactories = {
       value: NormalizedFHIR.Range,
     ): Errors.DataIssue => 
       createIssue({
-        code: DataIssueCode.INVALID_VALUE_TYPE,
+        code: "INVALID_VALUE_TYPE",
         level: "warning",
 
         message: `Invalid type for range of item ${linkId} in Questionnaire. Expected type: convertible to number`,
@@ -227,7 +226,7 @@ export const issueFactories = {
       resource: NormalizedFHIR.Questionnaire,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_RESOURCE_IN_CONFIG,
+        code: "MISSING_RESOURCE_IN_CONFIG",
         level: "error",
 
         message: `Questionnaire is missing in the configuration file.`,
@@ -246,7 +245,7 @@ export const issueFactories = {
   observation: {
     missingQuestionnaireResponse: (resource: Observation): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_RESOURCE_LINK,
+        code: "MISSING_RESOURCE_LINK",
         level: "error",
 
         message: `QuestionnaireResponse referenced by Observation is missing.`,
@@ -262,7 +261,7 @@ export const issueFactories = {
       }),
     missingObservationDefinition: (resource: Observation): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_RESOURCE_LINK,
+        code: "MISSING_RESOURCE_LINK",
         level: "error",
 
         message: `ObservationDefinition referenced by Observation is missing.`,
@@ -280,7 +279,7 @@ export const issueFactories = {
       resource: NormalizedFHIR.Observation,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_VALUE_TYPE,
+        code: "INVALID_VALUE_TYPE",
         level: "error",
 
         message: `Observation value is of an invalid type. Expected type: convertible to number.`,
@@ -302,7 +301,7 @@ export const issueFactories = {
       resource: Mapping.ObservationDefinition,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.CONTRADICTING_VALUES,
+        code: "CONTRADICTING_VALUES",
         level: "warning",
 
         message:
@@ -322,7 +321,7 @@ export const issueFactories = {
       resource: Mapping.ObservationDefinition,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.CONTRADICTING_VALUES,
+        code: "CONTRADICTING_VALUES",
         level: "warning",
 
         message:
@@ -341,7 +340,7 @@ export const issueFactories = {
       }),
     missingRange: (resource: Mapping.ObservationDefinition): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_FIELD,
+        code: "MISSING_FIELD",
         level: "error",
 
         message: `ObservationDefinition is missing range.`,
@@ -357,7 +356,7 @@ export const issueFactories = {
       }),
     invalidRange: (resource: Mapping.ObservationDefinition): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_VALUE_TYPE,
+        code: "INVALID_VALUE_TYPE",
         level: "error",
 
         message: "ObservationDefinition has an invalid range.",
@@ -377,7 +376,7 @@ export const issueFactories = {
       resource: Mapping.ObservationDefinition,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.MISSING_FIELD,
+        code: "MISSING_FIELD",
         level: "error",
 
         message: `ObservationDefinition is missing scoreHealthCorrelation.`,
@@ -395,7 +394,7 @@ export const issueFactories = {
       resource: Mapping.ObservationDefinition,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.INVALID_VALUE_TYPE,
+        code: "INVALID_VALUE_TYPE",
         level: "error",
 
         message: "ObservationDefinition has an invalid scoreHealthCorrelation.",
@@ -415,7 +414,7 @@ export const issueFactories = {
       resource: Mapping.ObservationDefinition,
     ): Errors.DataIssue =>
       createIssue({
-        code: DataIssueCode.DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG,
+        code: "DUPLICATE_DEFINITION_IN_RESOURCE_AND_CONFIG",
         level: "warning",
 
         message:

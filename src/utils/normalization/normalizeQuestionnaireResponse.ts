@@ -4,8 +4,8 @@ import type {
   QuestionnaireResponseItemAnswer,
 } from "fhir/r4";
 
-import type { NormalizedFHIR } from "./types";
-import type { Errors } from "@utils/errors";
+import type * as NormalizedFHIR from "./types";
+import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
 import { isAnswerOptionCode } from "./utils";
 

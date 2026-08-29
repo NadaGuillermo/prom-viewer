@@ -1,4 +1,4 @@
-import type { DateFormat } from "./types.d";
+import type * as DateFormat from "./types.d";
 
 export const ISO_DATE_FORMAT = "YYYY-MM-DD";
 

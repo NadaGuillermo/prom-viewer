@@ -34,11 +34,11 @@ import DateSlider from "@components/DateSlider";
 import PatientInfo from "@components/PatientInfo";
 
 // Types
-import type { Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
 import { forwardErrorsToUser } from "@utils/errors";
-import type { Visualization } from "@utils/visualization";
-import type { Mapping } from "@utils/mapping";
-import type { Config } from "@utils/config";
+import type * as Visualization from "@utils/visualization";
+import type * as Mapping from "@utils/mapping";
+import type * as Config from "@utils/config";
 
 // Chart options
 import {

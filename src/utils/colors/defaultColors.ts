@@ -1,4 +1,4 @@
-import type { Colors } from "./types.d";
+import type * as Colors from "./types.d";
 
 // Mirrors the "prolight" daisyUI theme defined in src/index.css.
 // Used whenever a color configuration file is missing, unreachable, or invalid.

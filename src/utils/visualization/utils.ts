@@ -1,9 +1,8 @@
-import type { Visualization } from "./types";
-import type { Mapping } from "@utils/mapping";
+import type * as Visualization from "./types";
+import type * as Mapping from "@utils/mapping";
 import { UNSPECIFIED_DOMAIN, UNSPECIFIED_DIMENSION } from "@utils/mapping";
-import type { GlobalTypes } from "@customTypes/globalTypes";
+import type * as GlobalTypes from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
-import { ITEM_TYPES } from "@utils/mapping";
 import { getDateFormatPattern, parseFormattedDate } from "@utils/dateFormat";
 
 export const getLabelFromValueAndDataSeriesName = (
@@ -351,7 +350,7 @@ export const createTableData = (
     if (questionnaire === undefined) {
       return;
     }   
-    const scoreSeries = chartData.yData.filter((series) => series.seriesType === ITEM_TYPES.score);
+    const scoreSeries = chartData.yData.filter((series) => series.seriesType === "score");
     const globalScoreSeries = scoreSeries.filter((series) => {
       const questionnaireItem = questionnaire.items[series.id];
       if (questionnaireItem === undefined) {
@@ -716,7 +715,7 @@ export const createPseudoDataSeries = (length: number): Visualization.DataSeries
     data: pseudoDataPoints,
     originalData: pseudoDataPoints,
     dataLabels: [],
-    seriesType: ITEM_TYPES.item,
+    seriesType: "item",
     questionnaireId: "",
     questionnaireName: "",
   };

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createChartData } from "@utils/visualization/dataTransformation";
-import { SCORE_HEALTH_CORRELATIONS, type Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
 
 const q1: Mapping.Questionnaire = {
   id: "q1",
@@ -34,7 +34,7 @@ const q1: Mapping.Questionnaire = {
       domain: "d",
       text: "Increasing Score",
       range: [0, 10],
-      scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.increase,
+      scoreHealthCorrelation: "increase",
       isGlobalScore: true,
     },
     "score-dec": {
@@ -42,7 +42,7 @@ const q1: Mapping.Questionnaire = {
       domain: "d",
       text: "Decreasing Score",
       range: [0, 27],
-      scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.decrease,
+      scoreHealthCorrelation: "decrease",
       referenceRange: [
         { range: [0, 4], name: "minimal" },
         { range: 10, name: "cutoff" },

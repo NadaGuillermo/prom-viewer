@@ -1,5 +1,5 @@
-import type { Mapping } from "@utils/mapping";
-import type { Visualization } from "@utils/visualization";
+import type * as Mapping from "@utils/mapping";
+import type * as Visualization from "@utils/visualization";
 import DateRangePicker from "@components/DateRangePicker";
 
 interface Props {

@@ -1,13 +1,14 @@
 import { useContext } from "react";
 import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
 import { ShowReferenceValuesContext } from "@components/ShowReferenceValuesContext";
-import { type Charts, tolColorPalette, referenceColors } from "@utils/charts";
+import type * as Charts from "@utils/charts";
+import { tolColorPalette, referenceColors } from "@utils/charts";
 import * as echarts from "echarts/core";
+import type * as Visualization from "@utils/visualization";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
   getLabelFromValueAndDataSeriesName,
   getDataSeriesNameFromShortName,
-  type Visualization,
 } from "@utils/visualization";
 
 import type {

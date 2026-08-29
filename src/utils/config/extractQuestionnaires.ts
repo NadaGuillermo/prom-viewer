@@ -1,8 +1,8 @@
-import type { NormalizedFHIR } from "@utils/normalization";
-import type { Errors } from "@utils/errors";
+import type * as NormalizedFHIR from "@utils/normalization";
+import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
 import * as _ from "lodash-es";
-import type { Config } from "./types";
+import type * as Config from "./types";
 
 export const extractQuestionnairesFromConfig = (
   config: Config.PromConfig,

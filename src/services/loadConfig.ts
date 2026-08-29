@@ -1,4 +1,4 @@
-import type { Config } from "@utils/config";
+import type * as Config from "@utils/config";
 import { fetchJsonConfig, resolveConfigUrl } from "./fetchJsonConfig";
 import { validatePromConfig } from "./validateConfig";
 

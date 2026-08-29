@@ -1,12 +1,12 @@
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 
-import type { Config } from "@utils/config";
+import type * as Config from "@utils/config";
 import promsSchema from "../../schemas/proms.schema.json";
 
 const ajv = new Ajv2020({ allErrors: true });
 addFormats(ajv);
-const validate = ajv.compile(promsSchema);
+const validate = ajv.compile<Config.PromConfig>(promsSchema);
 
 /**
  * @param data - raw, unvalidated JSON parsed from the fetched PROMs config file
@@ -20,7 +20,7 @@ export function validatePromConfig(data: unknown): Config.PromConfig {
       `PROMs configuration file failed schema validation:\n${formatErrors(validate.errors)}`,
     );
   }
-  return data as Config.PromConfig;
+  return data;
 }
 
 /**

@@ -5,7 +5,7 @@ import {
   forwardRef,
   type CSSProperties,
 } from "react";
-import type { Charts } from "@utils/charts";
+import type * as Charts from "@utils/charts";
 import type { ECharts } from "echarts/core";
 import { init, use as registerEChartsComponents } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";

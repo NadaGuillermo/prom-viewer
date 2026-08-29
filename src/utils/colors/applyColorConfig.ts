@@ -1,4 +1,4 @@
-import type { Colors } from "./types.d";
+import type * as Colors from "./types.d";
 
 // Maps theme keys to the CSS custom properties declared in index.css.
 // Explicit rather than derived so "base100" -> "--color-base-100" etc.

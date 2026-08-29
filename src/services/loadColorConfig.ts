@@ -1,4 +1,4 @@
-import type { Colors } from "@utils/colors/types.d";
+import type * as Colors from "@utils/colors/types.d";
 import { resolveColorConfig } from "@utils/colors/resolveColorConfig";
 import { DEFAULT_COLOR_CONFIG } from "@utils/colors/defaultColors";
 import { fetchJsonConfig, resolveConfigUrl } from "./fetchJsonConfig";

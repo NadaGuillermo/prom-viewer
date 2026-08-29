@@ -1,94 +1,92 @@
-export namespace NormalizedFHIR {
-  type Value = string | number | boolean | null;
-  type Range = [Value, Value];
+export type Value = string | number | boolean | null;
+export type Range = [Value, Value];
 
-  /** Questionnaire */
-  interface AnswerOptionCode {
-    code: string;
-    value?: Value;
-    label?: string;
-  }
+/** Questionnaire */
+export interface AnswerOptionCode {
+  code: string;
+  value?: Value;
+  label?: string;
+}
 
-  interface AnswerOptionValue {
-    value: Value;
-  }
+export interface AnswerOptionValue {
+  value: Value;
+}
 
-  type AnswerOption = AnswerOptionCode | AnswerOptionValue;
+export type AnswerOption = AnswerOptionCode | AnswerOptionValue;
 
-  interface AnswerCode {
-    code: string;
-  }
+export interface AnswerCode {
+  code: string;
+}
 
-  interface AnswerValue {
-    value: Value;
-  }
+export interface AnswerValue {
+  value: Value;
+}
 
-  type Answer = AnswerCode | AnswerValue;
+export type Answer = AnswerCode | AnswerValue;
 
-  interface QuestionnaireItem {
-    linkId: string;
-    text?: string;
-    answerOptions?: AnswerOption[];
-    referenceQuestionnaireItems?: string[];
-    range?: Range;
-    // observationCode?: string; // from Observation
-    observationDefinition?: string; // id for ObservationDefinition
-    // scoreHealthCorrelation?: string; // from ObservationDefinition
-    scoreExpression?: string;
-  }
+export interface QuestionnaireItem {
+  linkId: string;
+  text?: string;
+  answerOptions?: AnswerOption[];
+  referenceQuestionnaireItems?: string[];
+  range?: Range;
+  // observationCode?: string; // from Observation
+  observationDefinition?: string; // id for ObservationDefinition
+  // scoreHealthCorrelation?: string; // from ObservationDefinition
+  scoreExpression?: string;
+}
 
-  interface Questionnaire {
-    id: string;
-    url: string;
-    title?: string;
-    // description?: string;
-    items: Record<string, QuestionnaireItem>;
-  }
+export interface Questionnaire {
+  id: string;
+  url: string;
+  title?: string;
+  // description?: string;
+  items: Record<string, QuestionnaireItem>;
+}
 
-  interface ReferenceRange {
-    range: [number, number] | number;
-    context?: string;
-  }
+export interface ReferenceRange {
+  range: [number, number] | number;
+  context?: string;
+}
 
-  /** Observation Definition */
-  interface ObservationDefinition {
-    id: string;
-    url: string;
-    range?: [number, number];
-    scoreHealthCorrelation?: string;
-    // code: string;
-    referenceRange?: ReferenceRange[];
-    // referenceValue?: ReferenceRange[];
-  }
+/** Observation Definition */
+export interface ObservationDefinition {
+  id: string;
+  url: string;
+  range?: [number, number];
+  scoreHealthCorrelation?: string;
+  // code: string;
+  referenceRange?: ReferenceRange[];
+  // referenceValue?: ReferenceRange[];
+}
 
-  /** Response */
-  interface ResponseItem {
-    linkId: string;
-    answer: Answer;
-  }
+/** Response */
+export interface ResponseItem {
+  linkId: string;
+  answer: Answer;
+}
 
-  interface QuestionnaireResponse {
-    id: string;
-    questionnaire: string; // Questionnaire.url
-    authored: string;
-    items: Record<string, ResponseItem>;
-  }
+export interface QuestionnaireResponse {
+  id: string;
+  questionnaire: string; // Questionnaire.url
+  authored: string;
+  items: Record<string, ResponseItem>;
+}
 
-  /** Observation */
-  interface Observation {
-    id: string;
-    // code: string;
-    value: Value;
-    questionnaireResponse?: string; // QuestionnaireResponse.id
-    observationDefinition?: string; // ObservationDefinition.id
-  }
+/** Observation */
+export interface Observation {
+  id: string;
+  // code: string;
+  value: Value;
+  questionnaireResponse?: string; // QuestionnaireResponse.id
+  observationDefinition?: string; // ObservationDefinition.id
+}
 
 /* Patient */
-  interface Patient {
-    id: string;
-    familyName?: string;
-    givenName?: string;
-    gender?: string;
-    birthDate?: string;
-  }
+export interface Patient {
+  id: string;
+  familyName?: string;
+  givenName?: string;
+  gender?: string;
+  birthDate?: string;
 }

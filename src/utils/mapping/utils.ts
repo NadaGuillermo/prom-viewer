@@ -1,6 +1,5 @@
-import type { Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
 import { formatDate, getDateFormatPattern } from "@utils/dateFormat";
-
 // Formats using the runtime-configured date pattern (see
 // src/mocks/config/data/dateFormat.json), falling back to ISO if it's missing or
 // invalid.
@@ -25,4 +24,12 @@ export const isDimensionScore = (
   item: Mapping.Item
 ) => {
   return item.isDimensionScore !== undefined && item.isDimensionScore === true;
+}
+
+export const isScoreHealthCorrelation = (value: string): value is Mapping.ScoreHealthCorrelation => {
+  return value === "increase" || value === "decrease";
+}
+
+export const isItemType = (value: string): value is Mapping.ItemType => {
+  return value === "score" || value === "item" || value === "dimensionScore";
 }

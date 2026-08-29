@@ -1,7 +1,7 @@
 import "cally";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconProp } from "@fortawesome/fontawesome-svg-core";
-import type { Visualization } from "@utils/visualization";
+import type * as Visualization from "@utils/visualization";
 import { formatDate } from "@utils/dateFormat";
 interface Props {
   rangeHandler: (event: Event) => void;

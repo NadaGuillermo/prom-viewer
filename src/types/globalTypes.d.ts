@@ -1,5 +1,1 @@
-export namespace GlobalTypes {
-
-    type NumberOrNull = number | null;
-
-}
+export type NumberOrNull = number | null;

@@ -1,4 +1,4 @@
-import type { DateFormat } from "@utils/dateFormat/types.d";
+import type * as DateFormat from "@utils/dateFormat/types.d";
 import { resolveDateFormatConfig } from "@utils/dateFormat/resolveDateFormatConfig";
 import { DEFAULT_DATE_FORMAT_CONFIG } from "@utils/dateFormat/defaultDateFormat";
 import { fetchJsonConfig, resolveConfigUrl } from "./fetchJsonConfig";

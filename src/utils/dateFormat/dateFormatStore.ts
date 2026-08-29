@@ -1,4 +1,4 @@
-import type { DateFormat } from "./types.d";
+import type * as DateFormat from "./types.d";
 import { DEFAULT_DATE_FORMAT_CONFIG } from "./defaultDateFormat";
 
 // Mutated once at boot (see main.tsx) before the mapping pipeline ever runs,

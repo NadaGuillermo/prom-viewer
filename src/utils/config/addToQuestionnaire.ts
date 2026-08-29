@@ -1,5 +1,5 @@
-import type { Mapping } from "@utils/mapping";
-import type { Errors } from "@utils/errors";
+import type * as Mapping from "@utils/mapping";
+import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
 import {
   addDomainToQuestionnaireItems,
@@ -10,7 +10,7 @@ import {
   addReferenceRangesAndValuesToQuestionnaireScoreItems,
 } from "./utils";
 // import * as _ from "lodash-es";
-import type { Config } from "./types";
+import type * as Config from "./types";
 
 export const addConfigurationsToQuestionnaire = (
   questionnaire: Mapping.Questionnaire,

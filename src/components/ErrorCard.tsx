@@ -1,4 +1,4 @@
-import type { Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
 
 
 interface Props {

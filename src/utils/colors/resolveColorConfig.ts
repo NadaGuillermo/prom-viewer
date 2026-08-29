@@ -1,4 +1,4 @@
-import type { Colors } from "./types.d";
+import type * as Colors from "./types.d";
 import { DEFAULT_COLOR_CONFIG } from "./defaultColors";
 import { validateColorConfig } from "./validateColorConfig";
 

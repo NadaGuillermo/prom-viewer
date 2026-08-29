@@ -1,4 +1,4 @@
-import type { Colors } from "@utils/colors/types.d";
+import type * as Colors from "@utils/colors/types.d";
 import { DEFAULT_COLOR_CONFIG, buildChartColorRecord } from "@utils/colors/defaultColors";
 
 // Initialized with the same defaults as index.css / DEFAULT_COLOR_CONFIG.

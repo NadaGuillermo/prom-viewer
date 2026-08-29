@@ -1,8 +1,8 @@
 // import * as _ from "lodash-es";
-import type { Mapping } from "@utils/mapping";
-import type { Visualization } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
-import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS, isScoreItem, isDimensionScore } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
+import type * as Visualization from "./types";
+import type * as GlobalTypes from "@customTypes/globalTypes";
+import { isScoreItem, isDimensionScore } from "@utils/mapping";
 import {
   addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate,
   createCommonTimeAxis,
@@ -61,7 +61,7 @@ export const createChartData = (
             // check if decreasing score health correlation
             if (
               questionnaireItem.scoreHealthCorrelation ===
-              SCORE_HEALTH_CORRELATIONS.decrease
+              "decrease"
             ) {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
@@ -95,7 +95,7 @@ export const createChartData = (
             
               if (
               questionnaireItem.scoreHealthCorrelation ===
-              SCORE_HEALTH_CORRELATIONS.decrease
+              "decrease"
             ) {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
@@ -143,13 +143,13 @@ export const createChartData = (
       // // console.log("questionnaireItem: ", questionnaireItem)
       // // console.log(isQuestionnaireScoreItem(questionnaireItem))
       // // console.log(isDimensionScoreItem(questionnaireItem))
-      let seriesType: string;
+      let seriesType: Mapping.ItemType;
       if (isScoreItem(questionnaireItem)) {
-        seriesType = ITEM_TYPES.score;
+        seriesType = "score";
       } else if(isDimensionScore(questionnaireItem)) {
-        seriesType = ITEM_TYPES.dimensionScore;
+        seriesType = "dimensionScore";
       } else {
-        seriesType = ITEM_TYPES.item;
+        seriesType = "item";
       }
 
       // let referencedItems: string[] = [];
@@ -166,13 +166,13 @@ export const createChartData = (
               const values: number[] = [];
               referenceRange.forEach((val) => {
                 const normalizedValue = Number(normalizeValue(val, min, max).toFixed(3));
-                const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;
+                const adjustedNormalizedValue = item.scoreHealthCorrelation === "decrease" ? 1 - normalizedValue : normalizedValue;
                 values.push(adjustedNormalizedValue)
               })
               normalizedReferenceRange = [values[0], values[1]];
             } else {
               const normalizedValue = Number(normalizeValue(referenceRange, min, max).toFixed(3));
-              const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;
+              const adjustedNormalizedValue = item.scoreHealthCorrelation === "decrease" ? 1 - normalizedValue : normalizedValue;
               normalizedReferenceRange = adjustedNormalizedValue;
             }
             referenceValues.push({

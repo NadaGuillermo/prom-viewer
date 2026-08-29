@@ -1,5 +1,5 @@
 import type { Observation } from "fhir/r4";
-import type { NormalizedFHIR } from "./types";
+import type * as NormalizedFHIR from "./types";
 
 /**
  * @param resource - a raw FHIR Observation resource

@@ -1,4 +1,4 @@
-import type { Colors } from "./types.d";
+import type * as Colors from "./types.d";
 import { DEFAULT_THEME_COLORS, DEFAULT_CATEGORICAL_PALETTES } from "./defaultColors";
 
 const THEME_KEYS = Object.keys(DEFAULT_THEME_COLORS) as Array<

@@ -1,4 +1,4 @@
-import type { DateFormat } from "./types.d";
+import type * as DateFormat from "./types.d";
 import { isValidDateFormatPattern } from "./dateFormatter";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
