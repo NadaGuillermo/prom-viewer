@@ -144,11 +144,7 @@ const tooltipPosition: NonNullable<TooltipComponentOption["position"]> = (
   const OFFSET = 12;
   const [pointX, pointY] = point as [number, number]; // within container (0/0 is left upper corner of container)
   const [contentWidth, contentHeight] = size.contentSize; // size of tooltip
-  console.log("Point (x,y): ", pointX, pointY)
-  console.log("Content Width: ", contentWidth)
-  console.log("Content Heigth: ", contentHeight)
-  const [containerWidth, containerHeight] = size.viewSize;
-  console.log("Container size (x,y): ", containerWidth, containerHeight)
+  const [containerWidth] = size.viewSize;
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 

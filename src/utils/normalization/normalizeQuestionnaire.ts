@@ -209,7 +209,6 @@ export const normalizeQuestionnaire = (
   // };
 
   // const itemLinkIds: string[] | undefined = extractLinkIds(resource.item, []);
-  // console.log("Item Link Ids from FHIR: ", itemLinkIds);
 
   traverse(resource.item);
 

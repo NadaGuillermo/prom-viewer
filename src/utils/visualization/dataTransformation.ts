@@ -48,10 +48,6 @@ export const createChartData = (
         };
         originalData.push(responseItem.answer);
         // normlize everything
-        // console.log(
-        //   "questionnaireItem: ",
-        //   questionnaireResponse.questionnaire.items[linkId],
-        // );
         if (responseItem.answer !== null) {
           const questionnaireItem =
             questionnaireResponse.questionnaire.items[linkId];
@@ -140,9 +136,6 @@ export const createChartData = (
       const questionnaire = questionnaireResponses[0].questionnaire;
       const questionnaireItem =
         questionnaire.items[linkId];
-      // // console.log("questionnaireItem: ", questionnaireItem)
-      // // console.log(isQuestionnaireScoreItem(questionnaireItem))
-      // // console.log(isDimensionScoreItem(questionnaireItem))
       let seriesType: Mapping.ItemType;
       if (isScoreItem(questionnaireItem)) {
         seriesType = "score";

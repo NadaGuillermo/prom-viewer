@@ -10,6 +10,11 @@ import { issueFactories } from "@utils/errors";
 import type * as Config from "./types";
 
 
+/**
+ * @param questionnaire - the mapped questionnaire whose items should be annotated with a domain
+ * @param config - the PROM config holding the domain/item mapping for the questionnaire
+ * @returns a copy of the questionnaire's items with `domain` set on each item that has a matching domain in the config
+ */
 export const addDomainToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
   config: Config.PromConfig,
@@ -30,6 +35,10 @@ export const addDomainToQuestionnaireItems = (
   return items;
 };
 
+/**
+ * @param questionnaire - the mapped questionnaire to inspect
+ * @returns the linkIds of non-score items that have no answer options defined
+ */
 export const getEmptyAnswerOptions = (
   questionnaire: Mapping.Questionnaire,
 ): string[] => {
@@ -47,6 +56,12 @@ export const getEmptyAnswerOptions = (
   return answerOptionsNotDefined;
 };
 
+/**
+ * @param questionnaire - the mapped questionnaire whose score items should receive reference ranges
+ * @param observationDefinitions - the mapped ObservationDefinitions that may hold reference ranges for score items
+ * @param config - the PROM config whose score definitions may hold reference ranges for score items
+ * @returns the questionnaire items with `referenceRange` set on score items from the config and/or the matching ObservationDefinition, plus any issues raised (e.g. when both sources define a reference range for the same item)
+ */
 export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
   questionnaire: Mapping.Questionnaire,
   observationDefinitions: Mapping.ObservationDefinition[],
@@ -202,6 +217,12 @@ export const addReferenceRangesAndValuesToQuestionnaireScoreItems = (
   };
 };
 
+/**
+ * @param questionnaire - the mapped questionnaire whose items should receive a range and scoreHealthCorrelation
+ * @param observationDefinitions - the mapped ObservationDefinitions that may hold a range and scoreHealthCorrelation
+ * @param config - the PROM config whose score definitions may hold a range and scoreHealthCorrelation
+ * @returns the questionnaire items with `range` and/or `scoreHealthCorrelation` set (config values take precedence over the matching ObservationDefinition's values), plus any issues raised for missing, invalid, or contradicting values
+ */
 export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
   questionnaire: Mapping.Questionnaire,
   observationDefinitions: Mapping.ObservationDefinition[],
@@ -366,6 +387,11 @@ export const addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems = (
   };
 };
 
+/**
+ * @param questionnaire - the mapped questionnaire whose items should receive a short name
+ * @param config - the PROM config holding the domain/item mapping with the configured short names
+ * @returns the questionnaire items with `shortText` set from the config's `shortName` where available, plus any issues raised
+ */
 export const addShortNamesToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
   config: Config.PromConfig,
@@ -413,6 +439,11 @@ export const addShortNamesToQuestionnaireItems = (
   };
 };
 
+/**
+ * @param questionnaire - the mapped questionnaire whose items should receive dimension/global-score flags
+ * @param config - the PROM config holding the domain/item mapping and the list of global score linkIds
+ * @returns the questionnaire items with `dimension`, `isDimensionScore`, and/or `isGlobalScore` set from the config, plus any issues raised
+ */
 export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
   questionnaire: Mapping.Questionnaire,
   config: Config.PromConfig,
@@ -456,6 +487,12 @@ export const addDimensionAndDomainScoreFlagsToQuestionnaireItems = (
   };
 };
 
+/**
+ * @param questionnaireResponse - the mapped questionnaire response to add observation-derived items to
+ * @param observations - the mapped observations that may belong to this response
+ * @param config - the PROM config used to resolve an observation's ObservationDefinition to a questionnaire item's linkId
+ * @returns the questionnaire response with additional items built from the observations that could be mapped to a linkId
+ */
 export const addObservationItemsToQuestionnaireResponse = (
   questionnaireResponse: Mapping.QuestionnaireResponse,
   observations: Mapping.Observation[],

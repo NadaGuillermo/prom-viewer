@@ -5,6 +5,12 @@ import type * as GlobalTypes from "@customTypes/globalTypes";
 import * as _ from "lodash-es";
 import { getDateFormatPattern, parseFormattedDate } from "@utils/dateFormat";
 
+/**
+ * @param yData - the chart's data series
+ * @param value - the (normalized) data value to look up
+ * @param name - the `shortName` of the data series to search in
+ * @returns the data label at the position of `value` within the matching series, or an empty string if no matching series or value is found
+ */
 export const getLabelFromValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],
   value: number,
@@ -22,7 +28,12 @@ export const getLabelFromValueAndDataSeriesName = (
   return "";
 }
 
-// ok
+/**
+ * @param yData - the chart's data series, each holding both normalized (`data`) and original (`originalData`) values
+ * @param normalizedValue - the normalized data value to look up
+ * @param seriesShortName - the `shortName` (falling back to `name`) of the data series to search in
+ * @returns the original (non-normalized) value at the position of `normalizedValue` within the matching series (both arrays with null entries removed beforehand), or null if no matching series or value is found
+ */
 export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
   yData: Visualization.DataSeries[],
   normalizedValue: number,
@@ -75,6 +86,11 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
   return originalValue;
 };
 
+/**
+ * @param yData - the chart's data series
+ * @param name - the `shortName` of the data series to look up
+ * @returns the full `name` of the matching data series, or an empty string if none matches
+ */
 export const getDataSeriesNameFromShortName = (
   yData: Visualization.DataSeries[],
   name: string,
@@ -85,6 +101,13 @@ export const getDataSeriesNameFromShortName = (
   return correspondingSeries ? correspondingSeries.name : "";
 };
 
+/**
+ * @param domainCount - a record mapping each domain name to the number of items/scores in it
+ * @param globalHealthDomains - domain names that should be moved to the front of the result, regardless of count
+ * @param sortDomainsAccordingToCount - whether to sort domains by descending count before applying the other steps (default true)
+ * @param addUnspecified - whether to append the "Unspecified" domain to the result (default false)
+ * @returns the domain names sorted by descending count (if enabled), with global health domains moved to the front, empty domain names removed, the "Unspecified" domain optionally appended, and duplicates removed
+ */
 export const sortDomains = (
   domainCount: Record<string, number>,
   globalHealthDomains?: string[],
@@ -94,7 +117,6 @@ export const sortDomains = (
   const domains = Object.keys(domainCount);
   // 1. Sort according to number of occurences in questionnaires
   const sortedDomains = sortDomainsAccordingToCount ? [...domains.sort((a, b) => domainCount[b] - domainCount[a])] : [...domains];
-  console.log("Sorted domains: ", sortedDomains)
   // 2. Put global domains to front
   const globalDomains = sortedDomains.filter((domain) =>
     globalHealthDomains?.includes(domain),
@@ -124,7 +146,10 @@ export const sortDomains = (
   return uniqueDomains;
 };
 
-// ok
+/**
+ * @param item - the mapped questionnaire item whose answer options should be inspected
+ * @returns a `[min, max]` tuple of the numeric values across the item's non-null answer options
+ */
 export const getMinAndMaxAnswerOptionValueForItem = (
   item: Mapping.QuestionnaireItem,
 ) => {
@@ -135,6 +160,13 @@ export const getMinAndMaxAnswerOptionValueForItem = (
   return [minValue, maxValue];
 };
 
+/**
+ * @param a - the first formatted date string to compare
+ * @param b - the second formatted date string to compare
+ * @param order - the sort direction, "ascending" or "descending" (default "ascending")
+ * @param dateFormatPattern - the pattern `a` and `b` are formatted in (defaults to the configured date format pattern)
+ * @returns a negative, zero, or positive number suitable for use as an `Array.sort` comparator, based on the chronological order of `a` and `b`
+ */
 export const sortDates = (a: string, b:string, order: "ascending" | "descending" = "ascending", dateFormatPattern?: string) => {
   const pattern = dateFormatPattern ?? getDateFormatPattern();
   const aDateString = parseFormattedDate(a, pattern);
@@ -144,6 +176,12 @@ export const sortDates = (a: string, b:string, order: "ascending" | "descending"
   return order === "ascending" ? aDate - bDate : bDate - aDate;
 }
 
+/**
+ * @param dates - the formatted date strings to filter
+ * @param range - a `[start, end]` tuple of formatted date strings bounding the inclusive range
+ * @param dateFormatPattern - the pattern `dates` and `range` are formatted in (defaults to the configured date format pattern)
+ * @returns the dates from `dates` that fall within `range` (inclusive), as ISO `YYYY-MM-DD` strings
+ */
 export const getDatesWithinRange = (dates: string[], range: [string, string], dateFormatPattern?: string): string[] => {
   const pattern = dateFormatPattern ?? getDateFormatPattern();
   // convert to ISO YYYY-MM-DD strings
@@ -154,7 +192,10 @@ export const getDatesWithinRange = (dates: string[], range: [string, string], da
   return filteredDates;
 }
 
-// ok
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to sort
+ * @returns `questionnaireResponses` sorted in place by ascending `authored` date
+ */
 const sortQuestionnaireResponsesByDate = (
   questionnaireResponses: Mapping.QuestionnaireResponse[],
 ) => {
@@ -163,7 +204,10 @@ const sortQuestionnaireResponsesByDate = (
   });
 };
 
-// ok
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to derive the time axis from
+ * @returns the distinct `authored` dates across all responses, sorted in ascending chronological order
+ */
 export const createCommonTimeAxis = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
@@ -181,7 +225,10 @@ export const createCommonTimeAxis = (
   return allDates;
 };
 
-// ok
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to group
+ * @returns the responses grouped by their questionnaire's id
+ */
 export const groupQuestionnaireResponsesByQuestionnaireId = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
@@ -192,13 +239,16 @@ export const groupQuestionnaireResponsesByQuestionnaireId = (
   return questionnaireResponsesGroupedByQuestionnaire;
 };
 
-// ok
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses, grouped by questionnaire id
+ * @param commonTimeAxisDates - the full set of dates the chart's time axis should cover
+ * @returns `questionnaireResponses` with a synthetic null-answer response inserted (per group) for every date in `commonTimeAxisDates` that group doesn't already have a response for, with each group's responses sorted by ascending date
+ */
 export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse[]>,
   commonTimeAxisDates: string[],
 ) => {
   const groupedQuestionnaireResponses = questionnaireResponses;
-  console.log("grouped QRs: ", questionnaireResponses)
 
   Object.keys(groupedQuestionnaireResponses).forEach((key) => {
     const questionnaireDates = groupedQuestionnaireResponses[key].map(
@@ -229,19 +279,21 @@ export const addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate = (
       groupedQuestionnaireResponses[key].push(nullQuestionnaireResponse);
     });
 
-    console.log("Unsorted QRs: ", groupedQuestionnaireResponses)
 
     // sort questionnaireResponses
     const sortedQuestionnaireResponses = sortQuestionnaireResponsesByDate(
       groupedQuestionnaireResponses[key],
     );
-    console.log("Sorted QRs: ", sortedQuestionnaireResponses)
     groupedQuestionnaireResponses[key] = sortedQuestionnaireResponses;
   });
 
   return groupedQuestionnaireResponses;
 };
 
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to derive dates from
+ * @returns a record mapping each questionnaire id to the distinct `authored` dates of its responses (in encounter order, not sorted)
+ */
 export const createQuestionnaireDatesRecord = (
    questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
 ) => {
@@ -259,6 +311,11 @@ export const createQuestionnaireDatesRecord = (
   return questionnaireDatesRecord;
 }
 
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to derive questionnaire names from
+ * @param order - the sort direction applied to the resulting dates, "ascending" or "descending" (default "ascending")
+ * @returns a record mapping each `authored` date to the distinct questionnaire titles answered on that date, with keys ordered by `order`
+ */
 export const groupQuestionnaireNamesByDate = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
   order : "ascending" | "descending" = "ascending",
@@ -274,7 +331,6 @@ export const groupQuestionnaireNamesByDate = (
       questionnairesByDate[date].push(questionnaireName);
     }
   });
-  // console.log("questionnairesByDate: ", questionnairesByDate);
   // sort by key descending (newest first)
   const sortedQuestionnairesByDate: Record<string, string[]> = {};
   Object.keys(questionnairesByDate)
@@ -291,6 +347,11 @@ export const groupQuestionnaireNamesByDate = (
 };
 
 
+/**
+ * @param questionnaires - the mapped questionnaires the chart data belongs to
+ * @param chartData - the chart's combined x/y data across all questionnaires
+ * @returns the chart data split per questionnaire id, with date columns removed where every series has a null value, and rows within each questionnaire ordered as global scores, then domain scores, then dimension scores (each immediately followed by the items it references), then the remaining series
+ */
 export const createTableData = (
   questionnaires: Mapping.Questionnaire[],
   chartData: Visualization.ChartData,
@@ -402,6 +463,10 @@ export const createTableData = (
   return sortedChartDataByQuestionnaire;
 };
 
+/**
+ * @param dimensionScoresDataSeriesByDomain - dimension-score data series grouped by domain
+ * @returns a record mapping each domain to a record mapping each questionnaire name to the distinct dimension names (`shortName`) scored within that domain for that questionnaire
+ */
 export const createDomainQuestionnaireNamesDimensionsRecord = (
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
 ): Record<string, Record<string, string[]>> => {
@@ -428,6 +493,10 @@ export const createDomainQuestionnaireNamesDimensionsRecord = (
   return dimensionsByQuestionnaireAndDomain;
 }
 
+/**
+ * @param dimensionScoresDataSeriesByDomain - dimension-score data series grouped by domain
+ * @returns a flat list of `[domain, dimension, questionnaireName]` tuples, one per dimension-score data series
+ */
 export const createDomainDimensionQuestionnaireTupleArray = (
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
 ): [string, string, string][] => {
@@ -442,6 +511,10 @@ export const createDomainDimensionQuestionnaireTupleArray = (
   return domainDimensionQuestionnaireTuples;
 }
 
+/**
+ * @param dimensionScoresDataSeriesByDomain - dimension-score data series grouped by domain
+ * @returns a record mapping each domain to a list of `[dimension, questionnaireName]` tuples, one per dimension-score data series in that domain
+ */
 export const createDimensionWithQuestionnaireByDomainRecord = (
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
 ): Record<string, [string, string][]> => {
@@ -459,6 +532,12 @@ export const createDimensionWithQuestionnaireByDomainRecord = (
   return domainDimensionQuestionnaireRecord;
 }
 
+/**
+ * @param data - the data series to filter
+ * @param questionnaires - the mapped questionnaires used to resolve each series' underlying questionnaire item
+ * @param domain - the domain name to filter for
+ * @returns the data series whose corresponding questionnaire item belongs to `domain`
+ */
 export const extractDomainDataSeries = (
   data: Visualization.DataSeries[], 
   questionnaires: Mapping.Questionnaire[],
@@ -481,6 +560,11 @@ export const extractDomainDataSeries = (
   return domainDataSeries;
 }
 
+/**
+ * @param data - the data series to filter
+ * @param questionnaires - the mapped questionnaires used to resolve each series' underlying questionnaire item
+ * @returns the data series whose corresponding questionnaire item is flagged as a global score
+ */
 export const extractGlobalScoresDataSeries = (
     data: Visualization.DataSeries[], 
     questionnaires: Mapping.Questionnaire[],
@@ -503,6 +587,11 @@ export const extractGlobalScoresDataSeries = (
   return globalScores;
 }
 
+/**
+ * @param domainData - the data series (already restricted to a domain) to filter
+ * @param questionnaires - the mapped questionnaires used to resolve each series' underlying questionnaire item
+ * @returns the data series whose corresponding questionnaire item is flagged as a domain score
+ */
 export const extractDomainScoresDataSeries = (
     domainData: Visualization.DataSeries[], 
     questionnaires: Mapping.Questionnaire[],
@@ -524,6 +613,13 @@ export const extractDomainScoresDataSeries = (
     return domainScores;
 }
 
+/**
+ * @param domainData - the data series (already restricted to a domain) to filter
+ * @param questionnaires - the mapped questionnaires used to resolve each series' underlying questionnaire item
+ * @param domainScoresDataSeries - the domain-score data series to exclude from the result when `removeDomainScores` is true
+ * @param removeDomainScores - whether to exclude series that are also present in `domainScoresDataSeries` (default false)
+ * @returns the data series whose corresponding questionnaire item is flagged as a dimension score, optionally excluding those that are also domain scores
+ */
 export const extractDimensionScoresDataSeries = (
     domainData: Visualization.DataSeries[], 
     questionnaires: Mapping.Questionnaire[],
@@ -550,6 +646,12 @@ export const extractDimensionScoresDataSeries = (
     return dimensionScores;
   }
 
+/**
+ * @param domainData - the data series (already restricted to a domain) to group
+ * @param dimensionScoresDataSeries - the dimension-score data series within that domain, used to determine each dimension and its explicitly referenced items
+ * @param questionnaires - the mapped questionnaires used to resolve each series' underlying questionnaire item
+ * @returns a record mapping each dimension name to the non-score item data series belonging to it (matched by the item's `dimension`, plus any items the dimension score explicitly references), with items that don't belong to any dimension grouped under the "Unspecified" dimension
+ */
 export const extractItemsDataSeries = (
     domainData: Visualization.DataSeries[],
     dimensionScoresDataSeries: Visualization.DataSeries[],
@@ -608,6 +710,12 @@ export const extractItemsDataSeries = (
     return dimensionItemDataSeriesRecord;
   }
 
+/**
+ * @param questionnaires - the mapped questionnaires used to resolve each series' underlying questionnaire item
+ * @param dimensionScoresDataSeriesByDomain - dimension-score data series grouped by domain
+ * @param addUnspecifiedDimension - whether to append the "Unspecified" dimension to each domain's list (default true)
+ * @returns a record mapping each domain to the distinct dimension names scored within it, with the "Unspecified" dimension optionally appended
+ */
 export const createDomainDimensionsRecord = (
   questionnaires: Mapping.Questionnaire[],
   dimensionScoresDataSeriesByDomain: Record<string, Visualization.DataSeries[]>,
@@ -639,6 +747,12 @@ export const createDomainDimensionsRecord = (
 }
 
 
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to filter
+ * @param startDate - the inclusive lower bound, as a string parseable by `Date` (e.g. ISO format)
+ * @param endDate - the inclusive upper bound, as a string parseable by `Date` (e.g. ISO format)
+ * @returns the responses whose `authored` date falls within `[startDate, endDate]`, or all responses unchanged if either bound is an empty string
+ */
 export const filterQuestionnaireResponsesThatAreWithinDates = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
   startDate: string,
@@ -657,6 +771,11 @@ export const filterQuestionnaireResponsesThatAreWithinDates = (
   return questionnaireResponsesWithinDateRange;
 }
 
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to filter
+ * @param dates - the formatted date strings to keep responses for (in the configured date format)
+ * @returns the responses whose `authored` date matches one of `dates`, or an empty record if `dates` is empty
+ */
 export const filterQuestionnaireResponsesThatAreOnSingleDates = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
   dates: string[],
@@ -664,16 +783,11 @@ export const filterQuestionnaireResponsesThatAreOnSingleDates = (
   if (dates.length === 0) {
     return {};
   }
-  console.log("Dates: ", dates)
   const dateFormatPattern = getDateFormatPattern();
   const datesAsDates = dates.map((date) => new Date(parseFormattedDate(date, dateFormatPattern)));
-  console.log("dates as Dates: ", datesAsDates)
-  console.log("Dates DDD: ", datesAsDates[0].toISOString().split('T')[0])
   const questionnaireResponsesOnDates: Record<string, Mapping.QuestionnaireResponse> = {};
   Object.entries(questionnaireResponses).forEach(([questionnaireResponseId, questionnaireResponse]) => {
-    console.log("dates string:, ", questionnaireResponse.authored)
     const date = new Date(parseFormattedDate(questionnaireResponse.authored, dateFormatPattern));
-    console.log("Dates in QR: ", date)
     if (datesAsDates.some((d) => d.toISOString().split('T')[0] === date.toISOString().split('T')[0])) {
       questionnaireResponsesOnDates[questionnaireResponseId] = questionnaireResponse;
     }
@@ -681,6 +795,11 @@ export const filterQuestionnaireResponsesThatAreOnSingleDates = (
   return questionnaireResponsesOnDates;
 }
 
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to filter
+ * @param questionnaireIds - the questionnaire ids to keep responses for
+ * @returns the responses whose questionnaire id is included in `questionnaireIds`
+ */
 export const filterQuestionnaireResponsesByQuestionnaireIds = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, 
   questionnaireIds: string[]) => {
@@ -693,6 +812,11 @@ export const filterQuestionnaireResponsesByQuestionnaireIds = (
   return questionnaireResponsesFilteredBySelectedQuestionnaires;
 }
 
+/**
+ * @param questionnaireResponses - the mapped questionnaire responses to derive dates from
+ * @param sortOrder - the sort direction, "ascending" or "descending" (default "ascending")
+ * @returns the distinct `authored` dates across all responses, sorted by `sortOrder`
+ */
 export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>, sortOrder: "ascending" | "descending" = "ascending") => {
   const dates = Object.values(questionnaireResponses).map((questionnaireResponse) => {
     return questionnaireResponse.authored;
@@ -705,6 +829,10 @@ export const extractDatesOfQuestionnaireResponses = (questionnaireResponses: Rec
   return sortedDates;
 }
 
+/**
+ * @param length - the number of null data points the placeholder series should contain (negative values are treated as 0)
+ * @returns an empty placeholder `DataSeries` (no name/id, no data labels) filled with `length` null values, useful for reserving a chart row before real data is available
+ */
 export const createPseudoDataSeries = (length: number): Visualization.DataSeries => {
   const arrayLength = length > 0 ? length : 0;
   const pseudoDataPoints = Array(arrayLength).fill(null);
@@ -723,6 +851,11 @@ export const createPseudoDataSeries = (length: number): Visualization.DataSeries
   return dataSeries;
 }
 
+/**
+ * @param dataSeries - the data series to filter
+ * @param xData - the x-axis labels (e.g. dates) corresponding by index to each series' data points
+ * @returns `dataSeries` and `xData` with every index removed where all series have a null value, i.e. columns with no data across any series are dropped
+ */
 export const filterDataSeriesDataAndDatesForCommonNullValues = (dataSeries: Visualization.DataSeries[], xData: string[]) => {
   const filteredXDataIndices: number[] = [];
   const filteredXData: string[] = [];
@@ -750,6 +883,11 @@ export const filterDataSeriesDataAndDatesForCommonNullValues = (dataSeries: Visu
 }
 
 
+/**
+ * @param str - the string to truncate
+ * @param maxLength - the maximum length before truncation kicks in (default 80)
+ * @returns `str` unchanged if it is at most `maxLength` characters long; otherwise `str` cut to `maxLength` characters, trimmed back to the last full word, and suffixed with "..."
+ */
 export const truncateAtWord = (str: string, maxLength:number = 80) => {
   if (str.length <= maxLength) {
     return str;

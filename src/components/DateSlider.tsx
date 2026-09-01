@@ -15,7 +15,6 @@ const DateSlider = ({ dates, selectedDate, changeDate }: Props) => {
 //  const [selectedDate, setSelectedDate] = useState<string>("");
 
 //   const selectDate = (date: string, direction: "previous" | "next") => {
-//   console.log("in selectDate: ", date, direction)
 //   let newDate: string = "";
 //   if (direction === "previous") {
 //     const index = dates.indexOf(date);
@@ -36,7 +35,6 @@ const DateSlider = ({ dates, selectedDate, changeDate }: Props) => {
 //       }
 //     }
 //   }
-//   console.log("new Date: ", newDate)
 //   setSelectedDate(newDate);
 // }
 

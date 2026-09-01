@@ -14,9 +14,7 @@ const DataTable = ({
   maxHeight = "600px"
 }: Props) => {
   const xData = data.xData;
-  console.log("css table original x data: ", xData);
   const yData = data.yData;
-  console.log("simple table data yData: ", yData);
 
    return (
     <div

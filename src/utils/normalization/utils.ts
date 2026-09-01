@@ -12,7 +12,10 @@ export const getObservationDefinitionCanonicalUrlFromObservation = (resource: Ob
   )?.valueCanonical;
 }
 
-// ok
+/**
+ * @param resource - a raw FHIR Observation resource
+ * @returns the id of the QuestionnaireResponse referenced in the observation's `derivedFrom` attribute, or undefined if no such reference exists
+ */
 export const getQuestionnaireResponseIdFromObservationReferenceAttribute = (resource: Observation): string |undefined => {
   const questionnaireResponse: string | undefined = resource.derivedFrom?.find((entry) => entry.reference !== undefined)?.reference;
 
@@ -30,12 +33,20 @@ export const getQuestionnaireResponseIdFromObservationReferenceAttribute = (reso
   return questionnaireResponse.slice(splitPosition + 1);
 }
 
+/**
+ * @param answerOption - the normalized answer option to check
+ * @returns true if `answerOption` is a coded answer option, i.e. it defines a `code` (narrows the type to `AnswerOptionCode`)
+ */
 export const isAnswerOptionCode = (
   answerOption: NormalizedFHIR.AnswerOption
 ): answerOption is NormalizedFHIR.AnswerOptionCode => {
   return (answerOption as NormalizedFHIR.AnswerOptionCode).code !== undefined;
 }
 
+/**
+ * @param answer - the normalized answer to check
+ * @returns true if `answer` is a coded answer, i.e. it defines a `code` (narrows the type to `AnswerCode`)
+ */
 export const isAnswerCode = (
   answer: NormalizedFHIR.Answer
 ): answer is NormalizedFHIR.AnswerCode => {
