@@ -27,9 +27,12 @@ const EORTC_QUESTIONNAIRE_NAME =
 // mode is the .env default) and waits past the loading/processing screens.
 async function renderApp() {
   render(<App />);
-  await waitFor(() => {
-    expect(screen.queryByText(/loading|processing/i)).not.toBeInTheDocument();
-  });
+  await waitFor(
+    () => {
+      expect(screen.queryByText(/loading|processing/i)).not.toBeInTheDocument();
+    },
+    { timeout: 3000 },
+  );
 }
 
 describe("App - happy path (mock mode)", () => {

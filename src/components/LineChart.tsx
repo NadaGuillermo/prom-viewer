@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
+import { lazy, memo, Suspense, useContext } from "react";
 import { ShowReferenceValuesContext } from "@components/ShowReferenceValuesContext";
 import type * as Charts from "@utils/charts";
 import { tolColorPalette, referenceColors } from "@utils/charts";
@@ -24,6 +23,12 @@ import type {
   DefaultLabelFormatterCallbackParams as CallbackDataParams,
   TooltipComponentFormatterCallbackParams as TopLevelFormatterParams,
 } from "echarts";
+
+const ReactEChartsWrapper = lazy(() =>
+  import("@components/ReactEChartsWrapper").then((module) => ({
+    default: module.ReactEChartsWrapper,
+  })),
+);
 
 type ReferenceTooltipParams = CallbackDataParams & {
   data?: { referenceDescription?: string; referenceValueLabel?: string };
@@ -87,8 +92,6 @@ const LineChart = ({
   const shouldShowReferenceValues =
     showReferenceValues ?? groupShowReferenceValues;
 
-  console.log("Line Chart xData: ", xData);
-  console.log("Line Chart yData: ", yData);
 
   const formatReferenceValue = (value: Visualization.NumberOrTuple): string =>
   Array.isArray(value) ? `${value[0]} - ${value[1]}` : `${value}`;
@@ -188,9 +191,7 @@ const buildReferenceMarkArea = (
   };
 
   const legendTooltipFormatter = (params: { name: string }) => {
-    console.log("Legend Params: ", params);
     const { name } = params;
-    console.log("Legend Name: ", name);
     const longName = getDataSeriesNameFromShortName(yData, name);
     const questionnaireName = yData.find(
       (series) => series.shortName === name,
@@ -224,10 +225,6 @@ const buildReferenceMarkArea = (
       return referenceTooltipFormatter(params as ReferenceTooltipParams);
     }
     const { seriesName, value, name } = params;
-    console.log("Tooltip Params: ", params);
-    console.log("Tooltip Series Name: ", seriesName);
-    console.log("Tooltip Value: ", value);
-    console.log("Tooltip date: ", name);
     const originalValue = getOriginalValueFromNormalizedValueAndDataSeriesName(
       yData,
       Number(value),
@@ -315,7 +312,16 @@ const buildReferenceMarkArea = (
   };
 
   return (
-    <>
+    <Suspense
+      fallback={
+        <div
+          className="tw:flex tw:h-full tw:w-full tw:items-center tw:justify-center"
+          style={{ height }}
+        >
+          <span className="tw:loading tw:loading-spinner tw:loading-md" />
+        </div>
+      }
+    >
       <ReactEChartsWrapper
         chartId={id}
         option={options}
@@ -323,8 +329,8 @@ const buildReferenceMarkArea = (
         enableExport={enableExport}
         exportFileName={exportFileName ?? title}
       />
-    </>
+    </Suspense>
   );
 };
 
-export default LineChart;
+export default memo(LineChart);

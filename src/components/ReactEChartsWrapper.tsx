@@ -9,23 +9,12 @@ import type * as Charts from "@utils/charts";
 import type { ECharts } from "echarts/core";
 import { init, use as registerEChartsComponents } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import {
-  HeatmapChart,
-  ScatterChart,
-  LineChart,
-  BarChart,
-  PieChart,
-  RadarChart,
-  SankeyChart,
-} from "echarts/charts";
+import { LineChart, RadarChart } from "echarts/charts";
 import {
   LegendComponent,
   GridComponent,
   TooltipComponent,
-  VisualMapComponent,
   TitleComponent,
-  DataZoomComponent,
-  MatrixComponent,
   MarkLineComponent,
   MarkAreaComponent,
 } from "echarts/components";
@@ -40,20 +29,12 @@ import type { SetOptionOpts } from "echarts/core";
 
 registerEChartsComponents([
   LegendComponent,
-  ScatterChart,
   LineChart,
-  BarChart,
-  HeatmapChart,
-  PieChart,
   RadarChart,
-  MatrixComponent,
-  VisualMapComponent,
   GridComponent,
   TooltipComponent,
   TitleComponent,
-  DataZoomComponent,
   CanvasRenderer,
-  SankeyChart,
   MarkLineComponent,
   MarkAreaComponent,
 ]);

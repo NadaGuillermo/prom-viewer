@@ -1,4 +1,4 @@
-import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
+import { lazy, memo, Suspense } from "react";
 import type * as Visualization from "@utils/visualization/types";
 import type * as Charts from "@utils/charts";
 import { tolColorPalette } from "@utils/charts";
@@ -15,6 +15,12 @@ import type {
   RadarComponentOption,
   DefaultLabelFormatterCallbackParams as CallbackDataParams,
 } from "echarts";
+
+const ReactEChartsWrapper = lazy(() =>
+  import("@components/ReactEChartsWrapper").then((module) => ({
+    default: module.ReactEChartsWrapper,
+  })),
+);
 
 interface Props {
   id: string;
@@ -125,17 +131,13 @@ const RadarChart = ({
     transformedData[questionnaireName] = [minValues, maxValues];
   });
 
-  console.log("transformedData", transformedData);
 
   
 
   const tooltipFormatter = (params: CallbackDataParams) => {
-    console.log("params: ", params)
     const { seriesName } = params;
-    console.log("seriesName: ", seriesName)
    
     // const mostRecentDate = mostRecentResponses[seriesName];
-    // console.log("mostRecentDate: ", mostRecentDate)
     // if (mostRecentDate !== undefined) {
        return `
           <div class="tooltip-content">
@@ -292,7 +294,16 @@ const RadarChart = ({
   }
 
   return (
-    <>
+    <Suspense
+      fallback={
+        <div
+          className="tw:flex tw:h-full tw:w-full tw:items-center tw:justify-center"
+          style={{ height }}
+        >
+          <span className="tw:loading tw:loading-spinner tw:loading-md" />
+        </div>
+      }
+    >
       <ReactEChartsWrapper
         chartId={id}
         option={options}
@@ -300,8 +311,8 @@ const RadarChart = ({
         enableExport={enableExport}
         exportFileName={exportFileName ?? title}
       />
-    </>
+    </Suspense>
   );
 };
 
-export default RadarChart;
+export default memo(RadarChart);

@@ -2,11 +2,31 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { fas } from "@fortawesome/free-solid-svg-icons";
-library.add(fas);
+import {
+  faFilter,
+  faFilterCircleXmark,
+  faCircleInfo,
+  faCaretLeft,
+  faCaretRight,
+  faTriangleExclamation,
+  faDownload,
+  faChevronLeft,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
+library.add(
+  faFilter,
+  faFilterCircleXmark,
+  faCircleInfo,
+  faCaretLeft,
+  faCaretRight,
+  faTriangleExclamation,
+  faDownload,
+  faChevronLeft,
+  faChevronRight,
+);
 
 // React packages
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import * as _ from "lodash-es";
 import FHIR from "fhirclient";
 import type Client from "fhirclient/lib/Client";
@@ -82,7 +102,6 @@ import {
   sortDomains,
   groupQuestionnaireNamesByDate,
   createTableData,
-  createDomainQuestionnaireNamesDimensionsRecord,
   extractGlobalScoresDataSeries,
   extractDomainScoresDataSeries,
   extractDimensionScoresDataSeries,
@@ -95,7 +114,6 @@ import {
   filterQuestionnaireResponsesByQuestionnaireIds,
   extractDatesOfQuestionnaireResponses,
   createPseudoDataSeries,
-  createDomainDimensionQuestionnaireTupleArray,
   createDimensionWithQuestionnaireByDomainRecord,
   truncateAtWord,
   sortDates,
@@ -117,6 +135,13 @@ import {
 // export
 import { buildExportFileName, createAndDownloadCSV } from "@utils/export";
 import { getDateFormatPattern } from "@utils/dateFormat";
+
+// The y-axis placeholder chart drawn next to every dimension row never has
+// any real data, so its data never varies across domains or renders.
+const Y_AXIS_PLACEHOLDER_DATA: Visualization.ChartData = {
+  xData: [""],
+  yData: [createPseudoDataSeries(0)],
+};
 
 function App() {
   // React states
@@ -327,8 +352,6 @@ function App() {
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Patient */
     // SMART mode: smartPatient -> patient state. Mock mode: mockPatient (extracted from mock FHIR data) -> patient state.
-    console.log("SMART Patient: ", smartPatient);
-    console.log("Mock Patient: ", mockPatient);
     const rawFhirPatient =
       import.meta.env.VITE_DATA_SOURCE === "smart"
         ? smartPatient !== null
@@ -339,7 +362,6 @@ function App() {
       rawFhirPatient !== undefined
         ? normalizePatient(rawFhirPatient)
         : undefined;
-    console.log("Normalized FHIR Patient: ", normalizedFhirPatient);
     /* Questionnaires */
     const normalizedFhirQuestionnairesResult = fhirQuestionnaires
       .map((questionnaire) => normalizeQuestionnaire(questionnaire))
@@ -352,10 +374,6 @@ function App() {
         (questionnaire) => questionnaire.issues,
       );
     errors.push(...normalizedFhirQuestionnaireIssues);
-    console.log(
-      "Normalized FHIR Questionnaires: ",
-      normalizedFhirQuestionnaires,
-    );
 
     /* Questionnaire Responses */
     const allNormalizedFhirQuestionnaireResponsesResult =
@@ -389,10 +407,6 @@ function App() {
         (response) => response.issues,
       );
     errors.push(...normalizedFhirQuestionnaireResponseIssues);
-    console.log(
-      "Normalized FHIR Questionnaire Responses: ",
-      normalizedFhirQuestionnaireResponses,
-    );
 
     /* Observations */
     const normalizedFhirObservationsResult = fhirObservations.map(
@@ -406,7 +420,6 @@ function App() {
         (observation) => observation.issues,
       );
     errors.push(...normalizedFhirObservationIssues);
-    console.log("Normalized FHIR Observations: ", normalizedFhirObservations);
 
     /* Observation Definitions */
     const normalizedFhirObservationDefinitionsResult =
@@ -422,10 +435,6 @@ function App() {
         (observationDefinition) => observationDefinition.issues,
       );
     errors.push(...normalizedFhirObservationDefinitionIssues);
-    console.log(
-      "Normalized FHIR Observation Definitions: ",
-      normalizedFhirObservationDefinitions,
-    );
 
     /* ----------------------- Mapping ------------------------ */
     /* Patient */
@@ -438,7 +447,6 @@ function App() {
     if (promDataPatientIssues !== undefined) {
       errors.push(...promDataPatientIssues);
     }
-    console.log("Mapping Patient: ", promDataPatient);
     /* Questionnaires */
     const promDataQuestionnairesResult = normalizedFhirQuestionnaires.map(
       (questionnaire) => mapQuestionnaire(questionnaire),
@@ -450,7 +458,6 @@ function App() {
       (questionnaire) => questionnaire.issues,
     );
     errors.push(...promDataQuestionnaireIssues);
-    console.log("Mapping Questionnaires: ", promDataQuestionnaires); // ok
 
     /* QuestionnaireResponses */
     const questionnaireResponsesResult =
@@ -459,10 +466,6 @@ function App() {
       );
     const promDataQuestionnaireResponses = questionnaireResponsesResult.map(
       (questionnaireResponse) => questionnaireResponse.data,
-    );
-    console.log(
-      "Mapping Questionnaire Responses: ",
-      promDataQuestionnaireResponses,
     );
     const promDataQuestionnaireResponseIssues =
       questionnaireResponsesResult.flatMap(
@@ -479,19 +482,13 @@ function App() {
           .map((response) => response.id)
           .includes(result.data.questionnaireResponse),
       );
-    console.log(
-      "Mapping Observations with Error Messages: ",
-      promDataObservationsResult,
-    );
     const promDataObservations = promDataObservationsResult.map(
       (observation) => observation.data,
     );
     const promDataObservationIssues = promDataObservationsResult.flatMap(
       (observation) => observation.issues,
     );
-    console.log("Mapping Observation Issues: ", promDataObservationIssues);
     errors.push(...promDataObservationIssues);
-    console.log("Mapping Observations: ", promDataObservations); // ok
 
     /* ObservationDefinitions */
     const promDataObservationDefinitionsResult =
@@ -513,10 +510,6 @@ function App() {
         (observationDefinition) => observationDefinition.issues,
       );
     errors.push(...promDataObservationDefinitionIssues);
-    console.log(
-      "Mapping Observation Definitions: ",
-      promDataObservationDefinitions,
-    );
 
     // Filter errors for Observations and Observation Definitions
     for (let i = 0; i < errors.length; i++) {
@@ -567,10 +560,6 @@ function App() {
           (questionnaire) => questionnaire.issues,
         );
       errors.push(...promDataQuestionnaireConfigurationIssues);
-      console.log(
-        "Mapping Questionnaires with Configurations: ",
-        promDataQuestionnairesWithConfigurations,
-      );
 
       /* Questionnaire Response */
       const promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages =
@@ -581,32 +570,19 @@ function App() {
             config,
           ),
         );
-      const promDataQuestionnaireResponsesWithConfigurations =
-        promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.map(
-          (response) => response.data,
-        );
       const promDataQuestionnaireResponsesConfigurationIssues =
         promDataQuestionnaireResponsesWithConfigurationsAndErrorMessages.flatMap(
           (response) => response.issues,
         );
       errors.push(...promDataQuestionnaireResponsesConfigurationIssues);
-      console.log(
-        "Mapping Questionnaire Responses with Configurations: ",
-        promDataQuestionnaireResponsesWithConfigurations,
-      );
 
       // Domains
       // const globalHealthDimensionsFromConfig =
       //   extractGlobalHealthDimensionsFromConfig(config);
       const domainRecordFromConfig = extractDomainsFromConfig(config);
       // const domainsFromConfig = Object.keys(domainCountFromConfig);
-      console.log("domains from config: ", domainRecordFromConfig);
       const globalHealthDomainsFromConfig =
         extractGlobalHealthDomainsFromConfig(config);
-      console.log(
-        "Global Health Domains from Config: ",
-        globalHealthDomainsFromConfig,
-      );
       domainsFromConfig = sortDomains(
         domainRecordFromConfig,
         globalHealthDomainsFromConfig,
@@ -661,10 +637,6 @@ function App() {
     //       questionnaireResponse;
     //   },
     // );
-    // console.log(
-    //   "Questionnaire Responses in Record: ",
-    //   // questionnaireResponsesRecord,
-    // );
     const questionnaireResponsesWithFilteredItems: Record<
       string,
       Mapping.QuestionnaireResponse
@@ -675,10 +647,6 @@ function App() {
           questionnaireResponse;
       },
     );
-    console.log(
-      "Filtered Questionnaire Responses in Record: ",
-      questionnaireResponsesWithFilteredItems,
-    );
 
     /* Errors and Warnings */
     const uniqueErrors = _.uniqBy(errors, (error) => error.id);
@@ -687,15 +655,12 @@ function App() {
       errorsForDisplay,
       (error) => error.userMessage,
     );
-    console.log("unique errors: ", uniqueErrors);
-    console.log("Unique Errors for Display: ", uniqueErrorsForDisplay);
 
     /* Questionnaires */
     const questionnaires = _.uniqBy(
       promDataQuestionnairesWithConfigurations,
       (questionnaire) => questionnaire.url,
     );
-    console.log("Questionnaires: ", questionnaires);
 
     const allResponseDates = extractDatesOfQuestionnaireResponses(
       questionnaireResponsesWithFilteredItems,
@@ -746,7 +711,6 @@ function App() {
     const questionnairesForChart = questionnaires.filter((questionnaire) =>
       selectedQuestionnaires.includes(questionnaire.id),
     );
-    console.log("Questionnaires for Chart: ", questionnairesForChart);
     //const questionnaireResponsesForChart: Record<string, Mapping.QuestionnaireResponse> = questionnaireResponses;
     const questionnaireResponsesFilteredBySelectedQuestionnaires: Record<
       string,
@@ -771,18 +735,6 @@ function App() {
       dateRange.end,
     );
 
-    console.log(
-      "Questionnaire Responses Filtered by Selected Questionnaires: ",
-      questionnaireResponsesFilteredBySelectedQuestionnaires,
-    );
-    console.log(
-      "Questionnaire Responses Filtered by Selected Dates: ",
-      questionnaireResponsesFilteredBySelectedDates,
-    );
-    console.log(
-      "Questionnaire Responses Filtered by Selected Range: ",
-      questionnaireResponsesFilteredBySelectedRange,
-    );
 
     const questionnaireResponseIdsForChart = _.intersection(
       Object.keys(questionnaireResponsesFilteredBySelectedQuestionnaires),
@@ -810,10 +762,6 @@ function App() {
     //     questionnaireResponsesForChart[id] = questionnaireResponsesFilteredBySelectedRange[id];
     //   }
     // });
-    console.log(
-      "Questionnaire Responses for Chart: ",
-      questionnaireResponsesForChart,
-    );
 
     const domainsForChart = domains.filter((domain) =>
       questionnairesForChart.some((questionnaire) =>
@@ -822,7 +770,6 @@ function App() {
         ),
       ),
     );
-    console.log("Domains for Chart: ", domainsForChart);
     const questionnaireNamesByDate: Record<string, string[]> =
       groupQuestionnaireNamesByDate(questionnaireResponses);
     // const questionnaireMostRecentResponseDateRecord: Record<string, string> =
@@ -831,7 +778,6 @@ function App() {
     // Chart Data
     const chartData = createChartData(questionnaireResponsesForChart);
     const allChartData = createChartData(questionnaireResponses);
-    console.log("Chart Data: ", chartData);
 
     // Data series for different charts
     const chartDataSeriesByDomain: Record<string, Visualization.DataSeries[]> =
@@ -879,15 +825,7 @@ function App() {
       showItemsFlagByDomain[domain] = false;
     });
 
-    console.log(
-      "Dimension scores by domain: ",
-      dimensionScoresDataSeriesByDomain,
-    );
 
-    console.log(
-      "Items by domain and dimension: ",
-      domainDimensionItemsDataSeriesRecord,
-    );
 
     const dimensionsByDomain: Record<string, string[]> =
       createDomainDimensionsRecord(
@@ -895,7 +833,6 @@ function App() {
         dimensionScoresDataSeriesByDomain,
       );
 
-    console.log("Dimensions by Domain: ", dimensionsByDomain);
 
     // const domainScoresDataSeries = chartData.yData.filter(
     //   (dataseries) =>
@@ -905,19 +842,15 @@ function App() {
     //   (dataseries) =>
     //     dataseries.isDimensionScore === true,
     // );
-    // console.log("Scores: ", globalScoresDataSeries);
-    // console.log("Dimension Scores: ", dimensionScoresDataSeries);
 
     // const itemsDataSeries = chartData.yData.filter(
     //   (dataseries) => dataseries.seriesType === ITEM_TYPES.item,
     // );
-    // console.log("Items: ", itemsDataSeries);
 
     // const allScoresDataSeries =
     //   globalScoresDataSeries !== undefined
     //     ? [...globalScoresDataSeries, ...dimensionScoresDataSeries]
     //     : dimensionScoresDataSeries;
-    // console.log("All Scores: ", allScoresDataSeries);
 
     // const chartDimensions = [
     //   ...new Set([
@@ -930,7 +863,6 @@ function App() {
     // const questionnaireCardData = createQuestionnaireCardData(
     //   questionnairesForChart,
     // );
-    // console.log("Questionnaire Card Data: ", questionnaireCardData);
     // const questionnaireNames = Object.keys(questionnaireCardData);
     // const longestQuestionnaireName = questionnaireNames.reduce(
     //   (longest, current) =>
@@ -953,36 +885,11 @@ function App() {
     // const mostRecentDomainScoresRadarData = createRadarData({
     //   xData: chartData.xData,
     //   yData: domainScoresDataSeriesByDomain});
-    // console.log("Radar data: ", mostRecentDomainScoresRadarData)
-
-    // Domain Dimension Mapping Sankey
-    const domainQuestionnaireDimensionRecord =
-      createDomainQuestionnaireNamesDimensionsRecord(
-        dimensionScoresDataSeriesByDomain,
-      );
-
-    const domainDimensionQuestionnaireTuples =
-      createDomainDimensionQuestionnaireTupleArray(
-        dimensionScoresDataSeriesByDomain,
-      );
-
-    console.log(
-      "Domain Questionnaire Dimension Record: ",
-      domainQuestionnaireDimensionRecord,
-    );
-    console.log(
-      "Domain Dimension Questionnaire Tuples: ",
-      domainDimensionQuestionnaireTuples,
-    );
 
     const domainDimensionWithQuestionnaireRecord =
       createDimensionWithQuestionnaireByDomainRecord(
         dimensionScoresDataSeriesByDomain,
       );
-    console.log(
-      "Domain Dimension With Questionnaire Record: ",
-      domainDimensionWithQuestionnaireRecord,
-    );
 
     // Heatmap
     // const heatmapDataByDomain: Record<string, Visualization.ChartData> =
@@ -991,28 +898,21 @@ function App() {
     //     chartData.yData,
     //     chartData.xData,
     //   );
-    // console.log("Chart Data by Dimension: ", heatmapDataByDomain);
 
     // Table
     const tableDataByQuestionnaire: Record<string, Visualization.ChartData> =
       createTableData(questionnaires, allChartData);
-    console.log("Table Data by Questionnaire: ", tableDataByQuestionnaire);
 
     // Header Cards
     // const resourceIdsWithIssues = dataIssues
     //   .map((issue) => issue.context.resourceId)
     //   .filter((id) => id !== undefined);
-    // console.log("IDs of resources with issues: ", resourceIdsWithIssues);
 
     // const itemWarningsByQuestionnaireId = _.groupBy(
     //   dataIssues.filter(
     //     (issue) => issue.level === "warning" && issue.context.field !== undefined,
     //   ),
     //   (issue) => issue.context.resourceId,
-    // );
-    // console.log(
-    //   "Item Warnings by Questionnaire ID: ",
-    //   itemWarningsByQuestionnaireId,
     // );
     forwardErrorsToUser(dataIssues);
 
@@ -1122,7 +1022,6 @@ function App() {
         [domain]: !prev[domain],
       };
     });
-    console.log("Toggled showItemsFlagByDomain: ", showItemsForDomain);
   };
 
   const selectAllDomains = (domains: string[]) => {
@@ -1148,10 +1047,6 @@ function App() {
         [domain]: dimensions,
       };
     });
-    console.log(
-      "Selected dimensions by domain (all selected): ",
-      selectedDimensionsByDomain,
-    );
   };
 
   const resetFilters = () => {
@@ -1178,7 +1073,6 @@ function App() {
         return prev.filter((id) => id !== questionnaireId);
       }
     });
-    console.log("Selected Questionnaires: ", selectedQuestionnaires);
   };
 
   const handleDateSelection = (date: string) => {
@@ -1190,7 +1084,6 @@ function App() {
         return prev.filter((d) => d !== date);
       }
     });
-    console.log("Selected Dates: ", selectedDates);
   };
 
   const handleDomainSelection = (domain: string) => {
@@ -1202,7 +1095,6 @@ function App() {
         return prev.filter((d) => d !== domain);
       }
     });
-    console.log("Selected Domains: ", selectedDomains);
   };
 
   const handleDimensionSelection = (domain: string, dimension: string) => {
@@ -1221,7 +1113,6 @@ function App() {
         };
       }
     });
-    console.log("Selected Dimensions by Domain: ", selectedDimensionsByDomain);
   };
 
   const toggleShowErrors = () => {
@@ -1239,7 +1130,6 @@ function App() {
     const cutPosition = target.value.indexOf("/");
     const start = target.value.substring(0, cutPosition);
     const end = target.value.substring(cutPosition + 1);
-    console.log("Selected range: ", { start, end });
     setDateRange({
       start: start, // e.g., "2026-05-19"
       end: end, // e.g., "2026-05-26" (or empty string if not clicked yet)
@@ -1252,7 +1142,6 @@ function App() {
     dates: string[],
     direction: "previous" | "next",
   ) => {
-    console.log("in selectDate: ", date, direction);
     let newDate: string = "";
     if (direction === "previous") {
       const index = dates.indexOf(date);
@@ -1273,7 +1162,6 @@ function App() {
         }
       }
     }
-    console.log("new Date: ", newDate);
     setRadarChartDate(newDate);
   };
 
@@ -1284,6 +1172,23 @@ function App() {
   const retryLoading = () => {
     window.location.reload();
   };
+
+  // Shared, stable chart data for the placeholder axis/filler charts drawn
+  // around every domain's and dimension's chart grid: memoized once per
+  // render (rather than rebuilt per chart instance) so React.memo on
+  // LineChart can actually skip re-rendering charts whose data is unchanged.
+  const xAxisPlaceholderData: Visualization.ChartData = useMemo(
+    () => ({
+      xData: chartXData,
+      yData: [createPseudoDataSeries(chartXData.length)],
+    }),
+    [chartXData],
+  );
+
+  const globalScoresChartData: Visualization.ChartData = useMemo(
+    () => ({ xData: chartXData, yData: globalScoresDataSeries }),
+    [chartXData, globalScoresDataSeries],
+  );
 
   // Loading Errors
   if (configError)
@@ -1719,10 +1624,7 @@ function App() {
                             <LineChart
                               id="global-scores-line-chart"
                               height={400}
-                              data={{
-                                xData: chartXData,
-                                yData: globalScoresDataSeries,
-                              }}
+                              data={globalScoresChartData}
                               minMaxYLabels={["Worst Health", "Best Health"]}
                               titleOptions={singleLineChartOptions.title}
                               legendOptions={singleLineChartOptions.legend}
@@ -1802,7 +1704,7 @@ function App() {
                               <h3>{domain}</h3>
                               <LineChartGroup
                                 name={domain}
-                                id={domain + Math.random().toString(36).substring(2, 9)}
+                                id={domain + "-chart-group"}
                                 hasReferenceValues={dimensionScoresDataSeriesByDomain[
                                   domain
                                 ].some(
@@ -1824,12 +1726,7 @@ function App() {
                                         >
                                           <LineChart
                                             id={domain + "-yaxis-" + dataSeries.id}
-                                            data={{
-                                              xData: [""],
-                                              yData: [
-                                                createPseudoDataSeries(0),
-                                              ],
-                                            }}
+                                            data={Y_AXIS_PLACEHOLDER_DATA}
                                             height={100}
                                             minMaxYLabels={["Worst", "Best"]}
                                             minMaxYValues={[-0.15, 1.55]}
@@ -1921,15 +1818,8 @@ function App() {
                                         >
                                           {/* empty data cell if number of dimensions is odd */}
                                           <LineChart
-                                            id={domain + "-empty-" + Math.random().toString(36).substring(2, 9)}
-                                            data={{
-                                              xData: chartXData,
-                                              yData: [
-                                                createPseudoDataSeries(
-                                                  chartXData.length,
-                                                ),
-                                              ],
-                                            }}
+                                            id={domain + "-empty"}
+                                            data={xAxisPlaceholderData}
                                             height={100}
                                             titleOptions={
                                               emptyLineChartOptions.title
@@ -1959,15 +1849,8 @@ function App() {
                                     >
                                       {/* left cell with x axis*/}
                                       <LineChart
-                                        id={domain + "-xaxis-" + Math.random().toString(36).substring(2, 9)}
-                                        data={{
-                                          xData: chartXData,
-                                          yData: [
-                                            createPseudoDataSeries(
-                                              chartXData.length,
-                                            ),
-                                          ],
-                                        }}
+                                        id={domain + "-xaxis"}
+                                        data={xAxisPlaceholderData}
                                         height={30}
                                         titleOptions={
                                           justXAxisLineChartOptions.title
@@ -1998,15 +1881,8 @@ function App() {
                                       >
                                         {/* right cell with x axis */}
                                         <LineChart
-                                          id={domain + "-xaxis-right-" + Math.random().toString(36).substring(2, 9)}
-                                          data={{
-                                            xData: chartXData,
-                                            yData: [
-                                              createPseudoDataSeries(
-                                                chartXData.length,
-                                              ),
-                                            ],
-                                          }}
+                                          id={domain + "-xaxis-right"}
+                                          data={xAxisPlaceholderData}
                                           height={30}
                                           titleOptions={
                                             justXAxisLineChartOptions.title
@@ -2142,14 +2018,26 @@ function App() {
                                           )}
                                           {selectedDimensionsByDomain[
                                             domain
-                                          ].map(
-                                            (dimension) =>
+                                          ].map((dimension) => {
+                                            if (
                                               itemDataSeriesByDomainAndDimension[
                                                 domain
-                                              ][dimension] !== undefined &&
+                                              ][dimension] === undefined ||
                                               itemDataSeriesByDomainAndDimension[
                                                 domain
-                                              ][dimension].length > 0 && (
+                                              ][dimension].length === 0
+                                            ) {
+                                              return null;
+                                            }
+                                            // Same (domain, dimension) for every item below: filter once and reuse, instead of once per item per axis.
+                                            const filteredItemData =
+                                              filterDataSeriesDataAndDatesForCommonNullValues(
+                                                itemDataSeriesByDomainAndDimension[
+                                                  domain
+                                                ][dimension],
+                                                chartXData,
+                                              );
+                                            return (
                                                 <React.Fragment
                                                   key={domain + "-" + dimension}
                                                 >
@@ -2158,7 +2046,7 @@ function App() {
                                                     name={
                                                       domain + "-" + dimension
                                                     }
-                                                    id={domain + "-" + dimension + Math.random().toString(36).substring(2, 15)}
+                                                    id={domain + "-" + dimension + "-chart-group"}
                                                     hasReferenceValues={itemDataSeriesByDomainAndDimension[
                                                       domain
                                                     ][dimension].some(
@@ -2243,24 +2131,9 @@ function App() {
                                                                     dataSeries.id
                                                                   }
                                                                   data={{
-                                                                    xData:
-                                                                      filterDataSeriesDataAndDatesForCommonNullValues(
-                                                                        itemDataSeriesByDomainAndDimension[
-                                                                          domain
-                                                                        ][
-                                                                          dimension
-                                                                        ],
-                                                                        chartXData,
-                                                                      ).xData, // filter
+                                                                    xData: filteredItemData.xData,
                                                                     yData: [
-                                                                      filterDataSeriesDataAndDatesForCommonNullValues(
-                                                                        itemDataSeriesByDomainAndDimension[
-                                                                          domain
-                                                                        ][
-                                                                          dimension
-                                                                        ],
-                                                                        chartXData,
-                                                                      )
+                                                                      filteredItemData
                                                                         .dataSeries[
                                                                         index
                                                                       ],
@@ -2313,25 +2186,13 @@ function App() {
                                                         >
                                                           {/* left cell with x axis*/}
                                                           <LineChart
-                                                            id={domain + "-" + dimension + "-xaxis-" + Math.random().toString(36).substring(2, 9)}
+                                                            id={domain + "-" + dimension + "-xaxis"}
                                                             data={{
-                                                              xData:
-                                                                filterDataSeriesDataAndDatesForCommonNullValues(
-                                                                  itemDataSeriesByDomainAndDimension[
-                                                                    domain
-                                                                  ][dimension],
-                                                                  chartXData,
-                                                                ).xData, // filter
+                                                              xData: filteredItemData.xData,
                                                               yData: [
                                                                 createPseudoDataSeries(
-                                                                  filterDataSeriesDataAndDatesForCommonNullValues(
-                                                                    itemDataSeriesByDomainAndDimension[
-                                                                      domain
-                                                                    ][
-                                                                      dimension
-                                                                    ],
-                                                                    chartXData,
-                                                                  ).xData
+                                                                  filteredItemData
+                                                                    .xData
                                                                     .length,
                                                                 ),
                                                               ],
@@ -2361,7 +2222,8 @@ function App() {
                                                     </div>
                                                   </LineChartGroup>
                                                 </React.Fragment>
-                                              ),
+                                              );
+                                            },
                                           )}
                                         </div>
                                       </React.Fragment>
