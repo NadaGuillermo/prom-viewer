@@ -96,6 +96,27 @@ export const issueFactories = {
           value: values,
         },
       }),
+    invalidItemCode: (
+      resource: QuestionnaireResponse,
+      linkId: string,
+      code: string | undefined
+    ): Errors.DataIssue =>
+      createIssue({
+        code: "INVALID_CODE",
+        level: "warning",
+
+        message: `Invalid code for item ${linkId} in QuestionnaireResponse. The code does not represent any valid answer option.`,
+
+        resourceType: "QuestionnaireResponse",
+
+        showUser: false,
+
+        context: {
+          resourceId: resource.id!,
+          field: linkId,
+          value: code
+        }
+      }),
     invalidItemValue: (
       resource: NormalizedFHIR.QuestionnaireResponse,
       linkId: string,
@@ -105,7 +126,7 @@ export const issueFactories = {
         code: "INVALID_VALUE",
         level: "warning",
 
-        message: `Invalid value for item ${linkId} in QuestionnaireResponse.`,
+        message: `Invalid value for item ${linkId} in QuestionnaireResponse. Value does not match any answer option.`,
 
         resourceType: "QuestionnaireResponse",
 

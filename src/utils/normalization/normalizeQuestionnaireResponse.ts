@@ -45,6 +45,12 @@ export const normalizeQuestionnaireResponse = (
         code: code
       };
     }
+    issues.push(
+      issueFactories.questionnaireResponse.invalidItemCode(
+        resource, 
+        linkId, 
+        answer.valueCoding?.code,
+      ));    
     return {
       value: null
     };

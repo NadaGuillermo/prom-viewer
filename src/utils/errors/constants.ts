@@ -6,6 +6,7 @@ export const DATA_ISSUE_CODES = [
         "INVALID_REFERENCE",
         "INVALID_VALUE_TYPE",
         "INVALID_VALUE",
+        "INVALID_CODE",
         "INVALID_NUMBER_OF_VALUES",
         "MISSING_FIELD",
         "MISSING_VALUE",

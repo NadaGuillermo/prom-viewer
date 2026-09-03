@@ -49,19 +49,27 @@ export const mapQuestionnaireResponse = (
         const questionnaireItem = correspondingQuestionnaire.items[linkId];
         const answerOptions = (questionnaireItem as Mapping.QuestionnaireItem).answerOptions;
         const value = answerOptions.find((opt) => isAnswerOptionCode(opt) && (opt as Mapping.AnswerOptionCode).code === answerCode)?.value;
-        if (value === undefined) {
-           issues.push(
-          issueFactories.questionnaireResponse.invalidItemValue(
-            questionnaireResponse,
-            linkId,
-            answerCode,
-          ),
-        );
-        }
         answerNumber = value === null ? null : Number(value);
       }
     } else {
       const answer = (item.answer as NormalizedFHIR.AnswerValue).value;
+      // check if answer options exist and if answer is among them
+      if (answer !== null && correspondingQuestionnaire !== undefined && isQuestionnaireItem(correspondingQuestionnaire.items[linkId])) {
+        const questionnaireItem = correspondingQuestionnaire.items[linkId];
+        const answerOptions = (questionnaireItem as NormalizedFHIR.QuestionnaireItem).answerOptions;
+        if (answerOptions !== undefined && answerOptions.length > 0) {
+          const answerOptionValues = answerOptions.map((opt) => opt.value);
+          if (!answerOptionValues.includes(answer)) {
+            issues.push(
+              issueFactories.questionnaireResponse.invalidItemValue(
+                questionnaireResponse,
+                linkId,
+                answer
+              )
+            );
+          }
+        }
+      }
       // Transform to number | string
       answerNumber = answer === null ? null : Number(answer);
     }
