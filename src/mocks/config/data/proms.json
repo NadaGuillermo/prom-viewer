@@ -13,18 +13,6 @@
       ]
     },
     {
-      "id": "eq5d-vas",
-      "range": [0, 100],
-      "scoreHealthCorrelation": "increase",
-      "referenceRange": [
-        {
-          "range": [71.59],
-          "name": "Population Mean",
-          "description": "Average VAS score of the general pupulation"
-        }
-      ]
-    },
-    {
       "id": "eortc-global-health",
       "range": [0, 100],
       "scoreHealthCorrelation": "increase",
@@ -109,12 +97,6 @@
           "domain": "Quality of Life",
           "questions": [
             {
-              "itemId": "euroqol-eq5d5l-q06-vas",
-              "shortName": "EQ VAS",
-              "isDimensionScore": true,
-              "scoreDefinitionId": "eq5d-vas"
-            },
-            {
               "itemId": "euroqol-eq5d5l-score-index",
               "shortName": "EQ Index",
               "isDimensionScore": true,
@@ -123,7 +105,7 @@
           ]
         }
       ],
-      "globalScores": ["euroqol-eq5d5l-score-index", "euroqol-eq5d5l-q06-vas"]
+      "globalScores": ["euroqol-eq5d5l-score-index"]
     },
     {
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-eortc-qlq-c30",
