@@ -143,6 +143,19 @@ const Y_AXIS_PLACEHOLDER_DATA: Visualization.ChartData = {
   yData: [createPseudoDataSeries(0)],
 };
 
+const getSessionId = () => {
+  return new URLSearchParams(location.search).get("sessionId");
+}
+
+window.opener?.postMessage(
+  {
+    type: "HELLO",
+    role: "preview",
+    sessionId: getSessionId() ?? "",
+  },
+  "*"
+);
+
 function App() {
   // React states
   // Data loading
@@ -155,6 +168,7 @@ function App() {
   const [mockPatient, setMockPatient] = useState<Patient | undefined>(undefined);
   const [smartLaunchError, setSmartLaunchError] = useState<string | null>(null);
   const [config, setConfig] = useState<Config.PromConfig>();
+  const [overrideConfig, setOverrideConfig] = useState<Config.PromConfig | undefined>(undefined);
   const [configError, setConfigError] = useState<string | null>(null);
   const [questionnairesReady, setQuestionnairesReady] = useState(false);
 
@@ -283,8 +297,22 @@ function App() {
 
   const [dateFormatPattern, setDateFormatPattern] = useState<string>("");
   // const [datesByQuestionnaireId, setDatesByQuestionnaireId] = useState<Record<string, string[]>>({});
+  
+  useEffect(() => {
+    const handler = async (event: MessageEvent) => {
+      console.log("Evet data", event.data);
+      const sessionIdFromMessage = event.data?.sessionId;
+      if (event.data?.type === "CONFIG_UPDATE" && event.data?.role === "editor" && sessionIdFromMessage === getSessionId()) {
+        console.log("CONFIG_UPDATE from editor", event.data);
+        const result = await loadConfig(event.data.payload.parsed);
+        setOverrideConfig(result);
+        setDataLoaded((prev) => ({ ...prev, config: true }));
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
-  // Load data
   useEffect(() => {
     // Config
     const fetchConfig = async () => {
@@ -337,6 +365,20 @@ function App() {
     fetchFhirData();
   }, []);
 
+  const activeConfig = useMemo(() => {
+    console.log("override config: ", overrideConfig);
+    if (overrideConfig) {
+      try {
+        return overrideConfig;
+      } catch (e) {
+        console.error("Invalid live config", e);
+        return config;
+      }
+    }
+    return config;
+  }, [config, overrideConfig]);
+console.log("active config: ", activeConfig);
+
   // Process data through pipeline
   useEffect(() => {
     // Don't process until all data is loaded
@@ -344,10 +386,10 @@ function App() {
       return;
     }
     const errors: Errors.DataIssue[] = [];
-
+    console.log("Active config: ", activeConfig);
     // only questionnaires and responses that are defined in config file
     const questionnairesInConfig: string[] =
-      config !== undefined ? extractQuestionnairesFromConfig(config) : [];
+      activeConfig !== undefined ? extractQuestionnairesFromConfig(activeConfig) : [];
 
     /* ----------------------- Normalize FHIR data ------------------------*/
     /* Patient */
@@ -539,7 +581,7 @@ function App() {
     /* Questionnaire */
     let promDataQuestionnairesWithConfigurations = promDataQuestionnaires;
     let domainsFromConfig: string[] = [];
-    if (config !== undefined) {
+    if (activeConfig !== undefined) {
       const promDataQuestionnairesWithConfigurationsAndErrorMessages =
         promDataQuestionnaires.map((questionnaire) => {
           // const responses = promDataQuestionnaireResponses.filter((response) => response.questionnaire === questionnaire);
@@ -548,7 +590,7 @@ function App() {
           return addConfigurationsToQuestionnaire(
             questionnaire,
             observationDefinitions,
-            config,
+            activeConfig,
           );
         });
       promDataQuestionnairesWithConfigurations =
@@ -567,7 +609,7 @@ function App() {
           addConfigurationsToQuestionnaireResponse(
             questionnaireResponse,
             promDataObservations,
-            config,
+            activeConfig,
           ),
         );
       const promDataQuestionnaireResponsesConfigurationIssues =
@@ -579,10 +621,10 @@ function App() {
       // Domains
       // const globalHealthDimensionsFromConfig =
       //   extractGlobalHealthDimensionsFromConfig(config);
-      const domainRecordFromConfig = extractDomainsFromConfig(config);
+      const domainRecordFromConfig = extractDomainsFromConfig(activeConfig);
       // const domainsFromConfig = Object.keys(domainCountFromConfig);
       const globalHealthDomainsFromConfig =
-        extractGlobalHealthDomainsFromConfig(config);
+        extractGlobalHealthDomainsFromConfig(activeConfig);
       domainsFromConfig = sortDomains(
         domainRecordFromConfig,
         globalHealthDomainsFromConfig,
@@ -694,7 +736,7 @@ function App() {
     dataLoaded,
     smartPatient,
     mockPatient,
-    config,
+    activeConfig,
   ]);
 
   // Data visualization
