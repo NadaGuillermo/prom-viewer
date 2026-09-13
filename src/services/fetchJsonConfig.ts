@@ -1,3 +1,14 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 // Shared by the UI config loaders (colors, date format, ...): fetches a JSON
 // file from /public and throws on a non-OK response or invalid JSON. Callers
 // decide how to fall back; this only handles the raw fetch.
