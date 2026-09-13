@@ -50,6 +50,7 @@ Other available commands:
 | `yarn test`           | Run the test suite once              |
 | `yarn test:watch`     | Run tests in watch mode              |
 | `yarn test:coverage`  | Run tests with a coverage report     |
+| `yarn add-headers`    | Add license headers to source files  |
 
 If `yarn dev` started successfully, the console output should look similar to this:
 
@@ -118,4 +119,4 @@ Since those profiles are actively developed and haven't matured over a longer ti
 
 ## License
 
-Not specified yet. The project is intended to be released as open-source, with usage open to everyone.
+GNU General Public License v3.0 (GPL-3.0). See [COPYING](COPYING) for details.
