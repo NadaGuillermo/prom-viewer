@@ -18,9 +18,6 @@ export const mapObservationDefinition = (
       };
     });
 
-  //?.filter((range) => Array.isArray(range.range));
-  // const referenceValue = normalizedObservationDefinition.referenceRange?.filter((range) => typeof range.range === "number");
-
   return {
     data: {
       id: normalizedObservationDefinition.id,
@@ -28,7 +25,6 @@ export const mapObservationDefinition = (
       range: range,
       scoreHealthCorrelation: scoreHealthCorrelation,
       referenceRange: referenceRange,
-      // ...(referenceValue && {referenceValue: referenceValue}),
     },
     issues: issues,
   };

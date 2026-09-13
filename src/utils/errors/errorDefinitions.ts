@@ -1,4 +1,8 @@
-import type { Observation, QuestionnaireResponse, QuestionnaireResponseItemAnswer } from "fhir/r4";
+import type {
+  Observation,
+  QuestionnaireResponse,
+  QuestionnaireResponseItemAnswer,
+} from "fhir/r4";
 
 import type * as Errors from "./types";
 import {
@@ -99,7 +103,7 @@ export const issueFactories = {
     invalidItemCode: (
       resource: QuestionnaireResponse,
       linkId: string,
-      code: string | undefined
+      code: string | undefined,
     ): Errors.DataIssue =>
       createIssue({
         code: "INVALID_CODE",
@@ -114,8 +118,8 @@ export const issueFactories = {
         context: {
           resourceId: resource.id!,
           field: linkId,
-          value: code
-        }
+          value: code,
+        },
       }),
     invalidItemValue: (
       resource: NormalizedFHIR.QuestionnaireResponse,
@@ -157,7 +161,9 @@ export const issueFactories = {
           resourceId: resource.id,
         },
       }),
-    missingQuestionnaire: (resource: NormalizedFHIR.QuestionnaireResponse): Errors.DataIssue =>
+    missingQuestionnaire: (
+      resource: NormalizedFHIR.QuestionnaireResponse,
+    ): Errors.DataIssue =>
       createIssue({
         code: "MISSING_RESOURCE_LINK",
         level: "error",
@@ -223,7 +229,7 @@ export const issueFactories = {
       resource: NormalizedFHIR.Questionnaire,
       linkId: string,
       value: NormalizedFHIR.Range,
-    ): Errors.DataIssue => 
+    ): Errors.DataIssue =>
       createIssue({
         code: "INVALID_VALUE_TYPE",
         level: "warning",
@@ -240,9 +246,7 @@ export const issueFactories = {
           field: linkId,
           value: value,
         },
-
-      }
-      ),
+      }),
     missingInConfig: (
       resource: NormalizedFHIR.Questionnaire,
     ): Errors.DataIssue =>

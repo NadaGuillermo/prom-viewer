@@ -3,7 +3,6 @@ import type { ItemType } from "@utils/mapping";
 
 export type NumberOrTuple = number | [number, number];
 
-/** Charts generell */
 export interface ReferenceRange {
   value: NumberOrTuple;
   normalizedValue: NumberOrTuple;
@@ -12,23 +11,16 @@ export interface ReferenceRange {
 }
 
 export interface DataSeries {
-  id: string; // linkId
+  id: string;
   name: string;
   shortName: string;
   data: GlobalTypes.NumberOrNull[];
   originalData: GlobalTypes.NumberOrNull[];
   dataLabels: string[];
   seriesType: ItemType;
-  // originalReferenceValues?: ReferenceRange[];
-  // domain: string;
-  questionnaireId: string; // questionnaireId
+  questionnaireId: string;
   questionnaireName: string;
   referenceValues?: ReferenceRange[];
-  // isDomainScore: boolean;
-  // isDimensionScore: boolean;
-  // isGlobalScore: boolean;
-  // referencedItems?: string[]; // linkIds of items used for score calculation
-  // dimension?: string;
 }
 
 export interface ChartData {

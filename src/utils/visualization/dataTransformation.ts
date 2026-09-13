@@ -1,4 +1,3 @@
-// import * as _ from "lodash-es";
 import type * as Mapping from "@utils/mapping";
 import type * as Visualization from "./types";
 import type * as GlobalTypes from "@customTypes/globalTypes";
@@ -9,7 +8,6 @@ import {
   groupQuestionnaireResponsesByQuestionnaireId,
   getMinAndMaxAnswerOptionValueForItem,
 } from "./utils";
-
 import { normalizeValue } from "./helpers";
 
 export const createChartData = (
@@ -55,10 +53,7 @@ export const createChartData = (
             // range and scoreHealthCorrelation given
             const [min, max] = questionnaireItem.range;
             // check if decreasing score health correlation
-            if (
-              questionnaireItem.scoreHealthCorrelation ===
-              "decrease"
-            ) {
+            if (questionnaireItem.scoreHealthCorrelation === "decrease") {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
                 min,
@@ -88,11 +83,8 @@ export const createChartData = (
           } else if (questionnaireItem.scoreHealthCorrelation !== undefined) {
             const [min, max] =
               getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
-            
-              if (
-              questionnaireItem.scoreHealthCorrelation ===
-              "decrease"
-            ) {
+
+            if (questionnaireItem.scoreHealthCorrelation === "decrease") {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
                 min,
@@ -132,25 +124,25 @@ export const createChartData = (
           dataLabels.push("");
         }
       });
-      
+
       const questionnaire = questionnaireResponses[0].questionnaire;
-      const questionnaireItem =
-        questionnaire.items[linkId];
+      const questionnaireItem = questionnaire.items[linkId];
       let seriesType: Mapping.ItemType;
       if (isScoreItem(questionnaireItem)) {
         seriesType = "score";
-      } else if(isDimensionScore(questionnaireItem)) {
+      } else if (isDimensionScore(questionnaireItem)) {
         seriesType = "dimensionScore";
       } else {
         seriesType = "item";
       }
 
-      // let referencedItems: string[] = [];
-
       const referenceValues: Visualization.ReferenceRange[] = [];
       if (isScoreItem(questionnaireItem)) {
         const item = questionnaireItem as Mapping.QuestionnaireScoreItem;
-        if (item.referenceRange !== undefined && item.referenceRange.length > 0) {
+        if (
+          item.referenceRange !== undefined &&
+          item.referenceRange.length > 0
+        ) {
           const [min, max] = item.range;
           item.referenceRange.forEach((range) => {
             const referenceRange: Visualization.NumberOrTuple = range.range;
@@ -158,14 +150,24 @@ export const createChartData = (
             if (Array.isArray(referenceRange)) {
               const values: number[] = [];
               referenceRange.forEach((val) => {
-                const normalizedValue = Number(normalizeValue(val, min, max).toFixed(3));
-                const adjustedNormalizedValue = item.scoreHealthCorrelation === "decrease" ? 1 - normalizedValue : normalizedValue;
-                values.push(adjustedNormalizedValue)
-              })
+                const normalizedValue = Number(
+                  normalizeValue(val, min, max).toFixed(3),
+                );
+                const adjustedNormalizedValue =
+                  item.scoreHealthCorrelation === "decrease"
+                    ? 1 - normalizedValue
+                    : normalizedValue;
+                values.push(adjustedNormalizedValue);
+              });
               normalizedReferenceRange = [values[0], values[1]];
             } else {
-              const normalizedValue = Number(normalizeValue(referenceRange, min, max).toFixed(3));
-              const adjustedNormalizedValue = item.scoreHealthCorrelation === "decrease" ? 1 - normalizedValue : normalizedValue;
+              const normalizedValue = Number(
+                normalizeValue(referenceRange, min, max).toFixed(3),
+              );
+              const adjustedNormalizedValue =
+                item.scoreHealthCorrelation === "decrease"
+                  ? 1 - normalizedValue
+                  : normalizedValue;
               normalizedReferenceRange = adjustedNormalizedValue;
             }
             referenceValues.push({
@@ -173,9 +175,9 @@ export const createChartData = (
               normalizedValue: normalizedReferenceRange,
               name: range.name,
               description: range.description,
-            })
-        });       
-      }
+            });
+          });
+        }
       }
 
       const shortLinkId = linkId.slice(0, 25);
@@ -183,15 +185,14 @@ export const createChartData = (
       dataSeriesOfQuestionnaire.push({
         id: linkId,
         name: questionnaire.items[linkId].text ?? linkId,
-        shortName:
-          questionnaire.items[linkId].shortText ?? shortLinkId,
+        shortName: questionnaire.items[linkId].shortText ?? shortLinkId,
         data: data,
         originalData: originalData,
         dataLabels: dataLabels,
         seriesType: seriesType,
         questionnaireId: questionnaire.id,
         questionnaireName: questionnaire.title,
-        ...(referenceValues.length > 0 && {referenceValues: referenceValues}),
+        ...(referenceValues.length > 0 && { referenceValues: referenceValues }),
       });
     });
 

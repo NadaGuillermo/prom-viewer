@@ -1,4 +1,9 @@
-import type { Questionnaire, QuestionnaireItem, ValueSet, CodeSystem } from "fhir/r4";
+import type {
+  Questionnaire,
+  QuestionnaireItem,
+  ValueSet,
+  CodeSystem,
+} from "fhir/r4";
 
 import type * as NormalizedFHIR from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
@@ -11,7 +16,9 @@ export const normalizeQuestionnaire = (
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractAnswerOptions = (item: QuestionnaireItem): NormalizedFHIR.AnswerOption[] => {
+  const extractAnswerOptions = (
+    item: QuestionnaireItem,
+  ): NormalizedFHIR.AnswerOption[] => {
     const answerOptions: NormalizedFHIR.AnswerOption[] = [];
 
     // Option 1: answer options stored in answerOption attribute
@@ -20,8 +27,7 @@ export const normalizeQuestionnaire = (
         const value = opt.valueInteger ?? opt.valueString;
         // only value exists for answer option
         if (value !== undefined) {
-          answerOptions.push(
-            {
+          answerOptions.push({
             value: value,
           });
           continue;
@@ -31,14 +37,22 @@ export const normalizeQuestionnaire = (
         if (opt.valueCoding) {
           const code = opt.valueCoding.code;
           const label = opt.valueCoding.display;
-          const valueExtension = opt.extension?.find((ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/ordinalValue");
-          const value = valueExtension?.valueDecimal ?? valueExtension?.valueInteger ?? valueExtension?.valueString ?? valueExtension?.valueBoolean;
+          const valueExtension = opt.extension?.find(
+            (ext) =>
+              ext.url ===
+              "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+          );
+          const value =
+            valueExtension?.valueDecimal ??
+            valueExtension?.valueInteger ??
+            valueExtension?.valueString ??
+            valueExtension?.valueBoolean;
           if (code !== undefined) {
             answerOptions.push({
               code: code,
               label: label,
               value: value,
-            })
+            });
           }
         }
       }
@@ -52,53 +66,77 @@ export const normalizeQuestionnaire = (
           );
         },
       );
-      const valueSetConcept = answerValueSet?.compose?.include.find((vsc) => vsc.system?.includes("CodeSystem"))?.concept;
-      const codeSystem = resource.contained?.find((resource) => resource.resourceType === "CodeSystem") as (CodeSystem | undefined);
+      const valueSetConcept = answerValueSet?.compose?.include.find((vsc) =>
+        vsc.system?.includes("CodeSystem"),
+      )?.concept;
+      const codeSystem = resource.contained?.find(
+        (resource) => resource.resourceType === "CodeSystem",
+      ) as CodeSystem | undefined;
       const codes = valueSetConcept?.map((valset) => valset.code);
       if (valueSetConcept !== undefined && codes !== undefined) {
         if (codeSystem !== undefined && codeSystem.concept !== undefined) {
-          const codeLabelValueRecord: Record<string, {label?: string, value?: NormalizedFHIR.Value}> = {};
+          const codeLabelValueRecord: Record<
+            string,
+            { label?: string; value?: NormalizedFHIR.Value }
+          > = {};
           for (const valSet of valueSetConcept) {
             const code = valSet.code;
             const label = valSet.display;
             if (code !== undefined) {
-              codeLabelValueRecord[code] = {label: label};
+              codeLabelValueRecord[code] = { label: label };
             }
           }
           const codeSystemConcepts = codeSystem.concept;
           Object.keys(codeLabelValueRecord).forEach((code) => {
-            const valueExtension = codeSystemConcepts.find((concept) => concept.code === code)?.extension?.find((ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/ordinalValue");
-            const value = valueExtension?.valueDecimal ?? valueExtension?.valueInteger ?? valueExtension?.valueString ?? valueExtension?.valueBoolean;
-            codeLabelValueRecord[code] = {...codeLabelValueRecord[code], value: value}
-          })
+            const valueExtension = codeSystemConcepts
+              .find((concept) => concept.code === code)
+              ?.extension?.find(
+                (ext) =>
+                  ext.url ===
+                  "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              );
+            const value =
+              valueExtension?.valueDecimal ??
+              valueExtension?.valueInteger ??
+              valueExtension?.valueString ??
+              valueExtension?.valueBoolean;
+            codeLabelValueRecord[code] = {
+              ...codeLabelValueRecord[code],
+              value: value,
+            };
+          });
           Object.entries(codeLabelValueRecord).forEach(([key, val]) => {
             answerOptions.push({
               code: key,
               label: val.label,
               value: val.value,
-            })
-          })
-      } else {
-        valueSetConcept.forEach((valset) => {
-          answerOptions.push({
-            code: valset.code,
-            label: valset.display
-          })
-        })
-      }
+            });
+          });
+        } else {
+          valueSetConcept.forEach((valset) => {
+            answerOptions.push({
+              code: valset.code,
+              label: valset.display,
+            });
+          });
+        }
       }
     }
     return answerOptions; // can be empty
   };
 
-  const extractReferenceQuestionnaireItemsAndScoreExpression = (item: QuestionnaireItem): {
+  const extractReferenceQuestionnaireItemsAndScoreExpression = (
+    item: QuestionnaireItem,
+  ): {
     referenceQuestionnaireItems: string[] | undefined;
     scoreExpression: string | undefined;
   } => {
     const referenceQuestionnaireItems: string[] = [];
     let scoreExpression: string | undefined = undefined;
-    let calculationFormula = item.extension?.find((ext) =>
-      ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+    let calculationFormula = item.extension?.find(
+      (ext) =>
+        ext.url ===
+        "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression",
     )?.valueExpression?.expression;
 
     if (calculationFormula !== undefined) {
@@ -115,7 +153,8 @@ export const normalizeQuestionnaire = (
               valueEx.valueExpression?.name !== undefined &&
               expressionReference.includes(valueEx.valueExpression.name)
             ) {
-              calculationFormula = valueEx.valueExpression.expression ?? calculationFormula;
+              calculationFormula =
+                valueEx.valueExpression.expression ?? calculationFormula;
               break;
             }
           }
@@ -130,19 +169,22 @@ export const normalizeQuestionnaire = (
     }
 
     return {
-      referenceQuestionnaireItems: referenceQuestionnaireItems.length > 0
-      ? referenceQuestionnaireItems
-      : undefined,
-      scoreExpression: scoreExpression
-    }
+      referenceQuestionnaireItems:
+        referenceQuestionnaireItems.length > 0
+          ? referenceQuestionnaireItems
+          : undefined,
+      scoreExpression: scoreExpression,
+    };
   };
 
-  const extractRange = (item: QuestionnaireItem): NormalizedFHIR.Range | undefined => {
-    const extensionMinVal = item.extension?.find((ext) =>
-      ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
+  const extractRange = (
+    item: QuestionnaireItem,
+  ): NormalizedFHIR.Range | undefined => {
+    const extensionMinVal = item.extension?.find(
+      (ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
     );
-    const extensionMaxVal = item.extension?.find((ext) =>
-      ext.url === "http://hl7.org/fhir/StructureDefinition/maxValue",
+    const extensionMaxVal = item.extension?.find(
+      (ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/maxValue",
     );
 
     if (extensionMinVal === undefined || extensionMaxVal === undefined) {
@@ -172,16 +214,17 @@ export const normalizeQuestionnaire = (
     for (const item of itemsInput) {
       // ignore all items with certain types
       if (QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED.includes(item.type)) {
-        // type immer gegeben
         continue;
       }
-      const {referenceQuestionnaireItems, scoreExpression} = extractReferenceQuestionnaireItemsAndScoreExpression(item);
+      const { referenceQuestionnaireItems, scoreExpression } =
+        extractReferenceQuestionnaireItemsAndScoreExpression(item);
       const itemValueRange = extractRange(item);
       const itemAnswerOptions = extractAnswerOptions(item);
 
       items[item.linkId] = {
-        linkId: item.linkId, // immer gegeben
-        answerOptions: itemAnswerOptions.length > 0 ? itemAnswerOptions : undefined,
+        linkId: item.linkId, // always given
+        answerOptions:
+          itemAnswerOptions.length > 0 ? itemAnswerOptions : undefined,
         text: item.text,
         referenceQuestionnaireItems: referenceQuestionnaireItems,
         range: itemValueRange,
@@ -194,31 +237,15 @@ export const normalizeQuestionnaire = (
     }
   };
 
-  // const extractLinkIds = (itemsInput: any[] | undefined, linkIds: string[]) => {
-  //   if (!itemsInput) return;
-  //   const itemLinkIds = linkIds;
-
-  //   for (const item of itemsInput) {
-  //     itemLinkIds.push(item.linkId);
-
-  //     if (item.item) {
-  //       extractLinkIds(item.item, itemLinkIds);
-  //     }
-  //   }
-  //   return itemLinkIds;
-  // };
-
-  // const itemLinkIds: string[] | undefined = extractLinkIds(resource.item, []);
-
+  // Traverse for nested items
   traverse(resource.item);
 
   return {
     data: {
-      id: resource.id!, // sollte immer gegeben sein
-      url: resource.url!, // immer gegeben
-      title: resource.title, // optional
-      // description: resource.description, // optional
-      items, // optional
+      id: resource.id!, // should lawys be given
+      url: resource.url!, // should always be given
+      title: resource.title,
+      items, // can be empty
     },
     issues: issues,
   };

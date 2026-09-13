@@ -6,6 +6,10 @@ interface Props {
   titleSmall?: boolean;
 }
 
+/**
+ * Collapse component renders a collapsible section with a title and content.
+ * It uses the HTML <details> and <summary> elements to create the collapsible behavior.
+ */
 const Collapse = ({ title, children, constrainWidth, name, titleSmall = false }: Props) => {
   return (
     <div

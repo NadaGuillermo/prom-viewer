@@ -1,14 +1,15 @@
 type AnimationType = 'spinner' | 'dots' | 'bars';
 
 interface Props {
-  /** Main text to display */
   message?: string;
-  /** Optional subtext (e.g. "This may take a few moments...") */
   subMessage?: string;
-  /** Animation style */
   animation?: AnimationType;
 }
 
+/**
+ * DataLoadingScreen component displays a full-screen loading overlay with a customizable message, optional sub-message, and different animation styles (spinner, dots, or bars). 
+ * It is used to indicate that data is being loaded or processed in the application.
+ */
 const DataLoadingScreen = ({
   message = "Loading",
   subMessage,
@@ -38,7 +39,7 @@ const DataLoadingScreen = ({
         </h1>
 
         {/* Optional Sub-message */}
-        {subMessage && (
+        {subMessage !== undefined && (
           <p className="tw:text-lg">
             {subMessage}
           </p>

@@ -1,8 +1,9 @@
 import { lazy, memo, Suspense, useContext } from "react";
+import * as echarts from "echarts/core";
+
 import { ShowReferenceValuesContext } from "@components/ShowReferenceValuesContext";
 import type * as Charts from "@utils/charts";
 import { tolColorPalette, referenceColors } from "@utils/charts";
-import * as echarts from "echarts/core";
 import type * as Visualization from "@utils/visualization";
 import {
   getOriginalValueFromNormalizedValueAndDataSeriesName,
@@ -60,8 +61,9 @@ interface Props {
   showReferenceValues?: boolean;
 }
 
-
-
+/**
+ * LineChart component renders a line chart using ECharts library.
+ */
 const LineChart = ({
   id,
   data,
@@ -92,69 +94,67 @@ const LineChart = ({
   const shouldShowReferenceValues =
     showReferenceValues ?? groupShowReferenceValues;
 
-
   const formatReferenceValue = (value: Visualization.NumberOrTuple): string =>
-  Array.isArray(value) ? `${value[0]} - ${value[1]}` : `${value}`;
+    Array.isArray(value) ? `${value[0]} - ${value[1]}` : `${value}`;
 
-const buildReferenceMarkLine = (
-  referenceValues: Visualization.ReferenceRange[],
-) => {
-  const data = referenceValues
-    .filter((ref) => typeof ref.normalizedValue === "number")
-    .map((ref) => {
-      const yVal = ref.normalizedValue as number;
+  const buildReferenceMarkLine = (
+    referenceValues: Visualization.ReferenceRange[],
+  ) => {
+    const data = referenceValues
+      .filter((ref) => typeof ref.normalizedValue === "number")
+      .map((ref) => {
+        const yVal = ref.normalizedValue as number;
+        const point = {
+          name: ref.name,
+          referenceDescription: ref.description,
+          referenceValueLabel: formatReferenceValue(ref.value),
+          lineStyle: { color: referenceColors.line },
+          label: { show: false },
+        };
+        return [
+          { ...point, yAxis: yVal, x: "3%" },
+          { yAxis: yVal, x: "97%" },
+        ];
+      });
+
+    if (data.length === 0) return undefined;
+    return {
+      ...markLineOptions,
+      symbol: ["none", "none"] as [string, string],
+      data,
+    };
+  };
+
+  const buildReferenceMarkArea = (
+    referenceValues: Visualization.ReferenceRange[],
+  ) => {
+    const ranges = referenceValues.filter((ref) =>
+      Array.isArray(ref.normalizedValue),
+    );
+    const data = ranges.map((ref, index) => {
+      const [min, max] = ref.normalizedValue as [number, number];
+      const opacity =
+        referenceColors.box.opacities[
+          Math.min(index, referenceColors.box.opacities.length - 1)
+        ];
       const point = {
         name: ref.name,
         referenceDescription: ref.description,
         referenceValueLabel: formatReferenceValue(ref.value),
-        lineStyle: { color: referenceColors.line },
+        itemStyle: { color: referenceColors.box.color, opacity },
         label: { show: false },
-      }
+      };
       return [
-        { ...point, yAxis: yVal, x: "3%" },
-        { yAxis: yVal, x: "97%" },
+        { ...point, yAxis: min, x: "95%" },
+        { ...point, yAxis: max, x: "5%" },
       ];
-    }
-  );
-  
-  if (data.length === 0) return undefined;
-  return {
-    ...markLineOptions,
-    symbol: ["none", "none"] as [string, string],
-    data,
-  };
-};
-
-const buildReferenceMarkArea = (
-  referenceValues: Visualization.ReferenceRange[],
-) => {
-  const ranges = referenceValues.filter((ref) =>
-    Array.isArray(ref.normalizedValue),
-  );
-  const data = ranges.map((ref, index) => {
-    const [min, max] = ref.normalizedValue as [number, number];
-    const opacity =
-      referenceColors.box.opacities[
-        Math.min(index, referenceColors.box.opacities.length - 1)
-      ];
-    const point = {
-      name: ref.name,
-      referenceDescription: ref.description,
-      referenceValueLabel: formatReferenceValue(ref.value),
-      itemStyle: { color: referenceColors.box.color, opacity },
-      label: { show: false },
+    });
+    if (data.length === 0) return undefined;
+    return {
+      ...markAreaOptions,
+      data,
     };
-    return [
-      { ...point, yAxis: min, x: "95%" },
-      { ...point, yAxis: max, x: "5%" },
-    ];
-  });
-  if (data.length === 0) return undefined;
-  return {
-    ...markAreaOptions,
-    data,
   };
-};
 
   const generateSeriesList = () => {
     const seriesList: LineSeriesOption[] = [];
@@ -173,14 +173,12 @@ const buildReferenceMarkArea = (
         ...(markLine && { markLine }),
         ...(markArea && { markArea }),
       };
-      // markLine/markArea data points carry extra referenceDescription/referenceValueLabel
-      // fields (read back in referenceTooltipFormatter) that ECharts' strict types don't model.
       seriesList.push(series as LineSeriesOption);
     });
     return seriesList;
   };
 
-  const yAxisFormatter = (value: number,) => {
+  const yAxisFormatter = (value: number) => {
     if (value === Math.max(0, minMaxYValues[0])) {
       return minMaxYLabels ? `{health|${minMaxYLabels[0]}}` : value.toString();
     }
@@ -230,14 +228,15 @@ const buildReferenceMarkArea = (
       Number(value),
       seriesName ?? "",
     );
-    const label = getLabelFromValueAndDataSeriesName(yData, Number(value), seriesName ?? "");
-    // const longName = getDataSeriesNameFromShortName(yData, seriesName);
-    // const displayName = longName.length > 0 ? longName : seriesName;
+    const label = getLabelFromValueAndDataSeriesName(
+      yData,
+      Number(value),
+      seriesName ?? "",
+    );
 
     if (originalValue !== null) {
       if (displayNameInTooltip) {
-        
-          return `
+        return `
       <div class="tooltip-content">
         ${echarts.format.encodeHTML(seriesName ?? "")}<br/>
         ${echarts.format.encodeHTML(name)}:
@@ -245,8 +244,8 @@ const buildReferenceMarkArea = (
       </div>
       `;
       }
-      
-        return `
+
+      return `
       <div class="tooltip-content">
         ${echarts.format.encodeHTML(name)}:
         &nbsp;<b>${echarts.format.encodeHTML(originalValue.toString())}</b>${label.length > 0 ? " (" + echarts.format.encodeHTML(label) + ")" : ""}
@@ -295,15 +294,13 @@ const buildReferenceMarkArea = (
         formatter: (value: number,) =>
           yAxisFormatter(value,),
         rich: {
-          health: {
-            // fontWeight: "bold",
-          },
+          health: {},
         },
       },
-      axisTick:{
+      axisTick: {
         ...yAxisOptions?.axisTick,
         customValues: minMaxYValuesPosition,
-      }
+      },
     },
     grid: {
       ...gridOptions,

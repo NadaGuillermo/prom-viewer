@@ -1,8 +1,9 @@
+import * as _ from "lodash-es";
+
 import type * as Mapping from "@utils/mapping/types";
 import { addObservationItemsToQuestionnaireResponse } from "./utils";
 import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
-import * as _ from "lodash-es";
 import type * as Config from "./types";
 
 export const addConfigurationsToQuestionnaireResponse = (
@@ -21,12 +22,15 @@ export const addConfigurationsToQuestionnaireResponse = (
 
   if (linkIdsInResponseButNotInQuestionnaire.length > 0) {
     linkIdsInResponseButNotInQuestionnaire.forEach((linkId) => {
-      issues.push(issueFactories.questionnaireResponse.unreferencedItem(response, linkId));
+      issues.push(
+        issueFactories.questionnaireResponse.unreferencedItem(response, linkId),
+      );
     });
   }
-  // LinkIds in Q but not in R not a problem since they won't be displayed
+  // LinkIds that are in Questionnaire but not in QuestionnaireResponse aren't a problem since they won't be displayed
 
   /**
+   * Add:
    * 1. Observation items
    */
   const responseWithConfigSettings = addObservationItemsToQuestionnaireResponse(

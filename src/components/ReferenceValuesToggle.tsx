@@ -3,7 +3,9 @@ interface Props {
   onChange: (checked: boolean) => void;
   label?: string;
 }
-
+/**
+ * A toggle switch component for showing or hiding reference values in a chart.
+ */
 const ReferenceValuesToggle = ({
   checked,
   onChange,

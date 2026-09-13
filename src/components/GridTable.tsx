@@ -1,9 +1,14 @@
-import * as _ from "lodash-es";
 import React from "react";
+import * as _ from "lodash-es";
 interface Props {
   data: Record<string, string[]>;
 }
 
+/**
+ * GridTable component renders a grid table that displays the presence of questionnaires for each date.
+ * It uses a CSS grid layout to create a responsive table with sticky headers for dates and questionnaires.
+ * The component takes a data prop, which is an object where keys are dates and values are arrays of questionnaire names.
+ */
 const GridTable = ({ data }: Props) => {
   const dates = Object.keys(data);
   const questionnaires = _.uniq(

@@ -1,7 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconProp } from "@fortawesome/fontawesome-svg-core";
-import Portal from "@components/Portal";
 import { Tooltip } from "react-tooltip";
+
+import Portal from "@components/Portal";
 
 interface Props {
   onClick: () => void;
@@ -12,6 +13,9 @@ interface Props {
   tooltipText?: string;
 }
 
+/**
+ * DownloadImageButton component renders a button that allows users to download an image of the chart.
+ */
 const DownloadImageButton = ({
   onClick,
   id,
@@ -20,7 +24,6 @@ const DownloadImageButton = ({
   tooltipText = "Download",
   className,
 }: Props) => {
-  // const id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   return (
     <div className={`${className}`}>
       <a data-tooltip-id={id}>
@@ -45,9 +48,7 @@ const DownloadImageButton = ({
         >
           <div className="tw:w-24">
             <div className="tw:text-center tw:text-sm tw:whitespace-normal tw:break-normal">
-              
-                {tooltipText ? tooltipText : label}
-              
+              {tooltipText ? tooltipText : label}
             </div>
           </div>
         </Tooltip>

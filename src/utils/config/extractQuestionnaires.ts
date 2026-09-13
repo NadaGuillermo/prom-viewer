@@ -1,7 +1,8 @@
+import * as _ from "lodash-es";
+
 import type * as NormalizedFHIR from "@utils/normalization";
 import type * as Errors from "@utils/errors";
 import { issueFactories } from "@utils/errors";
-import * as _ from "lodash-es";
 import type * as Config from "./types";
 
 export const extractQuestionnairesFromConfig = (

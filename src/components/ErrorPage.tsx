@@ -8,6 +8,11 @@ interface Props {
   onRetry?: () => void;
 }
 
+/**
+ * ErrorPage component displays a user-friendly error page when an error occurs in the application.
+ * It shows an error icon, a heading, a message, and the error details.
+ * If a retry function is provided, it also displays a retry button.
+ */
 const ErrorPage = ({ error, heading, message, onRetry }: Props) => {
   const errorMessage = typeof error === 'string' 
     ? error 
@@ -40,8 +45,9 @@ const ErrorPage = ({ error, heading, message, onRetry }: Props) => {
         </div>
 
         {/* Retry Button */}
-        {onRetry && (
+        {onRetry !== undefined && (
           <button
+            type="button"
             className="tw:btn tw:btn-primary tw:btn-xl tw:shadow-none border-rounded"
             onClick={onRetry}
           >

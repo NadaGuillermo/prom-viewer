@@ -1,14 +1,21 @@
-import type * as Visualization from "@utils/visualization";
 import React from "react";
-import { truncateAtWord } from "@utils/visualization";
 import { Tooltip } from "react-tooltip";
+
 import Portal from "@components/Portal";
+import type * as Visualization from "@utils/visualization";
+import { truncateAtWord } from "@utils/visualization";
 
 interface Props {
   data: Visualization.ChartData;
   maxHeight?: string;
 }
 
+/**
+ * DataTable component renders a table that displays chart data in a tabular format.
+ * It uses a CSS grid layout to create a responsive table with sticky headers for dates and series names.
+ * The component takes a data prop, which is an object containing xData (dates) and yData (series data).
+ * The maxHeight prop allows setting a maximum height for the table, enabling vertical scrolling if the content exceeds this height.
+ */
 const DataTable = ({
   data, 
   maxHeight = "600px"

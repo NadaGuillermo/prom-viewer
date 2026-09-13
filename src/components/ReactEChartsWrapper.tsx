@@ -5,8 +5,7 @@ import {
   forwardRef,
   type CSSProperties,
 } from "react";
-import type * as Charts from "@utils/charts";
-import type { ECharts } from "echarts/core";
+import type { ECharts, SetOptionOpts } from "echarts/core";
 import { init, use as registerEChartsComponents } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import { LineChart, RadarChart } from "echarts/charts";
@@ -20,12 +19,8 @@ import {
 } from "echarts/components";
 
 import DownloadImageButton from "@components/DownloadImageButton";
-import {
-  buildExportFileName,
-  captureAndDownloadElement,
-} from "@utils/export";
-
-import type { SetOptionOpts } from "echarts/core";
+import type * as Charts from "@utils/charts";
+import { buildExportFileName, captureAndDownloadElement } from "@utils/export";
 
 registerEChartsComponents([
   LegendComponent,
@@ -52,6 +47,11 @@ interface Props {
   exportFileName?: string;
 }
 
+/**
+ * A React wrapper component for ECharts that handles chart initialization, option updates, loading state, and exporting the chart as an image.
+ * It uses a forwardRef to expose the ECharts instance to parent components.
+ * The component also includes a download button for exporting the chart as an image if enabled.
+ */
 export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
   (
     {
@@ -72,9 +72,6 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
     const chartRef = useRef<ECharts | null>(null);
     const resizeObserverRef = useRef<ResizeObserver | null>(null);
     const [isChartReady, setIsChartReady] = useState(false);
-    // const [chartHeight, setChartHeight] = useState<number>(0);
-    // const [height, setHeight] = useState<number>(chartHeight ?? 0);
-    //
     /**
      * Initialize / Reinitialize chart (theme changes require dispose)
      */
@@ -88,8 +85,8 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
         chartRef.current.dispose();
         chartRef.current = null;
       }
-      // Initialize new instance
 
+      // Initialize new instance
       chartRef.current = init(containerRef.current, theme, {
         height: chartHeight,
       });
@@ -127,11 +124,6 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
     useEffect(() => {
       if (!chartRef.current) return;
 
-      // Update chart
-
-      // const chart = getInstanceByDom(chartRef.current);
-      // chart?.setOption(option, settings);
-      // const chartInstanceRef = useRef<ECharts | null>(null);
       chartRef.current?.setOption(option, {
         notMerge: true,
         replaceMerge: undefined,
@@ -142,7 +134,7 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
         chartRef.current?.resize();
         setIsChartReady(true);
       });
-    }, [option, settings, theme]); // Whenever theme changes we need to add option and setting due to it being deleted in cleanup function
+    }, [option, settings, theme]);
 
     /**
      * Loading state handling
@@ -165,8 +157,6 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
       );
     };
 
-    // tw:min-h-100 Höhen ändern !!
-    // height: chartHeight ? `${chartHeight}px` : undefined,
     return (
       <div
         className={`tw:relative ${useMinHeight ? "tw:h-full tw:w-full tw:min-h-100" : "tw:h-full tw:w-full"}`}
@@ -176,7 +166,7 @@ export const ReactEChartsWrapper = forwardRef<ECharts | null, Props>(
           className="tw:h-full tw:w-full"
           style={{ ...style }}
         />
-        {enableExport && (
+        {enableExport === true && (
           <DownloadImageButton
             id={chartId}
             onClick={handleDownload}

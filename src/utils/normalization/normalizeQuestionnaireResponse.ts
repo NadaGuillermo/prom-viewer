@@ -16,18 +16,18 @@ export const normalizeQuestionnaireResponse = (
   const items: Record<string, NormalizedFHIR.ResponseItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractValue = (answer: QuestionnaireResponseItemAnswer, linkId: string): NormalizedFHIR.AnswerCode | NormalizedFHIR.AnswerValue => {
-    
+  const extractValue = (
+    answer: QuestionnaireResponseItemAnswer,
+    linkId: string,
+  ): NormalizedFHIR.AnswerCode | NormalizedFHIR.AnswerValue => {
     const answerValue =
       answer.valueInteger ??
       answer.valueDecimal ??
       answer.valueString ??
       answer.valueBoolean;
-      // answer.valueCoding?.code ?? // Code: lookup needed: questionnaire.answerOptions.find((opt) => opt.code === answer.valueCoding.code).value
-      // null;
     if (answerValue !== undefined) {
       return {
-        value: answerValue
+        value: answerValue,
       };
     }
     // check if answer is part of coding system
@@ -37,22 +37,29 @@ export const normalizeQuestionnaireResponse = (
     const item = questionnaire?.items[linkId];
     // lookup in answerOptions
     const answerOption = item?.answerOptions?.find(
-      (opt) => isAnswerOptionCode(opt) && (opt as NormalizedFHIR.AnswerOptionCode).code === answer.valueCoding?.code,
+      (opt) =>
+        isAnswerOptionCode(opt) &&
+        (opt as NormalizedFHIR.AnswerOptionCode).code ===
+          answer.valueCoding?.code,
     );
-    const code = answerOption !== undefined ? (answerOption as NormalizedFHIR.AnswerOptionCode).code : undefined;
+    const code =
+      answerOption !== undefined
+        ? (answerOption as NormalizedFHIR.AnswerOptionCode).code
+        : undefined;
     if (code !== undefined) {
       return {
-        code: code
+        code: code,
       };
     }
     issues.push(
       issueFactories.questionnaireResponse.invalidItemCode(
-        resource, 
-        linkId, 
+        resource,
+        linkId,
         answer.valueCoding?.code,
-      ));    
+      ),
+    );
     return {
-      value: null
+      value: null,
     };
   };
 
@@ -64,9 +71,14 @@ export const normalizeQuestionnaireResponse = (
       if (item.answer && item.answer.length > 0) {
         // only use first answer! otherwise add warning
         if (item.answer.length > 1) {
-          issues.push(issueFactories.questionnaireResponse.multipleItemValues(resource, item.linkId, item.answer));
+          issues.push(
+            issueFactories.questionnaireResponse.multipleItemValues(
+              resource,
+              item.linkId,
+              item.answer,
+            ),
+          );
         }
-        //for (const ans of item.answer) {
         items[item.linkId] = {
           linkId: item.linkId,
           answer: extractValue(item.answer[0], item.linkId),
@@ -76,7 +88,6 @@ export const normalizeQuestionnaireResponse = (
         if (item.answer[0].item) {
           traverse(item.answer[0].item);
         }
-        //}
       }
 
       // Item has child items
@@ -90,10 +101,10 @@ export const normalizeQuestionnaireResponse = (
 
   return {
     data: {
-      id: resource.id!, // sollte immer gegeben sein
-      questionnaire: resource.questionnaire!, // immer gegeben
-      authored: resource.authored!, // immer gegeben in ISO Format
-      items, // kann leer sein
+      id: resource.id!, // should always be given
+      questionnaire: resource.questionnaire!, // should always be given
+      authored: resource.authored!, // should always be given
+      items, // can be empty
     },
     issues: issues,
   };

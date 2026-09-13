@@ -237,10 +237,6 @@ body,
   background-color: var(--color-border-medium);
 }
 
-/* .divider-border-medium {
-  --divider-color: var(--color-border-medium);
-} */
-
 .tooltip-content {
   @apply tw:text-sm/5;
 }

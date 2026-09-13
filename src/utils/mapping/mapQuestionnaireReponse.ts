@@ -18,9 +18,6 @@ export const mapQuestionnaireResponse = (
   const items: Record<string, Mapping.ResponseItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  // Potential errors: no items in questionnaireResponse, answer not convertible to number,
-  // questionnaire reference invalid
-
   // Error: no items in questionnaireResponse
   if (
     questionnaireResponse.items === undefined ||
@@ -36,7 +33,9 @@ export const mapQuestionnaireResponse = (
 
   if (correspondingQuestionnaire === undefined) {
     issues.push(
-      issueFactories.questionnaireResponse.missingQuestionnaire(questionnaireResponse)
+      issueFactories.questionnaireResponse.missingQuestionnaire(
+        questionnaireResponse,
+      ),
     );
   }
 
@@ -45,18 +44,32 @@ export const mapQuestionnaireResponse = (
 
     if (isAnswerCode(item.answer)) {
       const answerCode = (item.answer as NormalizedFHIR.AnswerCode).code;
-      if (correspondingQuestionnaire !== undefined && isQuestionnaireItem(correspondingQuestionnaire.items[linkId])) {
+      if (
+        correspondingQuestionnaire !== undefined &&
+        isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
+      ) {
         const questionnaireItem = correspondingQuestionnaire.items[linkId];
-        const answerOptions = (questionnaireItem as Mapping.QuestionnaireItem).answerOptions;
-        const value = answerOptions.find((opt) => isAnswerOptionCode(opt) && (opt as Mapping.AnswerOptionCode).code === answerCode)?.value;
+        const answerOptions = (questionnaireItem as Mapping.QuestionnaireItem)
+          .answerOptions;
+        const value = answerOptions.find(
+          (opt) =>
+            isAnswerOptionCode(opt) &&
+            (opt as Mapping.AnswerOptionCode).code === answerCode,
+        )?.value;
         answerNumber = value === null ? null : Number(value);
       }
     } else {
       const answer = (item.answer as NormalizedFHIR.AnswerValue).value;
       // check if answer options exist and if answer is among them
-      if (answer !== null && correspondingQuestionnaire !== undefined && isQuestionnaireItem(correspondingQuestionnaire.items[linkId])) {
+      if (
+        answer !== null &&
+        correspondingQuestionnaire !== undefined &&
+        isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
+      ) {
         const questionnaireItem = correspondingQuestionnaire.items[linkId];
-        const answerOptions = (questionnaireItem as NormalizedFHIR.QuestionnaireItem).answerOptions;
+        const answerOptions = (
+          questionnaireItem as NormalizedFHIR.QuestionnaireItem
+        ).answerOptions;
         if (answerOptions !== undefined && answerOptions.length > 0) {
           const answerOptionValues = answerOptions.map((opt) => opt.value);
           if (!answerOptionValues.includes(answer)) {
@@ -64,19 +77,17 @@ export const mapQuestionnaireResponse = (
               issueFactories.questionnaireResponse.invalidItemValue(
                 questionnaireResponse,
                 linkId,
-                answer
-              )
+                answer,
+              ),
             );
           }
         }
       }
-      // Transform to number | string
+      // Convert to number
       answerNumber = answer === null ? null : Number(answer);
     }
-    //const answer = typeof item.answer === "boolean" ? Number(item.answer) : item.answer;
-    // const answerNumber = Number(answer);
 
-    // // Error: answer is not a number
+    // Error: answer is not a number
     if (Number.isNaN(answerNumber)) {
       issues.push(
         issueFactories.questionnaireResponse.invalidItemValueType(
@@ -106,7 +117,7 @@ export const mapQuestionnaireResponse = (
       id: responseId,
       questionnaire: correspondingQuestionnaire ?? emptyQuestionnaire,
       authored: authored,
-      items: items, // kann leer sein, dann nicht verwenden
+      items: items, // can be empty
     },
     issues: issues,
   };
