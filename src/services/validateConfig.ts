@@ -1,12 +1,23 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 
-import type { Config } from "@utils/config";
+import type * as Config from "@utils/config";
 import promsSchema from "../../schemas/proms.schema.json";
 
 const ajv = new Ajv2020({ allErrors: true });
 addFormats(ajv);
-const validate = ajv.compile(promsSchema);
+const validate = ajv.compile<Config.PromConfig>(promsSchema);
 
 /**
  * @param data - raw, unvalidated JSON parsed from the fetched PROMs config file
@@ -20,7 +31,7 @@ export function validatePromConfig(data: unknown): Config.PromConfig {
       `PROMs configuration file failed schema validation:\n${formatErrors(validate.errors)}`,
     );
   }
-  return data as Config.PromConfig;
+  return data;
 }
 
 /**

@@ -1,10 +1,16 @@
-import { ReactEChartsWrapper } from "@components/ReactEChartsWrapper";
-import type { Visualization } from "@utils/visualization/types";
-import { type Charts,  tolColorPalette, } from "@utils/charts";
-import * as _ from "lodash-es";
-import type { GlobalTypes } from "@customTypes/globalTypes";
-import * as echarts from "echarts/core";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
 
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import { lazy, memo, Suspense } from "react";
+import * as echarts from "echarts/core";
 import type {
   TitleComponentOption,
   GridComponentOption,
@@ -14,6 +20,18 @@ import type {
   RadarComponentOption,
   DefaultLabelFormatterCallbackParams as CallbackDataParams,
 } from "echarts";
+import * as _ from "lodash-es";
+
+import type * as Visualization from "@utils/visualization/types";
+import type * as Charts from "@utils/charts";
+import { tolColorPalette } from "@utils/charts";
+import type * as GlobalTypes from "@customTypes/globalTypes";
+
+const ReactEChartsWrapper = lazy(() =>
+  import("@components/ReactEChartsWrapper").then((module) => ({
+    default: module.ReactEChartsWrapper,
+  })),
+);
 
 interface Props {
   id: string;
@@ -35,6 +53,9 @@ interface Props {
   exportFileName?: string;
 }
 
+/**
+ * RadarChart component renders a radar chart using ECharts library.
+ */
 const RadarChart = ({
   id,
   data,
@@ -54,103 +75,122 @@ const RadarChart = ({
   enableExport = false,
   exportFileName,
 }: Props) => {
-  
-  const questionnaireNames = _.uniq(Object.values(data).flatMap((series) => series.map((item) => item.questionnaireName)))
+  // Extract unique questionnaire names from the data
+  const questionnaireNames = _.uniq(
+    Object.values(data).flatMap((series) =>
+      series.map((item) => item.questionnaireName),
+    ),
+  );
 
-  const radarIndicators = Object.entries(data).filter(([, series]) => series.length > 0).map(([domain,]) => ({
-    name: domain,
-    max: 1,
-  }));
+  // Create radar indicators based on the unique domains in the data
+  const radarIndicators = Object.entries(data)
+    .filter(([, series]) => series.length > 0)
+    .map(([domain]) => ({
+      name: domain,
+      max: 1,
+    }));
 
-  const chartData: Record<string, Record<string, [GlobalTypes.NumberOrNull, GlobalTypes.NumberOrNull]>> = {};
+  const chartData: Record<
+    string,
+    Record<string, [GlobalTypes.NumberOrNull, GlobalTypes.NumberOrNull]>
+  > = {};
 
   questionnaireNames.forEach((questionnaireName) => {
-    // const questionnaireSeries = Object.values(data).flatMap((series) => series.filter((item) => item.questionnaireName === questionnaireName));
-    const questionnaireDomains = Object.entries(data).filter(([, series]) => series.some((item) => item.questionnaireName === questionnaireName)).map(([domain,]) => domain);
+    const questionnaireDomains = Object.entries(data)
+      .filter(([, series]) =>
+        series.some((item) => item.questionnaireName === questionnaireName),
+      )
+      .map(([domain]) => domain);
     const indexOfDate = dates.indexOf(date);
 
     chartData[questionnaireName] = {};
     if (indexOfDate > -1) {
-    Object.entries(data).filter(([, series]) => series.length > 0).forEach(([domain, series]) => {
-      let maxValue: GlobalTypes.NumberOrNull = null;
-      let minValue: GlobalTypes.NumberOrNull = null;
-      chartData[questionnaireName][domain] = [minValue, maxValue];
-      if (questionnaireDomains.includes(domain)) {
-        const domainSeries = series.filter((item) => item.questionnaireName === questionnaireName);
-        const domainSeriesWithMaxValue = domainSeries.reduce((maxItem, item) => {
-          const itemValue = item.data[indexOfDate];
-          const maxItemValue = maxItem.data[indexOfDate];
-          if (itemValue !== null && (maxItemValue === null || itemValue > maxItemValue)) {
-            return item;
-          } else {
-            return maxItem;
+      Object.entries(data)
+        .filter(([, series]) => series.length > 0)
+        .forEach(([domain, series]) => {
+          let maxValue: GlobalTypes.NumberOrNull = null;
+          let minValue: GlobalTypes.NumberOrNull = null;
+          chartData[questionnaireName][domain] = [minValue, maxValue];
+          if (questionnaireDomains.includes(domain)) {
+            const domainSeries = series.filter(
+              (item) => item.questionnaireName === questionnaireName,
+            );
+            const domainSeriesWithMaxValue = domainSeries.reduce(
+              (maxItem, item) => {
+                const itemValue = item.data[indexOfDate];
+                const maxItemValue = maxItem.data[indexOfDate];
+                if (
+                  itemValue !== null &&
+                  (maxItemValue === null || itemValue > maxItemValue)
+                ) {
+                  return item;
+                } else {
+                  return maxItem;
+                }
+              },
+            );
+            maxValue = domainSeriesWithMaxValue.data[indexOfDate];
+            const domainSeriesWithMinValue = domainSeries.reduce(
+              (minItem, item) => {
+                const itemValue = item.data[indexOfDate];
+                const minItemValue = minItem.data[indexOfDate];
+                if (
+                  itemValue !== null &&
+                  (minItemValue === null || itemValue < minItemValue)
+                ) {
+                  return item;
+                } else {
+                  return minItem;
+                }
+              },
+            );
+            minValue = domainSeriesWithMinValue.data[indexOfDate];
+            chartData[questionnaireName][domain] = [minValue, maxValue];
           }
         });
-        maxValue = domainSeriesWithMaxValue.data[indexOfDate];
-        const domainSeriesWithMinValue = domainSeries.reduce((minItem, item) => {
-          const itemValue = item.data[indexOfDate];
-          const minItemValue = minItem.data[indexOfDate];
-          if (itemValue !== null && (minItemValue === null || itemValue < minItemValue)) {
-            return item;
-          } else {
-            return minItem;
-          }
-        });
-        minValue = domainSeriesWithMinValue.data[indexOfDate];
-        chartData[questionnaireName][domain] = [minValue, maxValue];
-      }
-    })
-  }
+    }
   });
 
-  const filteredChartData:Record<string, Record<string, [GlobalTypes.NumberOrNull, GlobalTypes.NumberOrNull]>> = {};
+  const filteredChartData: Record<
+    string,
+    Record<string, [GlobalTypes.NumberOrNull, GlobalTypes.NumberOrNull]>
+  > = {};
   Object.entries(chartData).forEach(([name, domainData]) => {
-    if (Object.values(domainData).some((valueTuple) => {
-      return valueTuple[0] !== null && valueTuple[1] !== null;
-    })) {
+    if (
+      Object.values(domainData).some((valueTuple) => {
+        return valueTuple[0] !== null && valueTuple[1] !== null;
+      })
+    ) {
       filteredChartData[name] = domainData;
     }
-  })
-
-  const transformedData: Record<string, [[string, GlobalTypes.NumberOrNull][], [string, GlobalTypes.NumberOrNull][]]> = {};
-
-  Object.entries(filteredChartData).forEach(([questionnaireName, domainData]) => {
-    const minValues: [string, GlobalTypes.NumberOrNull][] = [];
-    const maxValues: [string, GlobalTypes.NumberOrNull][] = [];
-    Object.entries(domainData).forEach(([domain, values]) => {
-      minValues.push([domain, values[0]]);
-      maxValues.push([domain, values[1]]);
-    });
-    transformedData[questionnaireName] = [minValues, maxValues];
   });
 
-  console.log("transformedData", transformedData);
+  const transformedData: Record<
+    string,
+    [[string, GlobalTypes.NumberOrNull][], [string, GlobalTypes.NumberOrNull][]]
+  > = {};
 
-  
+  Object.entries(filteredChartData).forEach(
+    ([questionnaireName, domainData]) => {
+      const minValues: [string, GlobalTypes.NumberOrNull][] = [];
+      const maxValues: [string, GlobalTypes.NumberOrNull][] = [];
+      Object.entries(domainData).forEach(([domain, values]) => {
+        minValues.push([domain, values[0]]);
+        maxValues.push([domain, values[1]]);
+      });
+      transformedData[questionnaireName] = [minValues, maxValues];
+    },
+  );
 
   const tooltipFormatter = (params: CallbackDataParams) => {
-    console.log("params: ", params)
     const { seriesName } = params;
-    console.log("seriesName: ", seriesName)
-   
-    // const mostRecentDate = mostRecentResponses[seriesName];
-    // console.log("mostRecentDate: ", mostRecentDate)
-    // if (mostRecentDate !== undefined) {
-       return `
+    return `
           <div class="tooltip-content">
             ${echarts.format.encodeHTML(seriesName ?? "")}<br/>
             <b>${echarts.format.encodeHTML(date)}</b>
           </div>
           `;
-    // }
-    //  return `
-    //       <div class="tooltip-content">
-    //         ${echarts.format.encodeHTML(seriesName)}
-    //       </div>
-    //       `;
-    
-  }
-
+  };
 
   const generateSeriesList = () => {
     const seriesList: RadarSeriesOption[] = [];
@@ -158,71 +198,51 @@ const RadarChart = ({
       const series = [
         // inner values
         {
-        ...seriesOptions,
-        name: questionnaireName,
-        type: "radar" as const,
-        z: 2,
-        silent: true,
-        // symbol: "circle",
-        // symbolSize: 8,
-        symbol: 'none',
-        lineStyle: {
-          width: 0,
-          opacity: 0,
-        },
-        areaStyle: {
-          // color: 'rgba(0,0,0,1)',
-          // shadowColor: 'rgba(0, 0, 0, 0.1)',
-          // shadowBlur: 5,
-          color: colors[i % colors.length],
-          opacity: 0.25,
-        },
-        itemStyle: {
-          color: colors[i % colors.length],
-        },
-        emphasis: {
-        //   lineStyle: {
-        //     opacity: 0.4,
-        //   },
-          // areaStyle: {
-          //   opacity: 0.3,
-          // },
-        },
-        data: [data[0].map((item) => item[1])],
-      },
-      // outer values
-        {
-        ...seriesOptions,
-        name: questionnaireName,
-        type: "radar" as const,
-        z: 1,
-        // symbol: "circle",
-        // symbolSize: 8,
-        symbol: 'none',
-        lineStyle: {
-          width: 2,
-          opacity: 1
-        },
-        areaStyle: {
-          //shadowColor: 'rgba(0, 0, 0, 0.5)',
-          //shadowBlur: 10,
-          color: colors[i % colors.length],
-          opacity: 0.15,
-        },
-        itemStyle: {
-          color: colors[i % colors.length],
-        },
-        emphasis: {
+          ...seriesOptions,
+          name: questionnaireName,
+          type: "radar" as const,
+          z: 2,
+          silent: true,
+          symbol: "none",
           lineStyle: {
-            width: 3,
+            width: 0,
+            opacity: 0,
           },
-          // areaStyle: {
-          //   opacity: 0.2,
-          // },
+          areaStyle: {
+            color: colors[i % colors.length],
+            opacity: 0.25,
+          },
+          itemStyle: {
+            color: colors[i % colors.length],
+          },
+          data: [data[0].map((item) => item[1])],
         },
-        data: [data[1].map((item) => item[1])],
-      },       
-    ];
+        // outer values
+        {
+          ...seriesOptions,
+          name: questionnaireName,
+          type: "radar" as const,
+          z: 1,
+          symbol: "none",
+          lineStyle: {
+            width: 2,
+            opacity: 1,
+          },
+          areaStyle: {
+            color: colors[i % colors.length],
+            opacity: 0.15,
+          },
+          itemStyle: {
+            color: colors[i % colors.length],
+          },
+          emphasis: {
+            lineStyle: {
+              width: 3,
+            },
+          },
+          data: [data[1].map((item) => item[1])],
+        },
+      ];
       seriesList.push(...series);
     });
     return seriesList;
@@ -237,7 +257,8 @@ const RadarChart = ({
     tooltip: {
       ...tooltipOptions,
       show: true,
-      formatter: (params) => tooltipFormatter(Array.isArray(params) ? params[0] : params)
+      formatter: (params) =>
+        tooltipFormatter(Array.isArray(params) ? params[0] : params),
     },
     legend: {
       ...legendOptions,
@@ -247,8 +268,8 @@ const RadarChart = ({
           textStyle: {
             width: 230,
             overflow: "truncate",
-          }
-        }
+          },
+        };
       }),
       // @ts-expect-error: Seems to be a bug in ECharts types
       tooltip: {
@@ -256,26 +277,25 @@ const RadarChart = ({
         show: showLegendTooltip,
         position: "top",
       },
-      selectedMode: 'multiple',
+      selectedMode: "multiple",
     },
     radar: {
       ...radarOptions,
       indicator: radarIndicators.map((indicator) => {
-        const words = indicator.name.split(' ');
+        const words = indicator.name.split(" ");
         let indicatorName = "";
-        for(const word of words) {
+        for (const word of words) {
           indicatorName += word;
           if (indicatorName.length > 3 && word.length > 3) {
             indicatorName += "\n";
-          }
-          else {
+          } else {
             indicatorName += " ";
           }
         }
         return {
           name: indicatorName,
           max: indicator.max,
-        }
+        };
       }),
       splitNumber: 3,
       radius: "50%",
@@ -286,12 +306,25 @@ const RadarChart = ({
     series: generateSeriesList(),
   };
 
-  if (Object.values(transformedData).every((value) => value[0].length === 0 && value[1].length === 0)) {
+  if (
+    Object.values(transformedData).every(
+      (value) => value[0].length === 0 && value[1].length === 0,
+    )
+  ) {
     return;
   }
 
   return (
-    <>
+    <Suspense
+      fallback={
+        <div
+          className="tw:flex tw:h-full tw:w-full tw:items-center tw:justify-center"
+          style={{ height }}
+        >
+          <span className="tw:loading tw:loading-spinner tw:loading-md" />
+        </div>
+      }
+    >
       <ReactEChartsWrapper
         chartId={id}
         option={options}
@@ -299,8 +332,8 @@ const RadarChart = ({
         enableExport={enableExport}
         exportFileName={exportFileName ?? title}
       />
-    </>
+    </Suspense>
   );
 };
 
-export default RadarChart;
+export default memo(RadarChart);

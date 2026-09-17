@@ -1,3 +1,14 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -19,8 +30,8 @@ import {
   sortDomains,
   getMinAndMaxAnswerOptionValueForItem,
 } from "@utils/visualization/utils";
-import { ITEM_TYPES, type Mapping } from "@utils/mapping";
-import type { Visualization } from "@utils/visualization";
+import type * as Mapping from "@utils/mapping";
+import type * as Visualization from "@utils/visualization";
 
 describe("truncateAtWord", () => {
   it("returns the string unchanged when within maxLength", () => {
@@ -52,7 +63,7 @@ const series = (
   data: [0.5, null],
   originalData: [10, null],
   dataLabels: ["ten", ""],
-  seriesType: ITEM_TYPES.item as Visualization.ItemType,
+  seriesType: "item",
   questionnaireId: "q1",
   questionnaireName: "PHQ-9",
   ...overrides,
@@ -158,13 +169,12 @@ describe("getDatesWithinRange", () => {
 
 const questionnaire = (
   id: string,
-  name: string,
+  title: string,
   items: Record<string, Mapping.Item> = {},
 ): Mapping.Questionnaire => ({
   id,
-  name,
+  title,
   url: `https://example.org/${id}`,
-  description: "",
   items,
 });
 

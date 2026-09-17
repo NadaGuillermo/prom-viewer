@@ -1,15 +1,25 @@
-import type { Questionnaire, QuestionnaireItem, ValueSet, CodeSystem } from "fhir/r4";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
 
-import type { NormalizedFHIR } from "./types";
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type {
+  Questionnaire,
+  QuestionnaireItem,
+  ValueSet,
+  CodeSystem,
+} from "fhir/r4";
+
+import type * as NormalizedFHIR from "./types";
 import { extractLinkIdsFromFhirPath } from "./helpers";
 import { QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED } from "./constants";
-import { type Errors } from "@utils/errors";
-
-type RawAnswerOption = {
-  value: NormalizedFHIR.Answer | undefined;
-  label: string | undefined;
-  code: string | undefined;
-};
+import type * as Errors from "@utils/errors";
 
 export const normalizeQuestionnaire = (
   resource: Questionnaire,
@@ -17,57 +27,48 @@ export const normalizeQuestionnaire = (
   const items: Record<string, NormalizedFHIR.QuestionnaireItem> = {};
   const issues: Errors.DataIssue[] = [];
 
-  const extractAnswerOptions = (item: QuestionnaireItem): NormalizedFHIR.AnswerOption[] | undefined => {
-    let answerOptions: RawAnswerOption[] | undefined = undefined;
+  const extractAnswerOptions = (
+    item: QuestionnaireItem,
+  ): NormalizedFHIR.AnswerOption[] => {
+    const answerOptions: NormalizedFHIR.AnswerOption[] = [];
 
-    if (item.answerOption) {
-      answerOptions = item.answerOption.map((opt) => {
-        // omit preselected answer option
-        const initialSelected = opt.initialSelected;
-        if (initialSelected) {
-          return {
-            value: undefined,
-            label: undefined,
-            code: undefined,
-          };
+    // Option 1: answer options stored in answerOption attribute
+    if (item.answerOption && item.answerOption.length > 0) {
+      for (const opt of item.answerOption) {
+        const value = opt.valueInteger ?? opt.valueString;
+        // only value exists for answer option
+        if (value !== undefined) {
+          answerOptions.push({
+            value: value,
+          });
+          continue;
         }
-        const display = opt.valueCoding?.display;
-        let value: NormalizedFHIR.Answer | undefined;
-        // search for extension with value
-        const extension = opt.extension?.find((ext) => {
-          return (
-            ext.valueDecimal !== undefined ||
-            ext.valueInteger !== undefined ||
-            ext.valueString !== undefined ||
-            ext.valueBoolean !== undefined ||
-            ext.valueDate !== undefined ||
-            ext.valueDateTime !== undefined ||
-            ext.valueTime !== undefined
+
+        // check if value is part of coding system
+        if (opt.valueCoding) {
+          const code = opt.valueCoding.code;
+          const label = opt.valueCoding.display;
+          const valueExtension = opt.extension?.find(
+            (ext) =>
+              ext.url ===
+              "http://hl7.org/fhir/StructureDefinition/ordinalValue",
           );
-        });
-        if (extension !== undefined) {
-          value =
-            extension.valueDecimal ??
-            extension.valueInteger ??
-            extension.valueString ??
-            extension.valueBoolean ??
-            extension.valueDate ??
-            extension.valueDateTime ??
-            extension.valueTime ??
-            undefined; // will be sorted out in mapping step
-        } else if (opt.valueCoding !== undefined) {
-          value = opt.valueCoding.code; // Code, manchmal auch Wert
-        } else {
-          value = undefined; // sorted out in mapping
+          const value =
+            valueExtension?.valueDecimal ??
+            valueExtension?.valueInteger ??
+            valueExtension?.valueString ??
+            valueExtension?.valueBoolean;
+          if (code !== undefined) {
+            answerOptions.push({
+              code: code,
+              label: label,
+              value: value,
+            });
+          }
         }
-        return {
-          value: value,
-          label: display,
-          code: opt.valueCoding?.code, // ist Code <=> code !== undefined && code !== value
-        };
-      });
+      }
+      // Option 2: answer options are stored in seperate resource of type ValueSet
     } else if (item.answerValueSet) {
-      // answerValueSet instead
       const answerValueSet = resource.contained?.find(
         (containedObj): containedObj is ValueSet => {
           return (
@@ -76,47 +77,77 @@ export const normalizeQuestionnaire = (
           );
         },
       );
-      const codeSystemArray = resource.contained?.find(
-        (containedObj): containedObj is CodeSystem => {
-          return containedObj.resourceType === "CodeSystem";
-        },
+      const valueSetConcept = answerValueSet?.compose?.include.find((vsc) =>
+        vsc.system?.includes("CodeSystem"),
       )?.concept;
-      if (answerValueSet !== undefined && codeSystemArray !== undefined) {
-        const answerValueSetArray = answerValueSet.compose?.include?.find(
-          (includedObj) => {
-            return (includedObj.concept?.length ?? 0) > 0;
-          },
-        )?.concept;
-
-        if (answerValueSetArray !== undefined) {
-          answerOptions = answerValueSetArray.map((answerVal) => {
-            const codeValue = codeSystemArray
-              .find((elem) => {
-                return elem.code === answerVal.code;
-              })
+      const codeSystem = resource.contained?.find(
+        (resource) => resource.resourceType === "CodeSystem",
+      ) as CodeSystem | undefined;
+      const codes = valueSetConcept?.map((valset) => valset.code);
+      if (valueSetConcept !== undefined && codes !== undefined) {
+        if (codeSystem !== undefined && codeSystem.concept !== undefined) {
+          const codeLabelValueRecord: Record<
+            string,
+            { label?: string; value?: NormalizedFHIR.Value }
+          > = {};
+          for (const valSet of valueSetConcept) {
+            const code = valSet.code;
+            const label = valSet.display;
+            if (code !== undefined) {
+              codeLabelValueRecord[code] = { label: label };
+            }
+          }
+          const codeSystemConcepts = codeSystem.concept;
+          Object.keys(codeLabelValueRecord).forEach((code) => {
+            const valueExtension = codeSystemConcepts
+              .find((concept) => concept.code === code)
               ?.extension?.find(
-                (ext) => ext.valueDecimal !== undefined,
-              )?.valueDecimal;
-            return {
-              value: codeValue,
-              label: answerVal.display ?? answerVal.code,
-              code: answerVal.code,
+                (ext) =>
+                  ext.url ===
+                  "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              );
+            const value =
+              valueExtension?.valueDecimal ??
+              valueExtension?.valueInteger ??
+              valueExtension?.valueString ??
+              valueExtension?.valueBoolean;
+            codeLabelValueRecord[code] = {
+              ...codeLabelValueRecord[code],
+              value: value,
             };
+          });
+          Object.entries(codeLabelValueRecord).forEach(([key, val]) => {
+            answerOptions.push({
+              code: key,
+              label: val.label,
+              value: val.value,
+            });
+          });
+        } else {
+          valueSetConcept.forEach((valset) => {
+            answerOptions.push({
+              code: valset.code,
+              label: valset.display,
+            });
           });
         }
       }
     }
-    return answerOptions as NormalizedFHIR.AnswerOption[] | undefined; // can be empty
+    return answerOptions; // can be empty
   };
 
-  const extractReferenceQuestionnaireItemsAndScoreExpression = (item: QuestionnaireItem): {
+  const extractReferenceQuestionnaireItemsAndScoreExpression = (
+    item: QuestionnaireItem,
+  ): {
     referenceQuestionnaireItems: string[] | undefined;
     scoreExpression: string | undefined;
   } => {
     const referenceQuestionnaireItems: string[] = [];
     let scoreExpression: string | undefined = undefined;
-    let calculationFormula = item.extension?.find((ext) =>
-      ext.url === "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression"
+    let calculationFormula = item.extension?.find(
+      (ext) =>
+        ext.url ===
+        "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression",
     )?.valueExpression?.expression;
 
     if (calculationFormula !== undefined) {
@@ -133,7 +164,8 @@ export const normalizeQuestionnaire = (
               valueEx.valueExpression?.name !== undefined &&
               expressionReference.includes(valueEx.valueExpression.name)
             ) {
-              calculationFormula = valueEx.valueExpression.expression ?? calculationFormula;
+              calculationFormula =
+                valueEx.valueExpression.expression ?? calculationFormula;
               break;
             }
           }
@@ -148,19 +180,22 @@ export const normalizeQuestionnaire = (
     }
 
     return {
-      referenceQuestionnaireItems: referenceQuestionnaireItems.length > 0
-      ? referenceQuestionnaireItems
-      : undefined,
-      scoreExpression: scoreExpression
-    }
+      referenceQuestionnaireItems:
+        referenceQuestionnaireItems.length > 0
+          ? referenceQuestionnaireItems
+          : undefined,
+      scoreExpression: scoreExpression,
+    };
   };
 
-  const extractRange = (item: QuestionnaireItem): [number, number] | undefined => {
-    const extensionMinVal = item.extension?.find((ext) =>
-      ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
+  const extractRange = (
+    item: QuestionnaireItem,
+  ): NormalizedFHIR.Range | undefined => {
+    const extensionMinVal = item.extension?.find(
+      (ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/minValue",
     );
-    const extensionMaxVal = item.extension?.find((ext) =>
-      ext.url === "http://hl7.org/fhir/StructureDefinition/maxValue",
+    const extensionMaxVal = item.extension?.find(
+      (ext) => ext.url === "http://hl7.org/fhir/StructureDefinition/maxValue",
     );
 
     if (extensionMinVal === undefined || extensionMaxVal === undefined) {
@@ -169,27 +204,17 @@ export const normalizeQuestionnaire = (
     const low =
       extensionMinVal.valueDecimal ??
       extensionMinVal.valueInteger ??
-      extensionMinVal.valueDecimal ??
       extensionMinVal.valueString ??
-      extensionMinVal.valueBoolean ??
-      extensionMinVal.valueDate ??
-      extensionMinVal.valueDateTime ??
-      extensionMinVal.valueTime ??
-      undefined;
+      extensionMinVal.valueBoolean;
 
     const high =
       extensionMaxVal.valueDecimal ??
       extensionMaxVal.valueInteger ??
-      extensionMaxVal.valueDecimal ??
       extensionMaxVal.valueString ??
-      extensionMaxVal.valueBoolean ??
-      extensionMaxVal.valueDate ??
-      extensionMaxVal.valueDateTime ??
-      extensionMaxVal.valueTime ??
-      undefined;
+      extensionMaxVal.valueBoolean;
 
     if (low !== undefined && high !== undefined) {
-      return [low, high] as [number, number];
+      return [low, high];
     }
     return undefined;
   };
@@ -200,24 +225,21 @@ export const normalizeQuestionnaire = (
     for (const item of itemsInput) {
       // ignore all items with certain types
       if (QUESTIONNAIRE_ITEM_TYPES_TO_BE_IGNORED.includes(item.type)) {
-        // type immer gegeben
         continue;
       }
-      const {referenceQuestionnaireItems, scoreExpression} = extractReferenceQuestionnaireItemsAndScoreExpression(item);
+      const { referenceQuestionnaireItems, scoreExpression } =
+        extractReferenceQuestionnaireItemsAndScoreExpression(item);
       const itemValueRange = extractRange(item);
       const itemAnswerOptions = extractAnswerOptions(item);
 
       items[item.linkId] = {
-        linkId: item.linkId, // immer gegeben
-        text: item.text!, // optional
-        ...(itemAnswerOptions !== undefined && {answerOptions: itemAnswerOptions}),
-        ...(referenceQuestionnaireItems !== undefined && {
-          referenceQuestionnaireItems: referenceQuestionnaireItems,
-        }),
-        ...(itemValueRange !== undefined && { range: itemValueRange }),
-        ...(scoreExpression !== undefined && {
-          scoreExpression: scoreExpression,
-        }),
+        linkId: item.linkId, // always given
+        answerOptions:
+          itemAnswerOptions.length > 0 ? itemAnswerOptions : undefined,
+        text: item.text,
+        referenceQuestionnaireItems: referenceQuestionnaireItems,
+        range: itemValueRange,
+        scoreExpression: scoreExpression,
       };
 
       if (item.item) {
@@ -226,32 +248,15 @@ export const normalizeQuestionnaire = (
     }
   };
 
-  // const extractLinkIds = (itemsInput: any[] | undefined, linkIds: string[]) => {
-  //   if (!itemsInput) return;
-  //   const itemLinkIds = linkIds;
-
-  //   for (const item of itemsInput) {
-  //     itemLinkIds.push(item.linkId);
-
-  //     if (item.item) {
-  //       extractLinkIds(item.item, itemLinkIds);
-  //     }
-  //   }
-  //   return itemLinkIds;
-  // };
-
-  // const itemLinkIds: string[] | undefined = extractLinkIds(resource.item, []);
-  // console.log("Item Link Ids from FHIR: ", itemLinkIds);
-
+  // Traverse for nested items
   traverse(resource.item);
 
   return {
     data: {
-      id: resource.id!, // sollte immer gegeben sein
-      name: resource.title!, // optional
-      url: resource.url!, // immer gegeben
-      description: resource.description!, // optional
-      items, // optional
+      id: resource.id!, // should lawys be given
+      url: resource.url!, // should always be given
+      title: resource.title,
+      items, // can be empty
     },
     issues: issues,
   };

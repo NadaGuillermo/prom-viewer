@@ -1,8 +1,14 @@
 {
   "name": "prom-viewer",
-  "private": true,
+  "description": "SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).",
   "version": "0.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NadaGuillermo/prom-viewer.git"
+  },
+  "author": "Thomas Eisenhauer",
+  "license": "LGPL-3.0-or-later",
   "scripts": {
     "dev": "vite dev",
     "build": "tsc -b && vite build",
@@ -13,7 +19,8 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "add-headers": "node scripts/add-license-headers.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
@@ -30,7 +37,6 @@
     "echarts": "^6.0.0",
     "fhirclient": "^2.6.3",
     "html-to-image": "^1.11.13",
-    "lodash": "^4.17.23",
     "lodash-es": "^4.18.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -46,7 +52,6 @@
     "@testing-library/user-event": "^14.6.5",
     "@types/fhir": "^0.0.44",
     "@types/jsdom": "^30",
-    "@types/lodash": "^4",
     "@types/lodash-es": "^4",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.7",

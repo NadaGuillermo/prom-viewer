@@ -1,77 +1,92 @@
-export namespace NormalizedFHIR {
-  type Answer = string | number | boolean | null;
+export type Value = string | number | boolean | null;
+export type Range = [Value, Value];
 
-  /** Questionnaire */
-  interface AnswerOption {
-    value: Answer;
-    label: string;
-    code?: string;
-  }
+/** Questionnaire */
+export interface AnswerOptionCode {
+  code: string;
+  value?: Value;
+  label?: string;
+}
 
-  interface QuestionnaireItem {
-    linkId: string;
-    text: string;
-    answerOptions?: AnswerOption[];
-    referenceQuestionnaireItems?: string[];
-    range?: [number, number];
-    // observationCode?: string; // from Observation
-    observationDefinition?: string; // id for ObservationDefinition
-    // scoreHealthCorrelation?: string; // from ObservationDefinition
-    scoreExpression?: string;
-  }
+export interface AnswerOptionValue {
+  value: Value;
+}
 
-  interface Questionnaire {
-    id: string;
-    name: string;
-    url: string;
-    description: string;
-    items: Record<string, QuestionnaireItem>;
-  }
+export type AnswerOption = AnswerOptionCode | AnswerOptionValue;
 
-  interface ReferenceRange {
-    range: [number, number] | number;
-    context?: string;
-  }
+export interface AnswerCode {
+  code: string;
+}
 
-  /** Observation Definition */
-  interface ObservationDefinition {
-    id: string;
-    url: string;
-    range?: [number, number];
-    scoreHealthCorrelation?: string;
-    // code: string;
-    referenceRange?: ReferenceRange[];
-    // referenceValue?: ReferenceRange[];
-  }
+export interface AnswerValue {
+  value: Value;
+}
 
-  /** Response */
-  interface ResponseItem {
-    linkId: string;
-    answer: Answer;
-  }
+export type Answer = AnswerCode | AnswerValue;
 
-  interface QuestionnaireResponse {
-    id: string;
-    questionnaire: string; // Questionnaire.url
-    authored: string;
-    items: Record<string, ResponseItem>;
-  }
+export interface QuestionnaireItem {
+  linkId: string;
+  text?: string;
+  answerOptions?: AnswerOption[];
+  referenceQuestionnaireItems?: string[];
+  range?: Range;
+  // observationCode?: string; // from Observation
+  observationDefinition?: string; // id for ObservationDefinition
+  // scoreHealthCorrelation?: string; // from ObservationDefinition
+  scoreExpression?: string;
+}
 
-  /** Observation */
-  interface Observation {
-    id: string;
-    // code: string;
-    value: Answer;
-    questionnaireResponse: string | undefined; // QuestionnaireResponse.id
-    observationDefinition: string | undefined; // ObservationDefinition.id
-  }
+export interface Questionnaire {
+  id: string;
+  url: string;
+  title?: string;
+  // description?: string;
+  items: Record<string, QuestionnaireItem>;
+}
+
+export interface ReferenceRange {
+  range: [number, number] | number;
+  context?: string;
+}
+
+/** Observation Definition */
+export interface ObservationDefinition {
+  id: string;
+  url: string;
+  range?: [number, number];
+  scoreHealthCorrelation?: string;
+  // code: string;
+  referenceRange?: ReferenceRange[];
+  // referenceValue?: ReferenceRange[];
+}
+
+/** Response */
+export interface ResponseItem {
+  linkId: string;
+  answer: Answer;
+}
+
+export interface QuestionnaireResponse {
+  id: string;
+  questionnaire: string; // Questionnaire.url
+  authored: string;
+  items: Record<string, ResponseItem>;
+}
+
+/** Observation */
+export interface Observation {
+  id: string;
+  // code: string;
+  value: Value;
+  questionnaireResponse?: string; // QuestionnaireResponse.id
+  observationDefinition?: string; // ObservationDefinition.id
+}
 
 /* Patient */
-  interface Patient {
-    id: string;
-    familyName: string | undefined;
-    givenName: string | undefined;
-    gender: string | undefined;
-    birthDate: string | undefined;
-  }
+export interface Patient {
+  id: string;
+  familyName?: string;
+  givenName?: string;
+  gender?: string;
+  birthDate?: string;
 }

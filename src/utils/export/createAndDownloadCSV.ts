@@ -1,5 +1,16 @@
-import type { Visualization } from "@utils/visualization";
-import type { Mapping } from "@utils/mapping";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type * as Visualization from "@utils/visualization";
+import type * as Mapping from "@utils/mapping";
 import * as _ from "lodash-es";
 
 export const createAndDownloadCSV = (
@@ -10,9 +21,9 @@ export const createAndDownloadCSV = (
   xData.unshift("Item");
   const yValues = _.cloneDeep(data.yData.map((series) => series.originalData));
   const rowNames = _.cloneDeep(data.yData.map((series) => series.name));
-  const csvArray: (string | Mapping.Answer)[][] = [xData];
+  const csvArray: (string | Mapping.Value)[][] = [xData];
   rowNames.forEach((name, i) => {
-    const row: (string | Mapping.Answer)[] = yValues[i];
+    const row: (string | Mapping.Value)[] = yValues[i];
     row.unshift(name);
     csvArray.push(row);
   });

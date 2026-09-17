@@ -1,9 +1,19 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import DataTable from "@components/DataTable";
-import { ITEM_TYPES } from "@utils/mapping";
-import type { Visualization } from "@utils/visualization";
+import type * as Visualization from "@utils/visualization";
 
 const longName =
   "This is a deliberately long item name that exceeds eighty characters so truncation kicks in for the row label";
@@ -18,7 +28,7 @@ const chartData: Visualization.ChartData = {
       data: [0.5, 0.7],
       originalData: [10, 14],
       dataLabels: [],
-      seriesType: ITEM_TYPES.score as Visualization.ItemType,
+      seriesType: "score",
       questionnaireId: "q1",
       questionnaireName: "PHQ-9",
     },
@@ -29,7 +39,7 @@ const chartData: Visualization.ChartData = {
       data: [0.2, null],
       originalData: [4, null],
       dataLabels: [],
-      seriesType: ITEM_TYPES.item as Visualization.ItemType,
+      seriesType: "item",
       questionnaireId: "q1",
       questionnaireName: "PHQ-9",
     },

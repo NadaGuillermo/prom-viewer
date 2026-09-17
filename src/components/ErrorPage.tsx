@@ -1,3 +1,14 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconProp } from "@fortawesome/fontawesome-svg-core";
 
@@ -8,6 +19,11 @@ interface Props {
   onRetry?: () => void;
 }
 
+/**
+ * ErrorPage component displays a user-friendly error page when an error occurs in the application.
+ * It shows an error icon, a heading, a message, and the error details.
+ * If a retry function is provided, it also displays a retry button.
+ */
 const ErrorPage = ({ error, heading, message, onRetry }: Props) => {
   const errorMessage = typeof error === 'string' 
     ? error 
@@ -40,8 +56,9 @@ const ErrorPage = ({ error, heading, message, onRetry }: Props) => {
         </div>
 
         {/* Retry Button */}
-        {onRetry && (
+        {onRetry !== undefined && (
           <button
+            type="button"
             className="tw:btn tw:btn-primary tw:btn-xl tw:shadow-none border-rounded"
             onClick={onRetry}
           >

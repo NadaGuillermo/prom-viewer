@@ -1,9 +1,25 @@
-import * as _ from "lodash-es";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import React from "react";
+import * as _ from "lodash-es";
 interface Props {
   data: Record<string, string[]>;
 }
 
+/**
+ * GridTable component renders a grid table that displays the presence of questionnaires for each date.
+ * It uses a CSS grid layout to create a responsive table with sticky headers for dates and questionnaires.
+ * The component takes a data prop, which is an object where keys are dates and values are arrays of questionnaire names.
+ */
 const GridTable = ({ data }: Props) => {
   const dates = Object.keys(data);
   const questionnaires = _.uniq(

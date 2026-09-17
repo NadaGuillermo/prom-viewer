@@ -4,7 +4,7 @@
 
 ## Description / Overview
 
-PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It's built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface. The FHIR profiles used are `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction). For type checking, the app uses the FHIR R4 types from [Definitely Typed](https://definitelytyped.org/).
+PROM Viewer is a React + TypeScript web application for visualizing patient-reported outcome measures (PROMs) from FHIR data. It's built for clinicians who need to review questionnaire responses for a patient in a clear, chart-based interface.
 
 The app supports two data modes, toggled via `.env`: `mock` (default), which runs against mock FHIR resources served through Mock Service Worker, and `smart`, which launches the app as a SMART on FHIR application and fetches real patient data from a FHIR server. See [Configuration](docs/CONFIGURATION.md) for details on both modes.
 
@@ -50,6 +50,7 @@ Other available commands:
 | `yarn test`           | Run the test suite once              |
 | `yarn test:watch`     | Run tests in watch mode              |
 | `yarn test:coverage`  | Run tests with a coverage report     |
+| `yarn add-headers`    | Add license headers to source files  |
 
 If `yarn dev` started successfully, the console output should look similar to this:
 
@@ -72,6 +73,26 @@ yarn test:coverage  # with a coverage report
 ```
 
 📄 See [docs/TESTING.md](docs/TESTING.md) for stack details, conventions, and known coverage gaps.
+
+## Error Handling
+
+Every normalization and mapping functions returns an (possibly empty) error object. They are bundled and logged to the error console.
+
+📄 See [docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md) for details.
+
+## Deployment
+
+The app should be deployed as a SMART-on-FHIR app. Environment variables in `.env` must be configured accordingly.
+
+📄 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for how to set up the app for deployment.
+
+## FHIR Profiles
+
+The FHIR profiles used are `Patient`,  `Questionnaire`, `QuestionnaireResponse`, `Observation`, `ObservationDefinition` as defined by [MII Erweiterungsmodul PRO (2026+)](https://simplifier.net/MII-Erweiterungsmodul-PRO-2025/~introduction). For type checking, the app uses the FHIR R4 types from [Definitely Typed](https://definitelytyped.org/).
+
+Since those profiles are actively developed and haven't matured over a longer time, there are some contraints that come with their usage.
+
+📄 For a list of current issues that affect the app, see [docs/FHIR_CONSTRAINTS.md](docs/FHIR_CONSTRAINTS.md).
 
 ## Features
 
@@ -98,4 +119,4 @@ yarn test:coverage  # with a coverage report
 
 ## License
 
-Not specified yet. The project is intended to be released as open-source, with usage open to everyone.
+GNU General Public License v3.0 (GPL-3.0). See [COPYING](COPYING) for details.

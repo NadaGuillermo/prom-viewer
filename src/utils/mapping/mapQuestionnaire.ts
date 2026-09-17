@@ -1,109 +1,117 @@
-import type { NormalizedFHIR } from "@utils/normalization";
-import type { Mapping } from "./types";
-import { issueFactories, type Errors } from "@utils/errors";
-// import * as _ from "lodash-es";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type * as NormalizedFHIR from "@utils/normalization";
+import type * as Mapping from "./types";
+import type * as Errors from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import { UNSPECIFIED_DOMAIN } from "./constants";
+import { isAnswerOptionCode } from "@utils/normalization/utils";
 
 export const mapQuestionnaire = (
   questionnaire: NormalizedFHIR.Questionnaire,
 ): Errors.Result<Mapping.Questionnaire> => {
   const questionnaireId = questionnaire.id;
-  const name = questionnaire.name;
+  const title = questionnaire.title;
   const url = questionnaire.url;
-  const description = questionnaire.description;
   const items: Record<string, Mapping.Item> = {};
   const issues: Errors.DataIssue[] = [];
 
-  // if (
-  //     questionnaire.items === undefined ||
-  //     Object.keys(questionnaire.items).length === 0
-  //   ) {
-  //     issues.push({
-  //       id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-  //       level: "error",
-  //       message: `Questionnaire with id ${questionnaireId} and url ${url} has no items.
-  //         Corresponding QuestionnaireResponses are therefore omitted.`,
-  //       resourceId: questionnaireId,
-  //       resourceType: "Questionnaire",
-  //       linkId: undefined,
-  //     });
-  //   }
-
-  // Potential errors: answerOption not convertible to number
-
   Object.entries(questionnaire.items).forEach(([linkId, item]) => {
-    const answerOptions = item.answerOptions?.map((opt) => {
-      // Error: answerOptions are not numbers
-      const answerOptionNumber = Number(opt.value);
-      return {
-        value: answerOptionNumber, // NaN possible
-        label: opt.label,
-      };
+    const answerOptions: Mapping.AnswerOption[] = [];
+    item.answerOptions?.forEach((opt) => {
+      if (isAnswerOptionCode(opt)) {
+        const option = opt as NormalizedFHIR.AnswerOptionCode;
+        // Convert value to number
+        const valueNumber =
+          option.value === null
+            ? null
+            : option.value !== undefined
+              ? Number(option.value)
+              : Number(option.code);
+        // error: answer option not convertible to number -> valueNumber is NaN
+        if (valueNumber !== null && isNaN(valueNumber)) {
+          issues.push(
+            issueFactories.questionnaire.invalidItemAnswerOption(
+              questionnaire,
+              linkId,
+              option.value ?? option.code,
+            ),
+          );
+        }
+        answerOptions.push({
+          code: option.code,
+          value: valueNumber,
+          label: option.label ?? option.code,
+        });
+      } else {
+        const option = opt as NormalizedFHIR.AnswerOptionValue;
+        const valueNumber = option.value === null ? null : Number(option.value);
+        const label = option.value === null ? "null" : option.value.toString();
+        // error: valueNumber isNaN
+        if (valueNumber !== null && isNaN(valueNumber)) {
+          issues.push(
+            issueFactories.questionnaire.invalidItemAnswerOption(
+              questionnaire,
+              linkId,
+              option.value,
+            ),
+          );
+        }
+        answerOptions.push({
+          value: valueNumber,
+          label: label,
+        });
+      }
     });
 
+    let rangeNumber =
+      item.range !== undefined
+        ? ([Number(item.range[0]), Number(item.range[1])] as [number, number])
+        : undefined;
     if (
-      item.answerOptions?.some(
-        (opt) => opt.value !== undefined && isNaN(Number(opt.value)),
-      )
+      item.range !== undefined &&
+      rangeNumber !== undefined &&
+      (isNaN(rangeNumber[0]) || isNaN(rangeNumber[1]))
     ) {
+      rangeNumber = undefined;
+      // push error
       issues.push(
-        issueFactories.questionnaire.invalidItemAnswerOption(
+        issueFactories.questionnaire.invalidItemRange(
           questionnaire,
           linkId,
-          item.answerOptions,
+          item.range,
         ),
       );
     }
-
-    let filteredAnswerOptions: Mapping.AnswerOption[] = [];
-
-    // if (answerOptions === undefined || answerOptions.length === 0) {
-    //   // Fehler werfen: keine answer options
-    //   issues.push({
-    //     id: `issue-questionnaire-item-${Math.random().toString(36).substring(2, 9)}`,
-    //     level: "warning",
-    //     message: `No answer options found for item ${linkId} in Questionnaire with
-    //     id ${questionnaireId} and url ${url}.`,
-    //     resourceId: questionnaireId,
-    //     resourceType: "Questionnaire",
-    //     linkId: linkId,
-    //   });
-    // }
-    if (answerOptions !== undefined) {
-      // Filter answerOptions, only take those which are a number
-      filteredAnswerOptions = answerOptions.filter((opt) => !isNaN(opt.value));
-    }
-
-    const range = item.range;
-    // const scoreHealthCorrelation = item.scoreHealthCorrelation;
     const referenceQuestionnaireItems = item.referenceQuestionnaireItems;
     const scoreExpression = item.scoreExpression;
 
     items[linkId] = {
       linkId: linkId,
       domain: UNSPECIFIED_DOMAIN,
-      answerOptions: filteredAnswerOptions,
-      ...(item.text !== undefined && { text: item.text }),
-      ...(range !== undefined && { range: range }),
-      // ...(scoreHealthCorrelation !== undefined && {
-      //   scoreHealthCorrelation: scoreHealthCorrelation,
-      // }),
-      ...(referenceQuestionnaireItems !== undefined && {
-        referenceQuestionnaireItems: referenceQuestionnaireItems,
-      }),
-      ...(scoreExpression !== undefined && {
-        scoreExpression: scoreExpression,
-      }),
+      answerOptions: answerOptions,
+      text: item.text,
+      range: rangeNumber,
+      referenceQuestionnaireItems: referenceQuestionnaireItems,
+      scoreExpression: scoreExpression,
     };
   });
 
   return {
     data: {
       id: questionnaireId,
-      name: name ?? questionnaireId,
       url: url,
-      description: description ?? "",
-      items: items, // kann leer sein
+      title: title ?? questionnaireId,
+      items: items, // can be empty
     },
     issues: issues,
   };

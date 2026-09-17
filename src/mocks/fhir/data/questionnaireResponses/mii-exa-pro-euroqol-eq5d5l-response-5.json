@@ -79,7 +79,7 @@
           "valueInteger": 63
         }
       ],
-      "linkId": "euroqol-eq5d5l-vas"
+      "linkId": "euroqol-eq5d5l-q06-vas"
     }
   ],
   "status": "completed",
@@ -87,5 +87,5 @@
     "reference": "Patient/mii-exa-pro-patient"
   },
   "authored": "2023-03-23T12:00:00Z",
-  "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-collectable"
+  "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-minimal"
 }

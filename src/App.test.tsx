@@ -1,3 +1,14 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
@@ -27,9 +38,12 @@ const EORTC_QUESTIONNAIRE_NAME =
 // mode is the .env default) and waits past the loading/processing screens.
 async function renderApp() {
   render(<App />);
-  await waitFor(() => {
-    expect(screen.queryByText(/loading|processing/i)).not.toBeInTheDocument();
-  });
+  await waitFor(
+    () => {
+      expect(screen.queryByText(/loading|processing/i)).not.toBeInTheDocument();
+    },
+    { timeout: 3000 },
+  );
 }
 
 describe("App - happy path (mock mode)", () => {

@@ -1,23 +1,38 @@
-import type { Visualization } from "@utils/visualization";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import React from "react";
-import { ITEM_TYPES } from "@utils/mapping";
-import { truncateAtWord } from "@utils/visualization";
 import { Tooltip } from "react-tooltip";
+
 import Portal from "@components/Portal";
+import type * as Visualization from "@utils/visualization";
+import { truncateAtWord } from "@utils/visualization";
 
 interface Props {
   data: Visualization.ChartData;
   maxHeight?: string;
 }
 
+/**
+ * DataTable component renders a table that displays chart data in a tabular format.
+ * It uses a CSS grid layout to create a responsive table with sticky headers for dates and series names.
+ * The component takes a data prop, which is an object containing xData (dates) and yData (series data).
+ * The maxHeight prop allows setting a maximum height for the table, enabling vertical scrolling if the content exceeds this height.
+ */
 const DataTable = ({
   data, 
   maxHeight = "600px"
 }: Props) => {
   const xData = data.xData;
-  console.log("css table original x data: ", xData);
   const yData = data.yData;
-  console.log("simple table data yData: ", yData);
 
    return (
     <div
@@ -46,7 +61,7 @@ const DataTable = ({
               className={`tw:sticky tw:left-0 tw:z-10 tw:border-b border-light tw:bg-base-100
             tw:py-2 tw:px-2`}
             >
-              <div className={`tw:text-sm tw:whitespace-pre-wrap tw:break-normal ${row.seriesType === ITEM_TYPES.score ? "tw:font-bold" : "tw:font-normal"}`}>
+              <div className={`tw:text-sm tw:whitespace-pre-wrap tw:break-normal ${row.seriesType === "score" ? "tw:font-bold" : "tw:font-normal"}`}>
                 {row.name !== truncateAtWord(row.name, 80) ? (   
                   <>
                     <div data-tooltip-id={`${row.id}`}>
@@ -83,7 +98,7 @@ const DataTable = ({
               tw:items-center tw:border-b border-light
               tw:py-2 `}
               >
-                <div className={`tw:text-sm ${row.seriesType === ITEM_TYPES.score ? "tw:font-bold" : "tw:font-normal"}`}>
+                <div className={`tw:text-sm ${row.seriesType === "score" ? "tw:font-bold" : "tw:font-normal"}`}>
                   {row.originalData[index] !== null ?
                     row.originalData[index]
                     : ""

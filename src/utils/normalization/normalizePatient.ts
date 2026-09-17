@@ -1,24 +1,32 @@
-import type { Patient } from "fhir/r4";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
 
-import type { NormalizedFHIR } from "./types";
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type { Patient } from "fhir/r4";
+import type * as NormalizedFHIR from "./types";
 
 export const normalizePatient = (resource: Patient): NormalizedFHIR.Patient => {
-
-const id: string = resource.id!;
-const name = resource.name?.find((n) => n.family !== undefined && n.given !== undefined);
-const familyName: string | undefined = name?.family;
-const givenName: string | undefined = name?.given?.join(' ');
-const gender: string | undefined = resource.gender;
-const birthDate: string | undefined = resource.birthDate;
-
-
+  const id = resource.id;
+  const name = resource.name?.find(
+    (n) => n.family !== undefined && n.given !== undefined,
+  );
+  const familyName = name?.family;
+  const givenName = name?.given?.join(" ");
+  const gender = resource.gender;
+  const birthDate = resource.birthDate;
 
   return {
-      id: id,
-      familyName: familyName,
-      givenName: givenName,
-      gender: gender,
-      birthDate: birthDate
-    }
-   
-}
+    id: id!,
+    familyName: familyName,
+    givenName: givenName,
+    gender: gender,
+    birthDate: birthDate,
+  };
+};

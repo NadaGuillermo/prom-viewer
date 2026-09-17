@@ -1,8 +1,21 @@
-import type { NormalizedFHIR } from "@utils/normalization";
-import type { Mapping } from "./types";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type * as NormalizedFHIR from "@utils/normalization";
+import type * as Mapping from "./types";
 import { convertFhirDateTimeToDateFormat } from "./utils";
-import { issueFactories, type Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import { isQuestionnaireItem } from "./utils";
+import { isAnswerCode, isAnswerOptionCode } from "@utils/normalization/utils";
 
 export const mapQuestionnaireResponse = (
   questionnaireResponse: NormalizedFHIR.QuestionnaireResponse,
@@ -15,9 +28,6 @@ export const mapQuestionnaireResponse = (
   );
   const items: Record<string, Mapping.ResponseItem> = {};
   const issues: Errors.DataIssue[] = [];
-
-  // Potential errors: no items in questionnaireResponse, answer not convertible to number,
-  // questionnaire reference invalid
 
   // Error: no items in questionnaireResponse
   if (
@@ -32,13 +42,60 @@ export const mapQuestionnaireResponse = (
     (q) => q.url === questionnaireUrl,
   );
 
-  Object.entries(questionnaireResponse.items).forEach(([linkId, item]) => {
-    const answer = item.answer;
-    const answerNumber = Number(answer);
-    let answerShouldBeNull = false;
+  if (correspondingQuestionnaire === undefined) {
+    issues.push(
+      issueFactories.questionnaireResponse.missingQuestionnaire(
+        questionnaireResponse,
+      ),
+    );
+  }
 
-    if (answer === null) {
-      answerShouldBeNull = true;
+  Object.entries(questionnaireResponse.items).forEach(([linkId, item]) => {
+    let answerNumber: Mapping.Value | undefined = undefined;
+
+    if (isAnswerCode(item.answer)) {
+      const answerCode = (item.answer as NormalizedFHIR.AnswerCode).code;
+      if (
+        correspondingQuestionnaire !== undefined &&
+        isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
+      ) {
+        const questionnaireItem = correspondingQuestionnaire.items[linkId];
+        const answerOptions = (questionnaireItem as Mapping.QuestionnaireItem)
+          .answerOptions;
+        const value = answerOptions.find(
+          (opt) =>
+            isAnswerOptionCode(opt) &&
+            (opt as Mapping.AnswerOptionCode).code === answerCode,
+        )?.value;
+        answerNumber = value === null ? null : Number(value);
+      }
+    } else {
+      const answer = (item.answer as NormalizedFHIR.AnswerValue).value;
+      // check if answer options exist and if answer is among them
+      if (
+        answer !== null &&
+        correspondingQuestionnaire !== undefined &&
+        isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
+      ) {
+        const questionnaireItem = correspondingQuestionnaire.items[linkId];
+        const answerOptions = (
+          questionnaireItem as NormalizedFHIR.QuestionnaireItem
+        ).answerOptions;
+        if (answerOptions !== undefined && answerOptions.length > 0) {
+          const answerOptionValues = answerOptions.map((opt) => opt.value);
+          if (!answerOptionValues.includes(answer)) {
+            issues.push(
+              issueFactories.questionnaireResponse.invalidItemValue(
+                questionnaireResponse,
+                linkId,
+                answer,
+              ),
+            );
+          }
+        }
+      }
+      // Convert to number
+      answerNumber = answer === null ? null : Number(answer);
     }
 
     // Error: answer is not a number
@@ -47,43 +104,22 @@ export const mapQuestionnaireResponse = (
         issueFactories.questionnaireResponse.invalidItemValueType(
           questionnaireResponse,
           linkId,
-          answer,
+          item.answer,
         ),
       );
-      answerShouldBeNull = true;
     }
-
-    // Error: answer not in answerOptions
-    if (
-      correspondingQuestionnaire &&
-      isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
-    ) {
-      const answerOptionsValues = (
-        correspondingQuestionnaire?.items[linkId] as Mapping.QuestionnaireItem
-      ).answerOptions.map((opt) => opt.value);
-      if (!answerOptionsValues.includes(answerNumber)) {
-        issues.push(
-          issueFactories.questionnaireResponse.invalidItemValue(
-            questionnaireResponse,
-            linkId,
-            answer,
-          ),
-        );
-        answerShouldBeNull = true;
-      }
+    if (answerNumber !== undefined) {
+      items[linkId] = {
+        linkId: linkId,
+        answer: answerNumber,
+      };
     }
-
-    items[linkId] = {
-      linkId: linkId,
-      answer: answerShouldBeNull ? null : answerNumber,
-    };
   });
 
   const emptyQuestionnaire: Mapping.Questionnaire = {
     id: "",
-    name: "",
+    title: "",
     url: "",
-    description: "",
     items: {},
   };
 
@@ -92,7 +128,7 @@ export const mapQuestionnaireResponse = (
       id: responseId,
       questionnaire: correspondingQuestionnaire ?? emptyQuestionnaire,
       authored: authored,
-      items: items, // kann leer sein, dann nicht verwenden
+      items: items, // can be empty
     },
     issues: issues,
   };

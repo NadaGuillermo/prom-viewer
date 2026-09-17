@@ -1,7 +1,19 @@
-import type { NormalizedFHIR } from "@utils/normalization";
-import type { Mapping } from "./types";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type * as NormalizedFHIR from "@utils/normalization";
+import type * as Mapping from "./types";
 import { convertFhirDateTimeToDateFormat } from "./utils";
-import { issueFactories, type Errors } from "@utils/errors";
+import type * as Errors from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 
 export const mapPatient = (
   patient: NormalizedFHIR.Patient,
@@ -22,10 +34,8 @@ export const mapPatient = (
       id: patient.id,
       familyName: patient.familyName ?? "Unknown",
       givenName: patient.givenName ?? "",
-      ...(patient.gender !== undefined && { gender: patient.gender }),
-      ...(formattedBirthDate !== undefined && {
-        birthDate: formattedBirthDate,
-      }),
+      gender: patient.gender,
+      birthDate: formattedBirthDate,
     },
     issues: issues,
   };

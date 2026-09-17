@@ -1,17 +1,26 @@
-import * as _ from "lodash-es";
-import { okabeItoColorPalette } from "@utils/charts";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import React from "react";
+import * as _ from "lodash-es";
+
+import { okabeItoColorPalette } from "@utils/charts";
 
 interface Props {
   data: Record<string, [string, string][]>;
   colors?: string[];
 }
 
-const MappingTable = ({ 
-  data,
-  colors = okabeItoColorPalette,
-}: Props) => {
-
+const MappingTable = ({ data, colors = okabeItoColorPalette }: Props) => {
+  // Define a mapping of group names to symbols (greek letters and greek capital letters)
   const symbolRecord: Record<string, string> = {
     "Group 1": "\u03B1",
     "Group 2": "\u03B2",
@@ -62,8 +71,9 @@ const MappingTable = ({
     "Group 47": "\u03A7",
     "Group 48": "\u03A8",
     "Group 49": "\u03A9",
-  }
+  };
 
+  // Extract unique questionnaires from the data
   const questionnaires = _.uniq(
     Object.values(data).flatMap((dimensionWithQuestionnaireArray) =>
       dimensionWithQuestionnaireArray.flatMap(
@@ -72,15 +82,28 @@ const MappingTable = ({
     ),
   );
 
-  const questionnaireSymbolColorRecord: Record<string, {symbol: string, color: string}> = {};
+  // Create a mapping of questionnaires to symbols and colors
+  const questionnaireSymbolColorRecord: Record<
+    string,
+    { symbol: string; color: string }
+  > = {};
   questionnaires.forEach((questionnaire, index) => {
-    //questionnaireSymbolColorRecord[questionnaire] = {};
-    const symbol = symbolRecord[`Group ${(index % Object.keys(symbolRecord).length) + 1}`];
+    const symbol =
+      symbolRecord[`Group ${(index % Object.keys(symbolRecord).length) + 1}`];
     const color = colors[index % colors.length];
-    questionnaireSymbolColorRecord[questionnaire] = { symbol: symbol, color: color};
+    questionnaireSymbolColorRecord[questionnaire] = {
+      symbol: symbol,
+      color: color,
+    };
   });
 
-  const pill = (label: string, symbol = "", color: string, symbolPosition= "right") => {
+  // Function to create a pill with a label, symbol, and color
+  const pill = (
+    label: string,
+    symbol = "",
+    color: string,
+    symbolPosition = "right",
+  ) => {
     const key = `${symbol}:${label}`;
     return (
       <div
@@ -88,12 +111,18 @@ const MappingTable = ({
         className={`tw:border tw:rounded-full
           tw:text-xs tw:px-3.5 tw:py-1.5
           tw:leading-snug tw:text-center tw:whitespace-normal tw:select-none`}
-        style={{borderColor: color, backgroundColor: color + "15"}}
-        >
-        {symbol.length > 0 ? symbolPosition === "left" ? symbol + ": " + label : label + " (" + symbol + ")" : label}
+        style={{ borderColor: color, backgroundColor: color + "15" }}
+      >
+        {symbol.length > 0
+          ? symbolPosition === "left"
+            ? symbol + ": " + label
+            : label + " (" + symbol + ")"
+          : label}
       </div>
     );
   };
+
+  // Function to create a domain pill with a label
   const domainPill = (label: string) => {
     const key = `${label}`;
     return (
@@ -101,7 +130,7 @@ const MappingTable = ({
         key={key}
         className={`tw:text-xs tw:font-semibold
           tw:leading-snug tw:text-center tw:whitespace-normal tw:select-none`}
-        >
+      >
         {label}
       </div>
     );
@@ -110,9 +139,7 @@ const MappingTable = ({
   return (
     <div className="tw:flex tw:flex-col tw:gap-y-2 tw:gap-x-4">
       <div className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 tw:gap-4">
-        <div
-          className="tw:col-span-1 tw:text-sm tw:text-left tw:font-semibold tw:uppercase tw:tracking-widest tw:select-none"
-        >
+        <div className="tw:col-span-1 tw:text-sm tw:text-left tw:font-semibold tw:uppercase tw:tracking-widest tw:select-none">
           Domains
         </div>
         <div
@@ -126,60 +153,65 @@ const MappingTable = ({
       {Object.entries(data).map(
         ([domain, dimensionsWithQuestionnaire], i) =>
           dimensionsWithQuestionnaire.length > 0 && (
-            <React.Fragment key={`${domain}: ${dimensionsWithQuestionnaire[0]}: ${dimensionsWithQuestionnaire[1]}`}>
-              <div 
+            <React.Fragment
+              key={`${domain}: ${dimensionsWithQuestionnaire[0]}: ${dimensionsWithQuestionnaire[1]}`}
+            >
+              <div
                 className="tw:grid tw:grid-cols-3 tw:md:grid-cols-4 tw:lg:grid-cols-5 tw:2xl:grid-cols-6 
-                  tw:gap-4 tw:items-center">
-                
+                  tw:gap-4 tw:items-center"
+              >
                 <div className="tw:col-span-1 tw:ml-2">
-                 {domainPill(domain)}
+                  {domainPill(domain)}
                 </div>
-                
+
                 <div className="tw:col-span-2 tw:col-start-2 tw:md:col-span-3 tw:lg:col-span-4 tw:2xl:col-span-5 tw:mr-2">
                   <div className="tw:flex tw:flex-wrap tw:justify-start tw:gap-2">
                     {dimensionsWithQuestionnaire.map(
-                      (dimensionAndQuestionnaire) => 
-                       
+                      (dimensionAndQuestionnaire) =>
                         pill(
                           dimensionAndQuestionnaire[0],
-                          questionnaireSymbolColorRecord[dimensionAndQuestionnaire[1]].symbol,
-                          questionnaireSymbolColorRecord[dimensionAndQuestionnaire[1]].color,
-                        )
-                        
-                      
+                          questionnaireSymbolColorRecord[
+                            dimensionAndQuestionnaire[1]
+                          ].symbol,
+                          questionnaireSymbolColorRecord[
+                            dimensionAndQuestionnaire[1]
+                          ].color,
+                        ),
                     )}
                   </div>
                 </div>
               </div>
-              <div className={`tw:divider tw:my-0 ${i < dimensionsWithQuestionnaire.length - 1 ? "tw:mx-2" : ""}`}></div>
+              <div
+                className={`tw:divider tw:my-0 ${i < dimensionsWithQuestionnaire.length - 1 ? "tw:mx-2" : ""}`}
+              ></div>
             </React.Fragment>
           ),
       )}
-        <div className="tw:flex tw:flex-wrap tw:justify-start">
-          <div
-            className="tw:col-span-1 tw:text-sm tw:font-semibold 
+      <div className="tw:flex tw:flex-wrap tw:justify-start">
+        <div
+          className="tw:col-span-1 tw:text-sm tw:font-semibold 
             tw:uppercase tw:tracking-widest tw:select-none"
-          >
-            Legend
-          </div>
+        >
+          Legend
         </div>
-        
-        <div className="tw:flex tw:flex-wrap tw:justify-start tw:gap-y-2 tw:gap-x-4 tw:mx-4">
-          {questionnaires.map((questionnaire) => (
-            <div key={questionnaire} className="tw:inline-flex tw:text-sm tw:leading-snug tw:whitespace-pre-wrap">
-              {/* {questionnaireSymbolColorRecord[questionnaire].symbol}: {questionnaire} */}
-              {pill(
-                questionnaire, 
-                questionnaireSymbolColorRecord[questionnaire].symbol,
-                questionnaireSymbolColorRecord[questionnaire].color,
-                "left",
-                
-                )}
-            </div>
-          ))}
-        </div>
-        
       </div>
+
+      <div className="tw:flex tw:flex-wrap tw:justify-start tw:gap-y-2 tw:gap-x-4 tw:mx-4">
+        {questionnaires.map((questionnaire) => (
+          <div
+            key={questionnaire}
+            className="tw:inline-flex tw:text-sm tw:leading-snug tw:whitespace-pre-wrap"
+          >
+            {pill(
+              questionnaire,
+              questionnaireSymbolColorRecord[questionnaire].symbol,
+              questionnaireSymbolColorRecord[questionnaire].color,
+              "left",
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

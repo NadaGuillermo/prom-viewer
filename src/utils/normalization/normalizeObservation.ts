@@ -1,7 +1,18 @@
-import type { Observation } from "fhir/r4";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
 
-import type { NormalizedFHIR } from "./types";
-import { issueFactories, type Errors } from "@utils/errors";
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type { Observation } from "fhir/r4";
+import type * as NormalizedFHIR from "./types";
+import type * as Errors from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import {
   getQuestionnaireResponseIdFromObservationReferenceAttribute,
   getObservationDefinitionCanonicalUrlFromObservation,
@@ -15,26 +26,28 @@ export const normalizeObservation = (
   const questionnaireResponse =
     getQuestionnaireResponseIdFromObservationReferenceAttribute(resource);
   const observationDefinition =
-    getObservationDefinitionCanonicalUrlFromObservation(resource); // url
-  // const observationText = resource.code?.coding?.find((cod: any) => cod.display !== undefined && cod.code !== undefined)?.display;
+    getObservationDefinitionCanonicalUrlFromObservation(resource); // canonical url
   const observationValue = resource.valueQuantity
     ? (resource.valueQuantity.value ?? null)
     : null;
 
-    if (questionnaireResponse === undefined) {
-      issues.push(issueFactories.observation.missingQuestionnaireResponse(resource));
-    }
-    if (observationDefinition === undefined) {
-      issues.push(issueFactories.observation.missingObservationDefinition(resource));
-    }
+  if (questionnaireResponse === undefined) {
+    issues.push(
+      issueFactories.observation.missingQuestionnaireResponse(resource),
+    );
+  }
+  if (observationDefinition === undefined) {
+    issues.push(
+      issueFactories.observation.missingObservationDefinition(resource),
+    );
+  }
 
   return {
     data: {
-      id: resource.id!, // sollte immer gegeben sein
+      id: resource.id!, // should always be given
       questionnaireResponse: questionnaireResponse, // id or undefined
       observationDefinition: observationDefinition, // url or undefined
-      // code: observationCode, // immer geben
-      value: observationValue, // optional
+      value: observationValue,
     },
     issues: issues,
   };

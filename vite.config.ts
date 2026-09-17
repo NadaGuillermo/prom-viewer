@@ -8,9 +8,11 @@ import tailwindcss from "@tailwindcss/vite";
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: "/prom-viewer/",
   plugins: [react(), tailwindcss(), tsconfigPaths()],
+  // Drop stray console.log/debug/info calls from production builds (console.error/warn are kept for real diagnostics).
+  esbuild: command === "build" ? { pure: ["console.log", "console.debug", "console.info"] } : {},
   build: {
     rollupOptions: {
       input: {
@@ -29,4 +31,4 @@ export default defineConfig({
       reporter: ["text", "html"],
     },
   },
-});
+}));

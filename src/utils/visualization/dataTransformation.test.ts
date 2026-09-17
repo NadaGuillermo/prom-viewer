@@ -1,13 +1,23 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { describe, expect, it } from "vitest";
 
 import { createChartData } from "@utils/visualization/dataTransformation";
-import { SCORE_HEALTH_CORRELATIONS, type Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
 
 const q1: Mapping.Questionnaire = {
   id: "q1",
-  name: "Q1",
+  title: "Q1",
   url: "https://example.org/q1",
-  description: "",
   items: {
     plain: {
       linkId: "plain",
@@ -35,7 +45,7 @@ const q1: Mapping.Questionnaire = {
       domain: "d",
       text: "Increasing Score",
       range: [0, 10],
-      scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.increase,
+      scoreHealthCorrelation: "increase",
       isGlobalScore: true,
     },
     "score-dec": {
@@ -43,7 +53,7 @@ const q1: Mapping.Questionnaire = {
       domain: "d",
       text: "Decreasing Score",
       range: [0, 27],
-      scoreHealthCorrelation: SCORE_HEALTH_CORRELATIONS.decrease,
+      scoreHealthCorrelation: "decrease",
       referenceRange: [
         { range: [0, 4], name: "minimal" },
         { range: 10, name: "cutoff" },
@@ -63,9 +73,8 @@ const q1: Mapping.Questionnaire = {
 
 const q2: Mapping.Questionnaire = {
   id: "q2",
-  name: "Q2",
+  title: "Q2",
   url: "https://example.org/q2",
-  description: "",
   items: {
     y: {
       linkId: "y",

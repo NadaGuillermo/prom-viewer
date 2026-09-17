@@ -1,23 +1,32 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import FilterOptionsDisplay from "@components/FilterOptionsDisplay";
-import type { Mapping } from "@utils/mapping";
+import type * as Mapping from "@utils/mapping";
 
 const questionnaires: Mapping.Questionnaire[] = [
   {
     id: "q1",
-    name: "PHQ-9",
+    title: "PHQ-9",
     url: "https://example.org/q1",
-    description: "",
     items: {},
   },
   {
     id: "q2",
-    name: "PROMIS-29",
+    title: "PROMIS-29",
     url: "https://example.org/q2",
-    description: "",
     items: {},
   },
 ];

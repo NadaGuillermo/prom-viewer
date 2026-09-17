@@ -1,15 +1,24 @@
-// import * as _ from "lodash-es";
-import type { Mapping } from "@utils/mapping";
-import type { Visualization } from "./types";
-import type { GlobalTypes } from "@customTypes/globalTypes";
-import { ITEM_TYPES, SCORE_HEALTH_CORRELATIONS, isScoreItem, isDimensionScore } from "@utils/mapping";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type * as Mapping from "@utils/mapping";
+import type * as Visualization from "./types";
+import type * as GlobalTypes from "@customTypes/globalTypes";
+import { isScoreItem, isDimensionScore } from "@utils/mapping";
 import {
   addNullQuestionnaireResponsesForCommonTimeAxisAndSortByDate,
   createCommonTimeAxis,
   groupQuestionnaireResponsesByQuestionnaireId,
   getMinAndMaxAnswerOptionValueForItem,
 } from "./utils";
-
 import { normalizeValue } from "./helpers";
 
 export const createChartData = (
@@ -48,10 +57,6 @@ export const createChartData = (
         };
         originalData.push(responseItem.answer);
         // normlize everything
-        // console.log(
-        //   "questionnaireItem: ",
-        //   questionnaireResponse.questionnaire.items[linkId],
-        // );
         if (responseItem.answer !== null) {
           const questionnaireItem =
             questionnaireResponse.questionnaire.items[linkId];
@@ -59,10 +64,7 @@ export const createChartData = (
             // range and scoreHealthCorrelation given
             const [min, max] = questionnaireItem.range;
             // check if decreasing score health correlation
-            if (
-              questionnaireItem.scoreHealthCorrelation ===
-              SCORE_HEALTH_CORRELATIONS.decrease
-            ) {
+            if (questionnaireItem.scoreHealthCorrelation === "decrease") {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
                 min,
@@ -92,11 +94,8 @@ export const createChartData = (
           } else if (questionnaireItem.scoreHealthCorrelation !== undefined) {
             const [min, max] =
               getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
-            
-              if (
-              questionnaireItem.scoreHealthCorrelation ===
-              SCORE_HEALTH_CORRELATIONS.decrease
-            ) {
+
+            if (questionnaireItem.scoreHealthCorrelation === "decrease") {
               const originalNormalizedValue = normalizeValue(
                 responseItem.answer,
                 min,
@@ -136,28 +135,25 @@ export const createChartData = (
           dataLabels.push("");
         }
       });
-      
-      const questionnaire = questionnaireResponses[0].questionnaire;
-      const questionnaireItem =
-        questionnaire.items[linkId];
-      // // console.log("questionnaireItem: ", questionnaireItem)
-      // // console.log(isQuestionnaireScoreItem(questionnaireItem))
-      // // console.log(isDimensionScoreItem(questionnaireItem))
-      let seriesType: string;
-      if (isScoreItem(questionnaireItem)) {
-        seriesType = ITEM_TYPES.score;
-      } else if(isDimensionScore(questionnaireItem)) {
-        seriesType = ITEM_TYPES.dimensionScore;
-      } else {
-        seriesType = ITEM_TYPES.item;
-      }
 
-      // let referencedItems: string[] = [];
+      const questionnaire = questionnaireResponses[0].questionnaire;
+      const questionnaireItem = questionnaire.items[linkId];
+      let seriesType: Mapping.ItemType;
+      if (isScoreItem(questionnaireItem)) {
+        seriesType = "score";
+      } else if (isDimensionScore(questionnaireItem)) {
+        seriesType = "dimensionScore";
+      } else {
+        seriesType = "item";
+      }
 
       const referenceValues: Visualization.ReferenceRange[] = [];
       if (isScoreItem(questionnaireItem)) {
         const item = questionnaireItem as Mapping.QuestionnaireScoreItem;
-        if (item.referenceRange !== undefined && item.referenceRange.length > 0) {
+        if (
+          item.referenceRange !== undefined &&
+          item.referenceRange.length > 0
+        ) {
           const [min, max] = item.range;
           item.referenceRange.forEach((range) => {
             const referenceRange: Visualization.NumberOrTuple = range.range;
@@ -165,14 +161,24 @@ export const createChartData = (
             if (Array.isArray(referenceRange)) {
               const values: number[] = [];
               referenceRange.forEach((val) => {
-                const normalizedValue = Number(normalizeValue(val, min, max).toFixed(3));
-                const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;
-                values.push(adjustedNormalizedValue)
-              })
+                const normalizedValue = Number(
+                  normalizeValue(val, min, max).toFixed(3),
+                );
+                const adjustedNormalizedValue =
+                  item.scoreHealthCorrelation === "decrease"
+                    ? 1 - normalizedValue
+                    : normalizedValue;
+                values.push(adjustedNormalizedValue);
+              });
               normalizedReferenceRange = [values[0], values[1]];
             } else {
-              const normalizedValue = Number(normalizeValue(referenceRange, min, max).toFixed(3));
-              const adjustedNormalizedValue = item.scoreHealthCorrelation === SCORE_HEALTH_CORRELATIONS.decrease ? 1 - normalizedValue : normalizedValue;
+              const normalizedValue = Number(
+                normalizeValue(referenceRange, min, max).toFixed(3),
+              );
+              const adjustedNormalizedValue =
+                item.scoreHealthCorrelation === "decrease"
+                  ? 1 - normalizedValue
+                  : normalizedValue;
               normalizedReferenceRange = adjustedNormalizedValue;
             }
             referenceValues.push({
@@ -180,9 +186,9 @@ export const createChartData = (
               normalizedValue: normalizedReferenceRange,
               name: range.name,
               description: range.description,
-            })
-        });       
-      }
+            });
+          });
+        }
       }
 
       const shortLinkId = linkId.slice(0, 25);
@@ -190,15 +196,14 @@ export const createChartData = (
       dataSeriesOfQuestionnaire.push({
         id: linkId,
         name: questionnaire.items[linkId].text ?? linkId,
-        shortName:
-          questionnaire.items[linkId].shortText ?? shortLinkId,
+        shortName: questionnaire.items[linkId].shortText ?? shortLinkId,
         data: data,
         originalData: originalData,
         dataLabels: dataLabels,
         seriesType: seriesType,
         questionnaireId: questionnaire.id,
-        questionnaireName: questionnaire.name,
-        ...(referenceValues.length > 0 && {referenceValues: referenceValues}),
+        questionnaireName: questionnaire.title,
+        ...(referenceValues.length > 0 && { referenceValues: referenceValues }),
       });
     });
 

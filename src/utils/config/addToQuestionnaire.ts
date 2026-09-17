@@ -1,5 +1,17 @@
-import type { Mapping } from "@utils/mapping";
-import { issueFactories, type Errors } from "@utils/errors";
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
+import type * as Mapping from "@utils/mapping";
+import type * as Errors from "@utils/errors";
+import { issueFactories } from "@utils/errors";
 import {
   addDomainToQuestionnaireItems,
   addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems,
@@ -8,8 +20,7 @@ import {
   getEmptyAnswerOptions,
   addReferenceRangesAndValuesToQuestionnaireScoreItems,
 } from "./utils";
-// import * as _ from "lodash-es";
-import type { Config } from "./types";
+import type * as Config from "./types";
 
 export const addConfigurationsToQuestionnaire = (
   questionnaire: Mapping.Questionnaire,
@@ -18,50 +29,13 @@ export const addConfigurationsToQuestionnaire = (
 ): Errors.Result<Mapping.Questionnaire> => {
   const issues: Errors.DataIssue[] = [];
 
-  // const questionnaireLinkIds = Object.keys(questionnaire.items);
-  // const configLinkIds: string[] =
-  //   config.questionnaires
-  //     .find((q: any) => q.questionnaire === questionnaire.url)
-  //     ?.domainItemMapping.flatMap((dim: any) =>
-  //       dim.questions.map((question: any) => question.itemId),
-  //     ) ?? [];
-
-  // const linkIdsInConfigButNotInQuestionnaire = _.difference(configLinkIds, questionnaireLinkIds);
-  // const linkIdsInQuestionnaireButNotInConfig = _.difference(
-  //   questionnaireLinkIds,
-  //   configLinkIds,
-  // );
-
-  // if (linkIdsInConfigButNotInQuestionnaire.length > 0) {
-  //     linkIdsInConfigButNotInQuestionnaire.forEach((linkId) => {
-  //         issues.push({
-  //             id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-  //             level: 'warning',
-  //             message: `Item with linkId ${linkId} is mentioned in the configuration file but does not exist in Questionnaire with url ${questionnaire.url}.`,
-  //             resourceId: questionnaire.id,
-  //             resourceType: "Questionnaire",
-  //             linkId: linkId,
-  //         });
-  //     });
-  // }
-
-  // if (linkIdsInQuestionnaireButNotInConfig.length > 0) {
-  //   linkIdsInQuestionnaireButNotInConfig.forEach((linkId) => {
-  //     issues.push({
-  //       id: `issue-questionnaire-${Math.random().toString(36).substring(2, 9)}`,
-  //       level: "warning",
-  //       message: `Item with linkId ${linkId} is not mentioned in the configuration file but exists in Questionnaire with url ${questionnaire.url}.`,
-  //       resourceId: questionnaire.id,
-  //       resourceType: "Questionnaire",
-  //       linkId: linkId,
-  //     });
-  //   });
-  // }
-
   /**
+   * Add:
    * 1. Domains
    * 2. Score attributes
    * 3. Item short names
+   * 4. Type of item (dimension/domain score, simple item)
+   * 5. Reference values
    */
   const questionnaireWithConfigSettings = questionnaire;
 
@@ -73,7 +47,7 @@ export const addConfigurationsToQuestionnaire = (
   questionnaireWithConfigSettings.items = questionnaireItemsWithDomains;
 
   // Score attributes
-  const questionnaireItemsWithScoreAttributesAndErrorMessages = 
+  const questionnaireItemsWithScoreAttributesAndErrorMessages =
     addRangeAndScoreHealthCorrelationToQuestionnaireScoreItems(
       questionnaireWithConfigSettings,
       observationDefinitions,
@@ -87,7 +61,7 @@ export const addConfigurationsToQuestionnaire = (
     },
   );
 
-  // Short names
+  // Item short names
   const questionnaireItemsWithShortNamesAndErrorMessages =
     addShortNamesToQuestionnaireItems(questionnaireWithConfigSettings, config);
   questionnaireWithConfigSettings.items =
@@ -96,9 +70,12 @@ export const addConfigurationsToQuestionnaire = (
     issues.push(issue);
   });
 
-  // Dimension and Domain Score flags
+  // Dimension and domain score flags
   const questionnaireItemsWithScoreFlagsAndErrorMessages =
-    addDimensionAndDomainScoreFlagsToQuestionnaireItems(questionnaireWithConfigSettings, config);
+    addDimensionAndDomainScoreFlagsToQuestionnaireItems(
+      questionnaireWithConfigSettings,
+      config,
+    );
   questionnaireWithConfigSettings.items =
     questionnaireItemsWithScoreFlagsAndErrorMessages.data;
   questionnaireItemsWithScoreFlagsAndErrorMessages.issues.forEach((issue) => {
@@ -106,22 +83,32 @@ export const addConfigurationsToQuestionnaire = (
   });
 
   // Reference ranges and values
-  const questionnaireItemsWithReferenceValuesAndErrorMessages = 
-    addReferenceRangesAndValuesToQuestionnaireScoreItems(questionnaireWithConfigSettings, observationDefinitions, config);
-  questionnaireWithConfigSettings.items = 
-  questionnaireItemsWithReferenceValuesAndErrorMessages.data;
-  questionnaireItemsWithReferenceValuesAndErrorMessages.issues.forEach((issue) => {
-    issues.push(issue);
-  })
+  const questionnaireItemsWithReferenceValuesAndErrorMessages =
+    addReferenceRangesAndValuesToQuestionnaireScoreItems(
+      questionnaireWithConfigSettings,
+      observationDefinitions,
+      config,
+    );
+  questionnaireWithConfigSettings.items =
+    questionnaireItemsWithReferenceValuesAndErrorMessages.data;
+  questionnaireItemsWithReferenceValuesAndErrorMessages.issues.forEach(
+    (issue) => {
+      issues.push(issue);
+    },
+  );
 
-  
-    // empty answer options
+  // Check for simple items with no answer options and throw error
   const itemsWithEmptyAnswerOptions = getEmptyAnswerOptions(
     questionnaireWithConfigSettings,
   );
   if (itemsWithEmptyAnswerOptions.length > 0) {
     itemsWithEmptyAnswerOptions.forEach((linkId) => {
-      issues.push(issueFactories.questionnaire.missingItemAnswerOption(questionnaireWithConfigSettings, linkId));
+      issues.push(
+        issueFactories.questionnaire.missingItemAnswerOption(
+          questionnaireWithConfigSettings,
+          linkId,
+        ),
+      );
     });
   }
 

@@ -1,14 +1,34 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { fas } from "@fortawesome/free-solid-svg-icons";
+import {
+  faFilter,
+  faFilterCircleXmark,
+  faCircleInfo,
+  faCaretLeft,
+  faCaretRight,
+  faTriangleExclamation,
+  faDownload,
+  faChevronLeft,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 import { server } from "./mocks/server";
 
-// Mirrors the library.add(fas) call in App.tsx, which components rely on to
+// Mirrors the library.add(...) call in App.tsx, which components rely on to
 // resolve icon names (e.g. ["fas", "caret-left"]) to renderable SVGs.
-library.add(fas);
+library.add(
+  faFilter,
+  faFilterCircleXmark,
+  faCircleInfo,
+  faCaretLeft,
+  faCaretRight,
+  faTriangleExclamation,
+  faDownload,
+  faChevronLeft,
+  faChevronRight,
+);
 
 // jsdom has no ResizeObserver implementation; echarts (via ReactEChartsWrapper)
 // requires one to exist on the container element.

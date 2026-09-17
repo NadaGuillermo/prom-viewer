@@ -1,10 +1,20 @@
+/*
+PROM Viewer: SMART on FHIR web application for visualizing patient-reported outcome measures (PROMs).
+Copyright (C) 2026 Thomas Eisenhauer
+
+This file is part of PROM Viewer.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License v3.0 or later.
+See the LICENSE file for details.
+*/
+
 import { describe, expect, it, vi } from "vitest";
 import { render } from "@testing-library/react";
 import * as echartsCore from "echarts/core";
 
 import LineChart from "@components/LineChart";
-import { ITEM_TYPES } from "@utils/mapping";
-import type { Visualization } from "@utils/visualization";
+import type * as Visualization from "@utils/visualization";
 
 // jsdom cannot render into <canvas>, so echarts.init is stubbed (see
 // ReactEChartsWrapper.test.tsx). These are smoke tests: they verify LineChart
@@ -31,7 +41,7 @@ const chartData: Visualization.ChartData = {
       data: [0.5, 0.7],
       originalData: [10, 14],
       dataLabels: [],
-      seriesType: ITEM_TYPES.score as Visualization.ItemType,
+      seriesType: "score",
       questionnaireId: "q1",
       questionnaireName: "PHQ-9",
     },
