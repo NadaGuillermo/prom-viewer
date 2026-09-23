@@ -119,4 +119,4 @@ Since those profiles are actively developed and haven't matured over a longer ti
 
 ## License
 
-GNU General Public License v3.0 (GPL-3.0). See [COPYING](COPYING) for details.
+GNU General Public License v3.0 (GPL-3.0). See [LICENSE](LICENSE) for details.
