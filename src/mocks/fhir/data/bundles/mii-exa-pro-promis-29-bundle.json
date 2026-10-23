@@ -564,7 +564,7 @@
             "linkId": "PROMIS-29.Scores"
           }
         ],
-        "questionnaire": "http://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-promis-29",
+        "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-promis-29",
         "status": "completed",
         "subject": {
           "reference": "Patient/patient-example-1"
