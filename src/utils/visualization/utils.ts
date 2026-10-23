@@ -757,8 +757,7 @@ export const extractItemsDataSeries = (
           correspondingQuestionnaireItem as Mapping.QuestionnaireScoreItem
         ).referenceQuestionnaireItems?.includes(series.id),
       );
-      const dimension =
-        correspondingQuestionnaireItem.dimension ?? series.shortName;
+      const dimension = series.shortName;
       const dimensionItems = domainData.filter((series) => {
         const questionnaire = questionnaires.find(
           (q) => q.id === series.questionnaireId,
