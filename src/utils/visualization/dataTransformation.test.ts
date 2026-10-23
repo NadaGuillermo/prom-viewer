@@ -33,7 +33,7 @@ const q1: Mapping.Questionnaire = {
     ranged: {
       linkId: "ranged",
       domain: "d",
-      text: "Ranged Item",
+      text: "Ranged Item with long text",
       range: [0, 4],
       answerOptions: [
         { value: 0, label: "low" },
@@ -51,7 +51,6 @@ const q1: Mapping.Questionnaire = {
     "score-dec": {
       linkId: "score-dec",
       domain: "d",
-      text: "Decreasing Score",
       range: [0, 27],
       scoreHealthCorrelation: "decrease",
       referenceRange: [
@@ -182,10 +181,16 @@ describe("createChartData", () => {
     expect(dimscore.shortName).toBe("dimscore");
   });
 
-  it("falls back to a 25-character-sliced linkId for shortName when shortText is absent", () => {
+  it("falls back to a 25-character-sliced text for shortName when shortText is absent", () => {
     const ranged = seriesById("ranged");
 
-    expect(ranged.shortName).toBe("ranged");
+    expect(ranged.shortName).toBe("Ranged Item with long tex");
+  });
+
+  it("falls back to a 25-character-sliced linkId for shortName when shortText and text are absent", () => {
+    const scoreDec = seriesById("score-dec");
+
+    expect(scoreDec.shortName).toBe("score-dec");
   });
 
   it("does not attach referenceValues to items without a referenceRange", () => {
