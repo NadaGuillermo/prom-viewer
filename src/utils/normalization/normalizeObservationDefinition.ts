@@ -20,7 +20,7 @@ export const normalizeObservationDefinition = (
 
   const observationRange = resource.qualifiedInterval?.find(
     (interval) =>
-      interval.category !== undefined && interval.category === "absolute",
+      interval.category !== undefined && (interval.category === "absolute" || interval.category === "reference"),
   )?.range;
   const lowerBoundary = observationRange?.low?.value;
   const upperBoundary = observationRange?.high?.value;
@@ -33,12 +33,12 @@ export const normalizeObservationDefinition = (
       (ext) =>
         ext.url ===
         "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/StructureDefinition/mii-ex-pro-score-score-health-correlation",
-    )?.valueString;
+    )?.valueCodeableConcept?.coding?.find((coding) => coding.code === "increase" || coding.code === "decrease")?.code;
 
   const referenceIntervals = resource.qualifiedInterval?.filter(
     (interval) =>
       interval.category !== undefined &&
-      (interval.category === "critical" || interval.category === "reference"),
+      (interval.category === "critical"),
   );
   const referenceRangeRaw:
     | {
