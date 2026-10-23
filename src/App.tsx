@@ -187,6 +187,9 @@ function App() {
   const [questionnaireResponses, setQuestionnaireResponses] = useState<
     Record<string, Mapping.QuestionnaireResponse>
   >({});
+  const [questionnaireResponsesWithAllData, setQuestionnaireResponsesWithAllData] = useState<
+    Record<string, Mapping.QuestionnaireResponse>
+  >({});
   const [dataIssues, setDataIssues] = useState<Errors.DataIssue[]>([]);
   const [dataIssuesForUser, setDataIssuesForUser] = useState<
     Errors.DataIssue[]
@@ -602,8 +605,16 @@ function App() {
       },
     );
 
+    const questionnaireResponsesWithAllItems: Record<string, Mapping.QuestionnaireResponse> = {};
+    promDataQuestionnaireResponsesWithoutErrors.forEach(
+      (questionnaireResponse) => {
+        questionnaireResponsesWithAllItems[questionnaireResponse.id] =
+          questionnaireResponse;
+      },
+    );
+
     /* Errors and Warnings */
-    const uniqueErrors = _.uniqBy(errors, (error) => error.id);
+    const uniqueErrors = _.uniqBy(errors, (error) => error.code + error.level + error.message + error.context);
     const errorsForDisplay = errors.filter((error) => error.showUser);
     const uniqueErrorsForDisplay: Errors.DataIssue[] = _.uniqBy(
       errorsForDisplay,
@@ -625,6 +636,7 @@ function App() {
     // Set variables
     setQuestionnaires(questionnaires);
     setQuestionnaireResponses(questionnaireResponsesWithFilteredItems);
+    setQuestionnaireResponsesWithAllData(questionnaireResponsesWithAllItems);
     setDataIssuesForUser(uniqueErrorsForDisplay);
     setDataIssues(uniqueErrors);
     setDomains(domainsFromConfig);
@@ -707,7 +719,7 @@ function App() {
 
     // Chart Data
     const chartData = createChartData(questionnaireResponsesForChart);
-    const allChartData = createChartData(questionnaireResponses);
+    const allChartData = createChartData(questionnaireResponsesWithAllData, true);
 
     // Data series for different charts
     const chartDataSeriesByDomain: Record<string, Visualization.DataSeries[]> =
@@ -842,6 +854,7 @@ function App() {
     dateRange,
     selectedDates,
     radarChartDate,
+    questionnaireResponsesWithAllData,
   ]);
 
   /* ----------------------- Filter state ------------------------ */
