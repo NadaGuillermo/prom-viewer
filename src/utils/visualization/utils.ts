@@ -78,7 +78,7 @@ export const getOriginalValueFromNormalizedValueAndDataSeriesName = (
     (yValue) => yValue !== null,
   );
 
-  let originalValue: GlobalTypes.NumberOrNull = null;
+  let originalValue: GlobalTypes.NumberOrStringOrNull = null;
 
   if (
     correspondingOriginalSeries !== undefined &&
@@ -166,7 +166,9 @@ export const getMinAndMaxAnswerOptionValueForItem = (
   const answerOptions = item.answerOptions;
   const answerOptionValues = answerOptions
     .map((opt) => opt.value)
-    .filter((val) => val !== null);
+    .filter((val) => val !== null)
+    .map((val) => Number(val))
+    .filter((val) => !isNaN(val));
   const minValue = Math.min(...answerOptionValues);
   const maxValue = Math.max(...answerOptionValues);
   return [minValue, maxValue];

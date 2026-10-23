@@ -1,6 +1,6 @@
 import { SCORE_HEALTH_CORRELATIONS, ITEM_TYPES } from "./constants";
 
-export type Value = number | null;
+export type Value = number | string | null;
 export type Item = QuestionnaireItem | QuestionnaireScoreItem;
 export type ScoreHealthCorrelation = typeof SCORE_HEALTH_CORRELATIONS[number];
 export type ItemType = typeof ITEM_TYPES[number];

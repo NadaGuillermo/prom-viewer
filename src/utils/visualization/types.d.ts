@@ -14,8 +14,8 @@ export interface DataSeries {
   id: string;
   name: string;
   shortName: string;
-  data: GlobalTypes.NumberOrNull[];
-  originalData: GlobalTypes.NumberOrNull[];
+  data: GlobalTypes.NumberOrStringOrNull[];
+  originalData: GlobalTypes.NumberOrStringOrNull[];
   dataLabels: string[];
   seriesType: ItemType;
   questionnaireId: string;
