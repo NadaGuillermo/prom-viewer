@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://example.com/example.json",
+    "$id": "tag:thomas.eisenhauer@fau.de,2026:prom-viewer",
     "title": "PROM Viewer Configuration",
     "description": "Configuration settings for PROM Viewer: defines questionnaires; maps questionnaire items with domains & scores with observation definitions; defines score ranges and score health correlations; defines global health dimensions",
     "type": "object",
@@ -117,23 +117,9 @@
                                                 "type": "boolean",
                                                 "description": "Flag that determines whether the item is treated as a score for a health dimension",
                                                 "$comment": "Scores of a questionnaire should be marked as scores. Sometimes even simple items can be scores"
-                                            },
-                                            "dimension": {
-                                                "type": "string",
-                                                "description": "Dimension to which is measured by the item",
-                                                "$comment": "If isDimensionScore is set to true, a dimension must be given. If the isDimensionScore is not set, an item is assigned to a dimension either through the value in this field or through reference in a dimension score's calculation expression"
                                             }
                                         },
-                                        "required": ["itemId"],
-                                        "if": {
-                                          "properties": {
-                                            "isDimensionScore": { "const": true }
-                                          },
-                                          "required": ["isDimensionScore"]
-                                        },
-                                        "then": {
-                                          "required": []
-                                        }
+                                        "required": ["itemId"]
                                     },
                                     "minItems": 1
                                 }

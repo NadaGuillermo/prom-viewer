@@ -110,7 +110,6 @@ Eine Liste von Domänen-Objekten:
 | `observationDefinition` | nein | Kanonische URI einer FHIR-`ObservationDefinition`, aus der z. B. Referenzbereiche übernommen werden können |
 | `scoreDefinitionId` | nein | Muss einer `id` aus `scoreDefinitions` entsprechen; ordnet dem Item eine Interpretationslogik zu |
 | `isDimensionScore` | nein | `true`, wenn das Item als Score für eine Gesundheitsdimension gilt (auch einzelne, unberechnete Items können das sein) |
-| `dimension` | nein/bedingt | Gesundheitsdimension, die gemessen wird. **Pflicht, wenn `isDimensionScore: true` gesetzt ist** |
 
 **Zwei Arten von Einträgen kommen in der Praxis vor:**
 
@@ -153,7 +152,6 @@ Eine einfache Liste von `itemId`-Werten (müssen bereits in `domainItemMapping` 
 4. **Items den Domänen zuordnen**: Für jede Domäne die zugehörigen `itemId`s (= `linkId`s aus der Questionnaire-Ressource) unter `questions` eintragen.
    - Rohitems ohne eigene Auswertung: nur `itemId` angeben.
    - Score-Items: zusätzlich `shortName`, `scoreDefinitionId`, `isDimensionScore: true` und ggf. `observationDefinition` angeben.
-   - Bei `isDimensionScore: true` **immer** `dimension` mit angeben (sofern nicht bereits über `domain` implizit klar – im Zweifel explizit setzen).
 5. **Globale Scores markieren**: Die `itemId`(s), die den Gesamtzustand des Fragebogens am besten repräsentieren, in `globalScores` eintragen.
 6. **Gegen das Schema validieren**: Datei mit einem JSON-Schema-Validator gegen `proms.schema.json` prüfen (Draft 2020-12).
 7. **Fachliche Prüfung**: Insbesondere `scoreHealthCorrelation` und `range` sollten stichprobenartig von medizinischem Fachpersonal gegengeprüft werden, da eine falsche Richtung (increase/decrease) zu einer fehlerhaften klinischen Interpretation im Viewer führt.
@@ -186,8 +184,7 @@ Eine einfache Liste von `itemId`-Werten (müssen bereits in `domainItemMapping` 
               "itemId": "score-gesamt",
               "shortName": "Gesamtscore",
               "scoreDefinitionId": "beispiel-score",
-              "isDimensionScore": true,
-              "dimension": "Beispiel-Domäne"
+              "isDimensionScore": true
             }
           ]
         }
@@ -206,7 +203,6 @@ Eine einfache Liste von `itemId`-Werten (müssen bereits in `domainItemMapping` 
 | --- | --- | --- |
 | `itemId` stimmt nicht mit `linkId` der FHIR-Questionnaire überein | Item wird im Viewer nicht angezeigt oder nicht korrekt zugeordnet | `linkId`s direkt aus der Questionnaire-Ressource kopieren |
 | `scoreDefinitionId` verweist auf keine existierende `id` in `scoreDefinitions` | Score kann nicht interpretiert werden | Nach dem Anlegen aller Score-Definitionen alle Referenzen gegenprüfen |
-| `isDimensionScore: true` ohne `dimension` | Schema-Validierung schlägt fehl | `dimension` bei jedem Dimension-Score verpflichtend mitangeben |
 | `shortName` länger als 25 Zeichen | Schema-Validierung schlägt fehl / Darstellung im Chart bricht um | Kurze, prägnante Bezeichnungen wählen |
 | `scoreHealthCorrelation` falsch gesetzt | Score wird im Viewer invertiert dargestellt (z. B. „schlecht" wird als „gut" angezeigt) | Fachlich mit klinischem Personal abstimmen |
 | Fehlende `globalScores`, obwohl ein Gesamtscore existiert | Kein übergreifender Gesundheitswert im Viewer sichtbar | Prüfen, ob ein Summenscore als globaler Wert gekennzeichnet werden soll |
@@ -235,6 +231,5 @@ proms.json
     │       ├── observationDefinition (URI)
     │       ├── scoreDefinitionId        (→ scoreDefinitions.id)
     │       ├── isDimensionScore
-    │       └── dimension                (Pflicht, wenn isDimensionScore=true)
     └── globalScores[]                   (→ itemId aus domainItemMapping)
 ```

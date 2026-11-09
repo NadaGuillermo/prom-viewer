@@ -23,6 +23,7 @@ import { normalizeValue } from "./helpers";
 
 export const createChartData = (
   questionnaireResponses: Record<string, Mapping.QuestionnaireResponse>,
+  onlyForTable = false,
 ): Visualization.ChartData => {
   const xData = createCommonTimeAxis(questionnaireResponses);
 
@@ -46,8 +47,8 @@ export const createChartData = (
     });
     const uniqueItemKeys = [...new Set(itemKeys)];
     uniqueItemKeys.forEach((linkId) => {
-      const data: GlobalTypes.NumberOrNull[] = [];
-      const originalData: GlobalTypes.NumberOrNull[] = [];
+      const data: GlobalTypes.NumberOrStringOrNull[] = [];
+      const originalData: GlobalTypes.NumberOrStringOrNull[] = [];
       const dataLabels: string[] = [];
       questionnaireResponses.forEach((questionnaireResponse) => {
         // item might not exist -> null value
@@ -55,9 +56,9 @@ export const createChartData = (
           linkId: linkId,
           answer: null,
         };
-        originalData.push(responseItem.answer);
-        // normlize everything
-        if (responseItem.answer !== null) {
+        // normalize everything
+        if (responseItem.answer !== null && onlyForTable === false) {
+          originalData.push(Number(responseItem.answer));
           const questionnaireItem =
             questionnaireResponse.questionnaire.items[linkId];
           if (isScoreItem(questionnaireItem)) {
@@ -66,7 +67,7 @@ export const createChartData = (
             // check if decreasing score health correlation
             if (questionnaireItem.scoreHealthCorrelation === "decrease") {
               const originalNormalizedValue = normalizeValue(
-                responseItem.answer,
+                Number(responseItem.answer),
                 min,
                 max,
               );
@@ -76,7 +77,7 @@ export const createChartData = (
               // increasing score health correlation
               data.push(
                 Number(
-                  normalizeValue(responseItem.answer, min, max).toFixed(3),
+                  normalizeValue(Number(responseItem.answer), min, max).toFixed(3),
                 ),
               );
             }
@@ -84,7 +85,7 @@ export const createChartData = (
           } else if (questionnaireItem.range !== undefined) {
             const [min, max] = questionnaireItem.range;
             data.push(
-              Number(normalizeValue(responseItem.answer, min, max).toFixed(3)),
+              Number(normalizeValue(Number(responseItem.answer), min, max).toFixed(3)),
             );
             dataLabels.push(
               questionnaireItem.answerOptions.find((answerOption) => {
@@ -97,7 +98,7 @@ export const createChartData = (
 
             if (questionnaireItem.scoreHealthCorrelation === "decrease") {
               const originalNormalizedValue = normalizeValue(
-                responseItem.answer,
+                Number(responseItem.answer),
                 min,
                 max,
               );
@@ -107,7 +108,7 @@ export const createChartData = (
               // increasing score health correlation
               data.push(
                 Number(
-                  normalizeValue(responseItem.answer, min, max).toFixed(3),
+                  normalizeValue(Number(responseItem.answer), min, max).toFixed(3),
                 ),
               );
             }
@@ -121,7 +122,7 @@ export const createChartData = (
             const [min, max] =
               getMinAndMaxAnswerOptionValueForItem(questionnaireItem);
             data.push(
-              Number(normalizeValue(responseItem.answer, min, max).toFixed(3)),
+              Number(normalizeValue(Number(responseItem.answer), min, max).toFixed(3)),
             );
             dataLabels.push(
               questionnaireItem.answerOptions.find((answerOption) => {
@@ -130,7 +131,8 @@ export const createChartData = (
             );
           }
         } else {
-          // do not normalize null values
+          // do not normalize null values or strings
+          originalData.push(responseItem.answer);
           data.push(responseItem.answer);
           dataLabels.push("");
         }
@@ -191,12 +193,13 @@ export const createChartData = (
         }
       }
 
-      const shortLinkId = linkId.slice(0, 25);
+      const shortenedText = questionnaire.items[linkId].text?.slice(0,25);
+      const shortenedLinkId = linkId.slice(0, 25);
 
       dataSeriesOfQuestionnaire.push({
         id: linkId,
         name: questionnaire.items[linkId].text ?? linkId,
-        shortName: questionnaire.items[linkId].shortText ?? shortLinkId,
+        shortName: questionnaire.items[linkId].shortText ?? shortenedText ?? shortenedLinkId,
         data: data,
         originalData: originalData,
         dataLabels: dataLabels,

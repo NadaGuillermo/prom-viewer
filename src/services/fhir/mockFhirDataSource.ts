@@ -53,7 +53,7 @@ const BUNDLE_NAMES: string[] = resolveFixtureNames(
   [
     "mii-exa-pro-eortc-qlq-c30-bundle",
     "mii-exa-pro-phq-9-bundle",
-    // "mii-exa-pro-promis-29-bundle",
+    "mii-exa-pro-promis-29-bundle",
   ],
 );
 

@@ -129,7 +129,7 @@ const RadarChart = ({
                 }
               },
             );
-            maxValue = domainSeriesWithMaxValue.data[indexOfDate];
+            maxValue = domainSeriesWithMaxValue.data[indexOfDate] === null ? null : Number(domainSeriesWithMaxValue.data[indexOfDate]);
             const domainSeriesWithMinValue = domainSeries.reduce(
               (minItem, item) => {
                 const itemValue = item.data[indexOfDate];
@@ -144,7 +144,7 @@ const RadarChart = ({
                 }
               },
             );
-            minValue = domainSeriesWithMinValue.data[indexOfDate];
+            minValue = domainSeriesWithMinValue.data[indexOfDate] === null ? null : Number(domainSeriesWithMinValue.data[indexOfDate]);
             chartData[questionnaireName][domain] = [minValue, maxValue];
           }
         });
@@ -181,6 +181,16 @@ const RadarChart = ({
       transformedData[questionnaireName] = [minValues, maxValues];
     },
   );
+
+  const dataForQuestionnaireIsOnlyZeroOrNull: Record<string, boolean> = {};
+
+  Object.entries(transformedData).forEach(([questionnaireName, values]) => {
+    if (values[1].every((val) => val[1] === null || val[1] === 0)) {
+      dataForQuestionnaireIsOnlyZeroOrNull[questionnaireName] = true;
+    } else {
+      dataForQuestionnaireIsOnlyZeroOrNull[questionnaireName] = false;
+    }
+  }); 
 
   const tooltipFormatter = (params: CallbackDataParams) => {
     const { seriesName } = params;
@@ -223,7 +233,7 @@ const RadarChart = ({
           name: questionnaireName,
           type: "radar" as const,
           z: 1,
-          symbol: "none",
+          symbol: dataForQuestionnaireIsOnlyZeroOrNull[questionnaireName] === true ? "circle" : "none",
           lineStyle: {
             width: 2,
             opacity: 1,

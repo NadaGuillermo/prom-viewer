@@ -67,13 +67,15 @@ export const mapQuestionnaireResponse = (
             isAnswerOptionCode(opt) &&
             (opt as Mapping.AnswerOptionCode).code === answerCode,
         )?.value;
-        answerNumber = value === null ? null : Number(value);
+        const label = answerOptions.find((opt) => isAnswerOptionCode(opt) && (opt as Mapping.AnswerOptionCode).code === answerCode)?.label;
+        // convert to number or use label if not possible
+        answerNumber = value === null || value === undefined ? null : isNaN(Number(value)) ? label : Number(value);
       }
     } else {
-      const answer = (item.answer as NormalizedFHIR.AnswerValue).value;
+      const value = (item.answer as NormalizedFHIR.AnswerValue).value;
       // check if answer options exist and if answer is among them
       if (
-        answer !== null &&
+        value !== null &&
         correspondingQuestionnaire !== undefined &&
         isQuestionnaireItem(correspondingQuestionnaire.items[linkId])
       ) {
@@ -83,23 +85,23 @@ export const mapQuestionnaireResponse = (
         ).answerOptions;
         if (answerOptions !== undefined && answerOptions.length > 0) {
           const answerOptionValues = answerOptions.map((opt) => opt.value);
-          if (!answerOptionValues.includes(answer)) {
+          if (!answerOptionValues.includes(value)) {
             issues.push(
               issueFactories.questionnaireResponse.invalidItemValue(
                 questionnaireResponse,
                 linkId,
-                answer,
+                value,
               ),
             );
           }
         }
       }
-      // Convert to number
-      answerNumber = answer === null ? null : Number(answer);
+      // convert to number or string if not possible
+      answerNumber = value === null || value === undefined ? null : isNaN(Number(value)) ? value.toString() : Number(value);
     }
 
     // Error: answer is not a number
-    if (Number.isNaN(answerNumber)) {
+    if (Number.isNaN(Number(answerNumber))) {
       issues.push(
         issueFactories.questionnaireResponse.invalidItemValueType(
           questionnaireResponse,

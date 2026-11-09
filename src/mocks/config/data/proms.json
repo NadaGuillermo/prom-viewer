@@ -54,9 +54,251 @@
       "id": "eortc-symptom",
       "range": [0, 100],
       "scoreHealthCorrelation": "decrease"
+    },
+    {
+      "id": "phq-9-score",
+      "range": [0, 27],
+      "scoreHealthCorrelation": "decrease"
+    },
+    {
+      "id": "promis-29-pain-intensity",
+      "scoreHealthCorrelation": "decrease"
+    },
+    {
+      "id": "promis-function-raw",
+      "scoreHealthCorrelation": "increase",
+      "range": [4,20]
+    },
+    {
+      "id": "promis-symptom-raw",
+      "scoreHealthCorrelation": "decrease",
+      "range": [4, 20]
     }
   ],
   "questionnaires": [
+    {
+      "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-promis-29",
+      "domainItemMapping": [
+        {
+          "domain": "Symptoms",
+          "questions": [
+            {
+              "itemId": "promis-29-fatigue-raw",
+              "shortName": "Fatigue Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-symptom-raw"              
+            },
+            {
+              "itemId": "promis-29-fatigue-tscore"
+            },
+            {
+              "itemId": "promis-hi7"
+            },
+            {
+              "itemId": "promis-an3"
+            },
+            {
+              "itemId": "promis-fatexp41"
+            },
+            {
+              "itemId": "promis-fatexp40"
+            },
+            {
+              "itemId": "promis-29-sleep-raw",
+              "shortName": "Sleep Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-symptom-raw"              
+            },
+            {
+              "itemId": "promis-29-sleep-tscore"
+            },
+            {
+              "itemId": "promis-sleep109"
+            },
+            {
+              "itemId": "promis-sleep116"
+            },
+            {
+              "itemId": "promis-sleep20"
+            },
+            {
+              "itemId": "promis-sleep44"
+            },
+            {
+              "itemId": "promis-29-anxiety-raw",
+              "shortName": "Anxiety Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-symptom-raw"              
+            },
+            {
+              "itemId": "promis-29-anxiety-tscore"
+            },
+            {
+              "itemId": "promis-edanx01"
+            },
+            {
+              "itemId": "promis-edanx40"
+            },
+            {
+              "itemId": "promis-edanx41"
+            },
+            {
+              "itemId": "promis-edanx53"
+            },
+            {
+              "itemId": "promis-29-depression-raw",
+              "shortName": "Depression Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-symptom-raw"              
+            },
+            {
+              "itemId": "promis-29-depression-tscore"
+            },
+            {
+              "itemId": "promis-eddep04"
+            },
+            {
+              "itemId": "promis-eddep06"
+            },
+            {
+              "itemId": "promis-eddep29"
+            },
+            {
+              "itemId": "promis-eddep41"
+            },
+             {
+              "itemId": "promis-29-pain-interference-raw",
+              "shortName": "Pain Interference Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-symptom-raw"              
+            },
+            {
+              "itemId": "promis-29-pain-interference-tscore"
+            },
+            {
+              "itemId": "PROMIS-29.PainInterference.Description"
+            },
+            {
+              "itemId": "promis-painin9"
+            },
+            {
+              "itemId": "promis-painin22"
+            },
+            {
+              "itemId": "promis-painin31"
+            },
+            {
+              "itemId": "promis-painin34"
+            }
+          ]
+        },
+        {
+          "domain": "Role Function",
+          "questions": [
+            {
+              "itemId": "promis-29-social-raw",
+              "shortName": "Social Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-function-raw"              
+            },
+            {
+              "itemId": "promis-29-social-tscore"
+            },
+            {
+              "itemId": "promis-srpper11-caps"
+            },
+            {
+              "itemId": "promis-srpper23-caps"
+            },
+            {
+              "itemId": "promis-srpper18-caps"
+            },
+            {
+              "itemId": "promis-srpper46-caps"
+            }
+          ]
+        },
+        {
+          "domain": "Physical Health",
+          "questions": [
+            {
+              "itemId": "promis-29-physical-function-raw",
+              "shortName": "Physical Raw",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "promis-function-raw"              
+            },
+            {
+              "itemId": "promis-29-physical-function-tscore"
+            },
+            {
+              "itemId": "promis-pfa11"
+            },
+            {
+              "itemId": "promis-pfa21"
+            },
+            {
+              "itemId": "promis-pfa23"
+            },
+            {
+              "itemId": "promis-pfa53"
+            },
+            {
+              "itemId": "promis-global07",
+              "isDimensionScore": true,
+              "observationDefinition": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/ObservationDefinition/mii-obsdef-pro-promis-29-pain-intensity",
+              "shortName": "Pain Intensity"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-phq-9",
+      "domainItemMapping": [
+        {
+          "domain": "Mental Health",
+          "questions": [
+            {
+              "itemId": "phq-phq9-q01"
+            },
+            {
+              "itemId": "phq-phq9-q02"
+            },
+            {
+              "itemId": "phq-phq9-q03"
+            },
+            {
+              "itemId": "phq-phq9-q04"
+            },
+            {
+              "itemId": "phq-phq9-q05"
+            },
+            {
+              "itemId": "phq-phq9-q06"
+            },
+            {
+              "itemId": "phq-phq9-q07"
+            },
+            {
+              "itemId": "phq-phq9-q08"
+            },
+            {
+              "itemId": "phq-phq9-q09"
+            },
+            {
+              "itemId": "phq-phq-q10"
+            },
+            {
+              "itemId": "phq-phq9-score-total",
+              "shortName": "Depression Symptoms",
+              "isDimensionScore": true,
+              "scoreDefinitionId": "phq-9-score"
+            }
+          ]
+        }
+      ],
+      "globalScores": []
+    },
     {
       "questionnaire": "https://www.medizininformatik-initiative.de/fhir/ext/modul-pro/Questionnaire/mii-qst-pro-euroqol-eq5d5l-minimal",
       "domainItemMapping": [
