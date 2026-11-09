@@ -15,3 +15,15 @@ Some Questionnaire profiles may define an answer option for an item for the case
 Consequently, this results in a flawed normalization of the values and the visualization can be misleading. There is no current way known of how to detect that answer option value if it is not simply `null`.
 
 In case of the EQ-5D-5L, the app uses the EQ-5D-5L *Minimal* questionnaire resource instead. The other questionnaires which are currently available on the Simplifier (EORTC QLQ-C30, PHQ-9, PROMIS-29) do not define an answer option for the *not selected* case and therefore do not cause this issue.
+
+Sometimes there are items which only have an informative purpose, e.g. if displaying a text that helps understand other questions or item texts. In such cases, the informative item is not displayed since there are no answer options defined for it and the potential connection to other items cannot be deduced from the resource. The PROMIS-29 FHIR Questionnaire profile can serve as an example. There the item with linkId `PROMIS-29.Fatigue.Description` can be considered as additional information for the subsequent items:
+
+```json
+{
+  "linkId": "PROMIS-29.Fatigue.Description",
+  "type": "display",
+  "text": "In den vergangenen 7 Tagen..."
+}
+```
+
+Other items then continue the phrase in there `text` field, e.g. "...fühlte ich mich erschöpft". The app only displays the latter item with the incomplete text attribute.
